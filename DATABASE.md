@@ -14,10 +14,10 @@ CREATE TABLE Roles (
 -- PARENT TABLE: Users
 CREATE TABLE Users (
     Id int NOT NULL AUTO_INCREMENT,
+    RoleId int,
     Username VARCHAR(255) NOT NULL UNIQUE,
     PasswordHash varchar(255) NOT NULL,
     Email varchar(255) NOT NULL UNIQUE,
-    RoleId int,
     PRIMARY KEY (Id),
 
     CONSTRAINT fk_role
