@@ -1,0 +1,78 @@
+-- Create a Database
+CREATE DATABASE userDB;
+USE userDB;
+
+
+-- PARENT TABLE: Roles
+CREATE TABLE Roles (
+    Id int NOT NULL AUTO_INCREMENT,
+    Name VARCHAR(50) NOT NULL UNIQUE,
+    Description VARCHAR(255),
+    PRIMARY KEY (Id)
+);
+
+-- PARENT TABLE: Users
+CREATE TABLE Users (
+    Id int NOT NULL AUTO_INCREMENT,
+    Username VARCHAR(255) NOT NULL UNIQUE,
+    PasswordHash varchar(255) NOT NULL,
+    Email varchar(255) NOT NULL UNIQUE,
+    RoleId int,
+    PRIMARY KEY (Id),
+
+    CONSTRAINT fk_role
+        FOREIGN KEY (RoleId) REFERENCES Roles(id)
+);
+
+-- INFO TABLE: Admins (Child of Users)
+CREATE TABLE Admins (
+    id int NOT NULL AUTO_INCREMENT,
+    UserId INT NOT NULL UNIQUE,
+    Name varchar(255),
+    position varchar(255),
+    PRIMARY KEY (Id),
+
+    CONSTRAINT fk_admin_user
+        FOREIGN KEY (UserId) REFERENCES Users(id)
+)
+
+-- INFO TABLE: Students (Child of Users)
+CREATE TABLE Students (
+    Id int NOT NULL AUTO_INCREMENT,
+    UserId INT NOT NULL UNIQUE,
+    StudentNumber VARCHAR(50) NOT NULL UNIQUE,
+    Name varchar(255),
+    Gender varchar(50), 
+    Age int,
+    Course varchar (10),
+    YearLevel int,
+    Email VARCHAR(255) UNIQUE,
+    PRIMARY KEY (Id),
+
+    CONSTRAINT fk_student_user
+        FOREIGN KEY (UserId) REFERENCES Users(id)
+)
+
+-- INDEPENDENT TABLE: Schedules
+CREATE TABLE Schedules (
+    Id int NOT NULL AUTO_INCREMENT,
+    Subject varchar (255) NOT NULL,
+    Teacher varchar (255),
+    Room varchar (10),
+    TimeStart TIME,
+    TimeEnd TIME,
+    PRIMARY KEY (Id),
+)
+
+-- JUNCTION TABLE: StudentSchedules (Many-to-Many)
+CREATE TABLE StudentSchedules (
+    UserId INT NOT NULL,
+    ScheduleId INT NOT NULL,
+    PRIMARY KEY (UserId, ScheduleId),
+
+    CONSTRAINT fk_schedule_user
+        FOREIGN KEY (UserId) REFERENCES Users(id),
+    
+    CONSTRAINT fk_schedule_ref
+        FOREIGN KEY (ScheduleId) REFERENCES Schedules(id)
+)
