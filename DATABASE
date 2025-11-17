@@ -2,7 +2,6 @@
 CREATE DATABASE userDB;
 USE userDB;
 
-
 -- PARENT TABLE: Roles
 CREATE TABLE Roles (
     Id int NOT NULL AUTO_INCREMENT,
