@@ -2,76 +2,110 @@
 CREATE DATABASE userDB;
 USE userDB;
 
--- PARENT TABLE: Roles
+-- PARENT TABLE 1: Roles
 CREATE TABLE Roles (
-    Id int NOT NULL AUTO_INCREMENT,
-    Name VARCHAR(50) NOT NULL UNIQUE,
-    Description VARCHAR(255),
-    PRIMARY KEY (Id)
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255),
+    PRIMARY KEY (id)
 );
 
--- PARENT TABLE: Users
+-- PARENT TABLE 2: Departments 
+CREATE TABLE Departments (
+    id INT NOT NULL AUTO_INCREMENT,
+    departName VARCHAR(255) NOT NULL UNIQUE, 
+    PRIMARY KEY (id)
+);
+
+-- PARENT TABLE 3: Courses 
+CREATE TABLE Courses (
+    id INT NOT NULL AUTO_INCREMENT,
+    courseCode VARCHAR(10) NOT NULL UNIQUE,
+    courseName VARCHAR(255) NOT NULL,
+    departmentId INT NOT NULL,
+    PRIMARY KEY (id),
+    
+    CONSTRAINT fk_course_dept
+        FOREIGN KEY (departmentId) REFERENCES Departments(id)
+);
+
+-- PARENT TABLE 4: Users
 CREATE TABLE Users (
-    Id int NOT NULL AUTO_INCREMENT,
-    RoleId int,
-    Username VARCHAR(255) NOT NULL UNIQUE,
-    PasswordHash varchar(255) NOT NULL,
-    Email varchar(255) NOT NULL UNIQUE,
-    PRIMARY KEY (Id),
+    id INT NOT NULL AUTO_INCREMENT,
+    roleId INT,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    passwordHash VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    PRIMARY KEY (id),
 
     CONSTRAINT fk_role
-        FOREIGN KEY (RoleId) REFERENCES Roles(id)
+        FOREIGN KEY (roleId) REFERENCES Roles(id)
 );
 
 -- INFO TABLE: Admins (Child of Users)
 CREATE TABLE Admins (
-    id int NOT NULL AUTO_INCREMENT,
-    UserId INT NOT NULL UNIQUE,
-    Name varchar(255),
-    position varchar(255),
-    PRIMARY KEY (Id),
+    id INT NOT NULL AUTO_INCREMENT,
+    userId INT NOT NULL UNIQUE,
+    name VARCHAR(255),
+    position VARCHAR(255),
+    PRIMARY KEY (id),
 
     CONSTRAINT fk_admin_user
-        FOREIGN KEY (UserId) REFERENCES Users(id)
-)
+        FOREIGN KEY (userId) REFERENCES Users(id)
+);
+
+-- INFO TABLE: Teachers 
+CREATE TABLE Teachers (
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE,
+    department VARCHAR(50),
+    PRIMARY KEY (id)
+);
 
 -- INFO TABLE: Students (Child of Users)
 CREATE TABLE Students (
-    Id int NOT NULL AUTO_INCREMENT,
-    UserId INT NOT NULL UNIQUE,
-    StudentNumber VARCHAR(50) NOT NULL UNIQUE,
-    Name varchar(255),
-    Gender varchar(50), 
-    Age int,
-    Course varchar (10),
-    YearLevel int,
-    Email VARCHAR(255) UNIQUE,
-    PRIMARY KEY (Id),
+    id INT NOT NULL AUTO_INCREMENT,
+    userId INT NOT NULL UNIQUE,
+    studentNumber VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(255),
+    gender VARCHAR(50), 
+    age INT,
+    courseId INT NOT NULL,
+    yearLevel INT,
+    email VARCHAR(255) UNIQUE,
+    PRIMARY KEY (id),
 
     CONSTRAINT fk_student_user
-        FOREIGN KEY (UserId) REFERENCES Users(id)
-)
+        FOREIGN KEY (userId) REFERENCES Users(id),
 
--- INDEPENDENT TABLE: Schedules
+    CONSTRAINT fk_student_course
+        FOREIGN KEY (courseId) REFERENCES Courses(id)
+);
+
+-- INDEPENDENT TABLE: Schedules 
 CREATE TABLE Schedules (
-    Id int NOT NULL AUTO_INCREMENT,
-    Subject varchar (255) NOT NULL,
-    Teacher varchar (255),
-    Room varchar (10),
-    TimeStart TIME,
-    TimeEnd TIME,
-    PRIMARY KEY (Id),
-)
+    id INT NOT NULL AUTO_INCREMENT,
+    subject VARCHAR (255) NOT NULL,
+    teacherId INT NOT NULL, 
+    room VARCHAR (10),
+    timeStart TIME,
+    timeEnd TIME,
+    PRIMARY KEY (id), 
+    
+    CONSTRAINT fk_schedule_teacher
+        FOREIGN KEY (teacherId) REFERENCES Teachers(id)
+);
 
 -- JUNCTION TABLE: StudentSchedules (Many-to-Many)
 CREATE TABLE StudentSchedules (
-    UserId INT NOT NULL,
-    ScheduleId INT NOT NULL,
-    PRIMARY KEY (UserId, ScheduleId),
+    userId INT NOT NULL,
+    scheduleId INT NOT NULL,
+    PRIMARY KEY (userId, scheduleId),
 
     CONSTRAINT fk_schedule_user
-        FOREIGN KEY (UserId) REFERENCES Users(id),
+        FOREIGN KEY (userId) REFERENCES Users(id),
     
     CONSTRAINT fk_schedule_ref
-        FOREIGN KEY (ScheduleId) REFERENCES Schedules(id)
-)
+        FOREIGN KEY (scheduleId) REFERENCES Schedules(id)
+);
