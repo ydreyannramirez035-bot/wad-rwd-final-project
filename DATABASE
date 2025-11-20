@@ -13,7 +13,7 @@ CREATE TABLE Roles (
 -- PARENT TABLE 2: Departments 
 CREATE TABLE Departments (
     id INT NOT NULL AUTO_INCREMENT,
-    departName VARCHAR(255) NOT NULL UNIQUE, 
+    name VARCHAR(255) NOT NULL UNIQUE,
     PRIMARY KEY (id)
 );
 
@@ -29,7 +29,7 @@ CREATE TABLE Courses (
         FOREIGN KEY (departmentId) REFERENCES Departments(id)
 );
 
--- PARENT TABLE 4: Users
+-- PARENT TABLE 4: Users (Centralized Login)
 CREATE TABLE Users (
     id INT NOT NULL AUTO_INCREMENT,
     roleId INT,
@@ -46,7 +46,7 @@ CREATE TABLE Users (
 CREATE TABLE Admins (
     id INT NOT NULL AUTO_INCREMENT,
     userId INT NOT NULL UNIQUE,
-    name VARCHAR(255),
+    name VARCHAR(255) NOT NULL, 
     position VARCHAR(255),
     PRIMARY KEY (id),
 
@@ -57,10 +57,26 @@ CREATE TABLE Admins (
 -- INFO TABLE: Teachers 
 CREATE TABLE Teachers (
     id INT NOT NULL AUTO_INCREMENT,
+    userId INT NOT NULL UNIQUE, 
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE,
-    department VARCHAR(50),
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    
+    CONSTRAINT fk_teacher_user 
+        FOREIGN KEY (userId) REFERENCES Users(id)
+);
+
+-- JUNCTION TABLE: TeacherDepartments (Many-to-Many Assignment)
+CREATE TABLE TeacherDepartments (
+    teacherId INT NOT NULL,
+    departmentId INT NOT NULL,
+    PRIMARY KEY (teacherId, departmentId),
+
+    CONSTRAINT fk_td_teacher
+        FOREIGN KEY (teacherId) REFERENCES Teachers(id),
+        
+    CONSTRAINT fk_td_dept
+        FOREIGN KEY (departmentId) REFERENCES Departments(id)
 );
 
 -- INFO TABLE: Students (Child of Users)
@@ -68,7 +84,7 @@ CREATE TABLE Students (
     id INT NOT NULL AUTO_INCREMENT,
     userId INT NOT NULL UNIQUE,
     studentNumber VARCHAR(50) NOT NULL UNIQUE,
-    name VARCHAR(255),
+    name VARCHAR(255) NOT NULL,
     gender VARCHAR(50), 
     age INT,
     courseId INT NOT NULL,
@@ -97,7 +113,7 @@ CREATE TABLE Schedules (
         FOREIGN KEY (teacherId) REFERENCES Teachers(id)
 );
 
--- JUNCTION TABLE: StudentSchedules (Many-to-Many)
+-- JUNCTION TABLE: StudentSchedules (Many-to-Many Enrollment)
 CREATE TABLE StudentSchedules (
     userId INT NOT NULL,
     scheduleId INT NOT NULL,
