@@ -3,125 +3,95 @@ CREATE DATABASE userDB;
 USE userDB;
 
 -- PARENT TABLE 1: Roles
-CREATE TABLE Roles (
-    id INT NOT NULL AUTO_INCREMENT,
-    name VARCHAR(50) NOT NULL UNIQUE,
-    description VARCHAR(255),
-    PRIMARY KEY (id)
-);
+$db->exec('CREATE TABLE IF NOT EXISTS roles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT,
+    )');
 
 -- PARENT TABLE 2: Departments 
-CREATE TABLE Departments (
-    id INT NOT NULL AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    PRIMARY KEY (id)
-);
+$db->exec('CREATE TABLE IF NOT EXISTS departments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    )');
 
 -- PARENT TABLE 3: Courses 
-CREATE TABLE Courses (
-    id INT NOT NULL AUTO_INCREMENT,
-    courseCode VARCHAR(10) NOT NULL UNIQUE,
-    courseName VARCHAR(255) NOT NULL,
-    departmentId INT NOT NULL,
-    PRIMARY KEY (id),
-    
-    CONSTRAINT fk_course_dept
-        FOREIGN KEY (departmentId) REFERENCES Departments(id)
-);
+$db->exec('CREATE TABLE IF NOT EXISTS courses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    courseCode TEXT NOT NULL UNIQUE,
+    courseName TEXT NOT NULL,
+    departmentId INTEGER NOT NULL,
+    FOREIGN KEY (departmentId) REFERENCES departments(id)
+)');
 
 -- PARENT TABLE 4: Users (Centralized Login)
-CREATE TABLE Users (
-    id INT NOT NULL AUTO_INCREMENT,
-    roleId INT,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    passwordHash VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    PRIMARY KEY (id),
-
-    CONSTRAINT fk_role
-        FOREIGN KEY (roleId) REFERENCES Roles(id)
-);
+$db->exec('CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    roleId INTEGER NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    passwordHash TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    FOREIGN KEY (roleId) REFERENCES roles(id)
+)');
 
 -- INFO TABLE: Admins (Child of Users)
-CREATE TABLE Admins (
-    id INT NOT NULL AUTO_INCREMENT,
-    userId INT NOT NULL UNIQUE,
-    name VARCHAR(255) NOT NULL, 
-    position VARCHAR(255),
-    PRIMARY KEY (id),
-
-    CONSTRAINT fk_admin_user
-        FOREIGN KEY (userId) REFERENCES Users(id)
-);
+$db->exec('CREATE TABLE IF NOT EXISTS admins (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL UNIQUE,
+    name TEXT NOT NULL, 
+    position TEXT,
+    FOREIGN KEY (userId) REFERENCES users(id)
+)');
 
 -- INFO TABLE: Teachers 
-CREATE TABLE Teachers (
-    id INT NOT NULL AUTO_INCREMENT,
-    userId INT NOT NULL UNIQUE, 
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE,
-    PRIMARY KEY (id),
-    
-    CONSTRAINT fk_teacher_user 
-        FOREIGN KEY (userId) REFERENCES Users(id)
-);
+$db->exec('CREATE TABLE IF NOT EXISTS teachers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL UNIQUE, 
+    name TEXT NOT NULL,
+    email TEXT UNIQUE,
+    FOREIGN KEY (userId) REFERENCES users(id)
+)');
 
 -- JUNCTION TABLE: TeacherDepartments (Many-to-Many Assignment)
-CREATE TABLE TeacherDepartments (
-    teacherId INT NOT NULL,
-    departmentId INT NOT NULL,
+$db->exec('CREATE TABLE IF NOT EXISTS teacherDepartments (
+    teacherId INTEGER NOT NULL,
+    departmentId INTEGER NOT NULL,
     PRIMARY KEY (teacherId, departmentId),
-
-    CONSTRAINT fk_td_teacher
-        FOREIGN KEY (teacherId) REFERENCES Teachers(id),
-        
-    CONSTRAINT fk_td_dept
-        FOREIGN KEY (departmentId) REFERENCES Departments(id)
-);
+    FOREIGN KEY (teacherId) REFERENCES teachers(id),
+    FOREIGN KEY (departmentId) REFERENCES departments(id)
+)');
 
 -- INFO TABLE: Students (Child of Users)
-CREATE TABLE Students (
-    id INT NOT NULL AUTO_INCREMENT,
-    userId INT NOT NULL UNIQUE,
-    studentNumber VARCHAR(50) NOT NULL UNIQUE,
-    name VARCHAR(255) NOT NULL,
-    gender VARCHAR(50), 
-    age INT,
-    courseId INT NOT NULL,
-    yearLevel INT,
-    email VARCHAR(255) UNIQUE,
-    PRIMARY KEY (id),
-
-    CONSTRAINT fk_student_user
-        FOREIGN KEY (userId) REFERENCES Users(id),
-
-    CONSTRAINT fk_student_course
-        FOREIGN KEY (courseId) REFERENCES Courses(id)
-);
+$db->exec('CREATE TABLE IF NOT EXISTS students (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL UNIQUE,
+    studentNumber TEXT(50) NOT NULL UNIQUE,
+    name TEXT(255) NOT NULL,
+    gender TEXT(50), 
+    age INTEGER,
+    courseId INTEGER NOT NULL,
+    yearLevel INTEGER,
+    email TEXT(255) UNIQUE,
+    FOREIGN KEY (userId) REFERENCES users(id),
+    FOREIGN KEY (courseId) REFERENCES courses(id)
+)');
 
 -- INDEPENDENT TABLE: Schedules 
-CREATE TABLE Schedules (
-    id INT NOT NULL AUTO_INCREMENT,
-    subject VARCHAR (255) NOT NULL,
-    teacherId INT NOT NULL, 
-    room VARCHAR (10),
+$db->exec('CREATE TABLE IF NOT EXISTS schedules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subject TEXT NOT NULL,
+    teacherId INTEGER NOT NULL, 
+    room TEXT(10),
     timeStart TIME,
     timeEnd TIME,
-    PRIMARY KEY (id), 
-    
-    CONSTRAINT fk_schedule_teacher
-        FOREIGN KEY (teacherId) REFERENCES Teachers(id)
-);
+    FOREIGN KEY (teacherId) REFERENCES teachers(id)
+);');
 
 -- JUNCTION TABLE: StudentSchedules (Many-to-Many Enrollment)
-CREATE TABLE StudentSchedules (
-    userId INT NOT NULL,
-    scheduleId INT NOT NULL,
+$db->exec('CREATE TABLE IF NOT EXISTS studentSchedules (
+    userId INTEGER NOT NULL,
+    scheduleId INTEGER NOT NULL,
     PRIMARY KEY (userId, scheduleId),
-
-    CONSTRAINT fk_schedule_user
-        FOREIGN KEY (userId) REFERENCES Users(id),
-    
-    CONSTRAINT fk_schedule_ref
-        FOREIGN KEY (scheduleId) REFERENCES Schedules(id)
-);
+    FOREIGN KEY (userId) REFERENCES users(id),
+    FOREIGN KEY (scheduleId) REFERENCES schedules(id)
+);');

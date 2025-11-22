@@ -13,13 +13,13 @@ $user = $_SESSION["user"];
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
 </head>
 
 <body>
     <div class="container">
         <h2>Welcome, <?php echo htmlspecialchars($user["name"]); ?>!</h2>
-        <p>You are now logged into the Student Portal.</p>
+        <p>You are now logged into the Admin Portal.</p>
         <a href="logout.php" class="btn">Logout</a>
     </div>
 </body>

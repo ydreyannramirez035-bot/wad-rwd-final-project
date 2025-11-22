@@ -1,6 +1,30 @@
 <?php
 session_start();
+require_once __DIR__ . "/db.php";
 
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = trim($_POST["email"]);
+    $password = trim($_POST["password"]);
+
+    $db = get_db();
+    if (method_exists($db, 'enableExceptions')) { $db->enableExceptions(true); }
+    $stmt = $db->prepare("SELECT id, username, email, passwordHash FROM users WHERE email = ?");
+    $stmt->bindValue(1, $email, SQLITE3_TEXT);
+    $result = $stmt->execute();
+    $user = $result ? $result->fetchArray(SQLITE3_ASSOC) : null;
+
+    if ($user && password_verify($password, $user["passwordHash"])) {
+        $_SESSION["user"] = [
+            "id" => $user["id"],
+            "name" => $user["username"],
+            "email" => $user["email"]
+        ];
+
+        header("Location: admin_dashboard.php");
+        exit;
+    }
+    $error = "Invalid email or password.";
+}
 ?>
 
 <!DOCTYPE html>
@@ -9,7 +33,7 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
 </head>
 
 <body>
