@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt = $db->prepare("SELECT id, username, email, passwordHash FROM users WHERE email = ?");
     $stmt->bindValue(1, $email, SQLITE3_TEXT);
     $result = $stmt->execute();
-    $user = $result ? $result->fetchArray(SQLITE3_ASSOC) : null;
+    $user = $result->fetchArray(SQLITE3_ASSOC);
 
     if ($user && password_verify($password, $user["passwordHash"])) {
         $_SESSION["user"] = [

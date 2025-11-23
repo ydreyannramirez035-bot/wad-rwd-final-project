@@ -43,9 +43,9 @@ function get_db(): SQLite3
     $db->exec('CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         roleId INTEGER NOT NULL,
-        username TEXT NOT NULL UNIQUE,
-        passwordHash TEXT NOT NULL,
+        username TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
+        passwordHash TEXT NOT NULL,
         FOREIGN KEY (roleId) REFERENCES roles(id)
     )');
 
