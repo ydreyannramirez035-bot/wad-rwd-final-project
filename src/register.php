@@ -20,10 +20,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Check if email already exists
         $stmt = $db->prepare("SELECT 1 FROM users WHERE email = ?");
         $stmt->bindValue(1, $email, SQLITE3_TEXT);
-        $res = $stmt->execute();
-        $row = $res ? $res->fetchArray(SQLITE3_NUM) : null;
-        $existing = $row[0] ?? null;
-        if ($existing) {
+        $result = $stmt->execute();
+        if ($result->fetchArray()) {
             $error = "Email already registered.";
         } 
         else {
@@ -35,7 +33,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $error = nl2br($passwordCheck);
             } 
             else {
-                // Validation passed → create account
                 
                 // Determine role: first user = admin
                 $roleAdmin = $db->querySingle("SELECT id FROM roles WHERE name='admin'");
