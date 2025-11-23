@@ -19,7 +19,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             "email" => $user["email"]
         ];
 
-        header("Location: admin_dashboard.php");
+        if ($user["username"] == "admin") {
+            header("Location: admin_dashboard.php");
+            exit;
+        }
+
+        header("Location: student_dashboard.php");
         exit;
     }
     $error = "Invalid email or password.";
