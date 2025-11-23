@@ -7,7 +7,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = trim($_POST["password"]);
 
     $db = get_db();
-    if (method_exists($db, 'enableExceptions')) { $db->enableExceptions(true); }
     $stmt = $db->prepare("SELECT id, username, email, passwordHash FROM users WHERE email = ?");
     $stmt->bindValue(1, $email, SQLITE3_TEXT);
     $result = $stmt->execute();
