@@ -16,6 +16,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     else if ($password !== $confirmPassword) {
         $error = "Passwords do not match.";
     }
+    else if (strlen($password) < 8) {
+        $error = "Password must be at least 8 characters long.";
+    }
+    else if (!preg_match('@[A-Z]@', $password)) {
+        $error = "Password must include at least one uppercase letter.";
+    }
+    else if (!preg_match('@[a-z]@', $password)) {
+        $error = "Password must include at least one lowercase letter.";
+    }
+    else if (!preg_match('@[0-9]@', $password)) {
+        $error = "Password must include at least one number.";
+    }
+    else if (!preg_match('/[^a-zA-Z0-9]/', $password)) {
+        $error = "Password must include at least one special character.";
+    }
     else {
         // Check if email already exists
         $stmt = $db->prepare("SELECT 1 FROM users WHERE email = ?");
@@ -24,16 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($result->fetchArray()) {
             $error = "Email already registered.";
         } 
-        else {
-            // CALL PASSWORD VALIDATOR HERE
-            $passwordCheck = PasswordValidator::validate($password);
-
-            if ($passwordCheck !== true) {
-                // Validation failed → send error
-                $error = nl2br($passwordCheck);
-            } 
-            else {
-                
+        else { 
                 // Determine role: first user = admin
                 $roleAdmin = $db->querySingle("SELECT id FROM roles WHERE name='admin'");
                 $roleStudent = $db->querySingle("SELECT id FROM roles WHERE name='student'");
@@ -57,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
     }
-}
+
 ?>
 
 <!DOCTYPE html>
