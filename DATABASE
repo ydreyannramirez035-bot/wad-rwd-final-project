@@ -12,33 +12,40 @@ function get_db(): SQLite3
     // CRITICAL: Enable Foreign Key enforcement in SQLite
     $db->exec('PRAGMA foreign_keys = ON;');
 
-    //PARENT TABLE 1: Roles
+    // --- PARENT TABLE 1: Roles ---
     $db->exec('CREATE TABLE IF NOT EXISTS roles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
         description TEXT
-        )');
+    )');
 
-    // I want to dynamic to inserting the name, and description` for the role
-    $db->exec("
-    INSERT OR IGNORE INTO roles (name, description) VALUES
-    ('admin', 'Full access to the system, can manage users and settings'),
-    ('student', 'Regular user with standard access');
-    ");
+    // FIX: Check if roles exist before trying to insert
+    $roleCount = $db->querySingle("SELECT COUNT(*) FROM roles");
+    if ($roleCount == 0) {
+        $db->exec("
+            INSERT INTO roles (name, description) VALUES
+            ('admin', 'Full access to the system, can manage users and settings'),
+            ('student', 'Regular user with standard access');
+        ");
+    }
     
-    // PARENT TABLE 2: Courses 
+    // --- PARENT TABLE 2: Courses ---
     $db->exec('CREATE TABLE IF NOT EXISTS courses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         course_name TEXT NOT NULL UNIQUE
     )');
 
-    $db->exec("
-        INSERT OR IGNORE INTO courses (course_name) VALUES
-        ('Bachelor of Science in Information System'),
-        ('Associate in Computer Technology')
-    ");
+    // FIX: Check if courses exist before inserting
+    $courseCount = $db->querySingle("SELECT COUNT(*) FROM courses");
+    if ($courseCount == 0) {
+        $db->exec("
+            INSERT INTO courses (course_name) VALUES
+            ('Bachelor of Science in Information System'),
+            ('Associate in Computer Technology');
+        ");
+    }
 
-    // PARENT TABLE 3: Users (Centralized Login)
+    // --- PARENT TABLE 3: Users ---
     $db->exec('CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         role_id INTEGER NOT NULL,
@@ -48,34 +55,47 @@ function get_db(): SQLite3
         FOREIGN KEY (role_id) REFERENCES roles(id)
     )');
 
-    // INFO TABLE: Teachers 
+    // --- INFO TABLE: Teachers ---
     $db->exec('CREATE TABLE IF NOT EXISTS teachers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE
     )');
 
-    $db->exec("
-        INSERT OR IGNORE INTO teachers (name) VALUES
-        ('John Doe'),
-        ('Jane Smith'),
-        ('Mark Johnson'),
-        ('Emily Davis'),
-        ('Michael Brown'),
-        ('Sarah Wilson'),
-        ('William Taylor'),
-        ('Olivia Moore'),
-        ('James Anderson'),
-        ('Sophia Martin')
-    ");
+    // FIX: Check if teachers exist before inserting
+    $teacherCount = $db->querySingle("SELECT COUNT(*) FROM teachers");
+    if ($teacherCount == 0) {
+        $db->exec("
+            INSERT INTO teachers (name) VALUES
+            ('John Doe'), ('Jane Smith'), ('Mark Johnson'),
+            ('Emily Davis'), ('Michael Brown'), ('Sarah Wilson'),
+            ('William Taylor'), ('Olivia Moore'), ('James Anderson'),
+            ('Sophia Martin');
+        ");
+    }
 
-    // INFO TABLE: Students (Child of Users)
+    $db->exec("CREATE TABLE IF NOT EXISTS subjects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        subject_name TEXT NOT NULL UNIQUE
+    )");
+    $subjectCount = $db->querySingle("SELECT COUNT(*) FROM subjects");
+    if ($subjectCount == 0) {
+        $db->exec("
+            INSERT INTO subjects (subject_name) VALUES
+            ('The Contemporary World'), ('Christian Teaching 3'), ('Responsive Web Design'), 
+            ('Data Structure and Algorithm'), ('Pagtuturo at Pagtataya sa Pagbasa at Pagsulat'),
+            ('IS Infra & Network Tech'), ('Path Fit 3'), ('Organization and Management Concepts'), ('Web Application Dev1'),
+            ('Life & Works of Rizal');
+        ");
+    }
+
+    // --- INFO TABLE: Students ---
     $db->exec('CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER UNIQUE,
         student_number TEXT(50) NOT NULL,
         last_name TEXT(50) NOT NULL,
         first_name TEXT(50),
-	    middle_name TEXT(50),
+        middle_name TEXT(50),
         age INTEGER,
         course_id INTEGER NOT NULL,
         year_level INTEGER,
@@ -85,19 +105,20 @@ function get_db(): SQLite3
     )');
 
 
-    // INDEPENDENT TABLE: Schedules 
+    // --- INDEPENDENT TABLE: Schedules ---
     $db->exec('CREATE TABLE IF NOT EXISTS schedules (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         day TEXT NOT NULL,
-        subject TEXT NOT NULL,
+        subject_id INTEGER NOT NULL,
         teacher_id INTEGER UNIQUE, 
         room TEXT(10),
         time_start TIME,
         time_end TIME,
-        FOREIGN KEY (teacher_id) REFERENCES teachers(id)
+        FOREIGN KEY (teacher_id) REFERENCES teachers(id),
+        FOREIGN KEY (subject_id) REFERENCES subjects(id)
     );');
 
-    // JUNCTION TABLE: StudentSchedules (Many-to-Many Enrollment)
+    // --- JUNCTION TABLE: StudentSchedules ---
     $db->exec('CREATE TABLE IF NOT EXISTS studentSchedules (
         user_id INTEGER NOT NULL,
         schedule_id INTEGER NOT NULL,

@@ -1,57 +1,73 @@
 <?php
 session_start();
 
-// 1. Security Check
+// --- CONFIGURATION & DATABASE ---
+require_once __DIR__ . "/db.php";
+$db = get_db();
+
+// Constants
+define('COURSE_BSIS', 1);
+define('COURSE_ACT', 2);
+
+// Security Check
 if (!isset($_SESSION["user"])) {
     header("Location: login.php");
     exit;
 }
 
-require_once __DIR__ . "/db.php";
-$db = get_db();
-
-define('COURSE_BSIS', 1);
-define('COURSE_ACT', 2);
-
+// Initialize Variables
 $action = $_GET["action"] ?? "list";
 $msg    = $_GET["msg"] ?? "";
 $error  = "";
 
-// --- PART A: AJAX HANDLER (Updates table without refresh) ---
-if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
-    $search = trim($_GET['q'] ?? '');
-    $filterCourse = (int)($_GET['filter_course'] ?? 0);
-    $sortBy = $_GET['sort_by'] ?? 'last_name';
+function getCourseName($id) {
+    if ($id == COURSE_BSIS) return "BSIS";
+    if ($id == COURSE_ACT) return "ACT";
+    return "Unknown";
+}
 
-    // Build the query
+function getYearLevelStr($level) {
+    $level = (int)$level;
+    $suffixes = [1 => "1st Year", 2 => "2nd Year", 3 => "3rd Year", 4 => "4th Year"];
+    return $suffixes[$level] ?? "Unknown";
+}
+
+// --- HANDLE AJAX SEARCH/SORT ---
+if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
+    $search       = trim($_GET['q'] ?? '');
+    $filterCourse = (int)($_GET['filter_course'] ?? 0);
+    $sortBy       = $_GET['sort_by'] ?? 'last_name';
+
+    $validSorts = ['last_name', 'first_name', 'student_number'];
+    if (!in_array($sortBy, $validSorts)) $sortBy = 'last_name';
+
+    // Build Query
     $sql = "SELECT * FROM students WHERE 1=1";
+    
     if ($search) {
-        $sql .= " AND (student_number LIKE '%$search%' OR first_name LIKE '%$search%' OR last_name LIKE '%$search%')";
+        $sql .= " AND (student_number LIKE :search OR first_name LIKE :search OR last_name LIKE :search)";
     }
+    
+    // Add Filter Conditions
     if ($filterCourse > 0) {
-        $sql .= " AND course_id = $filterCourse";
+        $sql .= " AND course_id = :course";
     }
+
     $sql .= " ORDER BY $sortBy ASC";
 
-    $result = $db->query($sql);
+    // Prepare and Execute
+    $stmt = $db->prepare($sql);
+    if ($search) {
+        $stmt->bindValue(':search', "%$search%", SQLITE3_TEXT);
+    }
+    if ($filterCourse > 0) {
+        $stmt->bindValue(':course', $filterCourse, SQLITE3_INTEGER);
+    }
+    
+    $result = $stmt->execute();
 
-    // Output only the rows (HTML)
+    // Render Rows
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        
-        $courseName = "Unknown";
-        if ($row['course_id'] == COURSE_BSIS) {
-            $courseName = "BSIS";
-        } elseif ($row['course_id'] == COURSE_ACT) {
-            $courseName = "ACT";
-        }
-
-        $yearStr = "Unknown";
-        $yl = (int)$row['year_level'];
-        if ($yl == 1) $yearStr = "1st Year";
-        elseif ($yl == 2) $yearStr = "2nd Year";
-        elseif ($yl == 3) $yearStr = "3rd Year";
-        elseif ($yl == 4) $yearStr = "4th Year";
-
         ?>
         <tr>
             <td><?php echo htmlspecialchars($row['student_number']); ?></td>
@@ -59,79 +75,74 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
             <td><?php echo htmlspecialchars($row['first_name']); ?></td>
             <td><?php echo htmlspecialchars($row['middle_name']); ?></td>
             <td><?php echo (int)$row['age']; ?></td>
-            <td><?php echo htmlspecialchars($yearStr); ?></td>
+            <td><?php echo getYearLevelStr($row['year_level']); ?></td>
             <td>
-                <a href="?action=edit&id=<?php echo $row['id']; ?>">Edit</a> | 
-                <a href="?action=delete&id=<?php echo $row['id']; ?>" onclick="return confirm('Delete this student?');">Delete</a>
+                <a href="?action=edit&id=<?php echo $row['id']; ?>" class="btn-link">Edit</a> | 
+                <a href="?action=delete&id=<?php echo $row['id']; ?>" onclick="return confirm('Delete this student?');" class="text-danger">Delete</a>
             </td>
         </tr>
         <?php
     }
-    exit; // Stop PHP here
+    exit; 
 }
 
-// --- PART B: HANDLE ADD STUDENT ---
+// --- HANDLE FORM SUBMISSION (ADD) ---
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "store") {
     $student_number = trim($_POST["student_number"]);
-    $first_name     = trim($_POST["first_name"]);
-    $middle_name    = trim($_POST["middle_name"]);
-    $last_name      = trim($_POST["last_name"]);
-    $age            = (int)$_POST["age"];
-    $email          = trim($_POST["email"]);
-    $courseId       = (int)$_POST["course_id"];
-    $year_level     = (int)$_POST["year_level"];
-
-    // Check if exists
-    $checkSql = "SELECT COUNT(*) as count FROM students WHERE student_number = '$student_number'";
-    $exists = $db->querySingle($checkSql);
+    
+    // Check for duplicates
+    $checkSql = "SELECT COUNT(*) as count FROM students WHERE student_number = :sn";
+    $stmt = $db->prepare($checkSql);
+    $stmt->bindValue(':sn', $student_number, SQLITE3_TEXT);
+    $exists = $stmt->execute()->fetchArray()['count'];
 
     if ($exists > 0) {
         $error = "Error: Student Number '$student_number' already exists!";
         $action = "create"; 
     } else {
-        $stmt = $db->prepare("INSERT INTO students (student_number, first_name, middle_name, last_name, age, email, course_id, year_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bindValue(1, $student_number, SQLITE3_TEXT);
-        $stmt->bindValue(2, $first_name, SQLITE3_TEXT);
-        $stmt->bindValue(3, $middle_name, SQLITE3_TEXT);
-        $stmt->bindValue(4, $last_name, SQLITE3_TEXT);
-        $stmt->bindValue(5, $age, SQLITE3_INTEGER);
-        $stmt->bindValue(6, $email, SQLITE3_TEXT);
-        $stmt->bindValue(7, $courseId, SQLITE3_INTEGER);
-        $stmt->bindValue(8, $year_level, SQLITE3_INTEGER); 
+        $sql = "INSERT INTO students (student_number, first_name, middle_name, last_name, age, email, course_id, year_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $db->prepare($sql);
+        $stmt->bindValue(1, $student_number);
+        $stmt->bindValue(2, trim($_POST["first_name"]));
+        $stmt->bindValue(3, trim($_POST["middle_name"]));
+        $stmt->bindValue(4, trim($_POST["last_name"]));
+        $stmt->bindValue(5, (int)$_POST["age"]);
+        $stmt->bindValue(6, trim($_POST["email"]));
+        $stmt->bindValue(7, (int)$_POST["course_id"]);
+        $stmt->bindValue(8, (int)$_POST["year_level"]);
         $stmt->execute();
+
         header("Location: admin_student_manage.php?msg=Student+added+successfully");
         exit;
     }
 }
 
-// --- PART C: HANDLE UPDATE STUDENT ---
+// --- HANDLE FORM SUBMISSION (UPDATE) ---
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "update") {
-    $id = (int)$_POST["id"];
-    $student_number = trim($_POST["student_number"]);
-    $first_name = trim($_POST["first_name"]); $middle_name = trim($_POST["middle_name"]); $last_name = trim($_POST["last_name"]);
-    $age = (int)$_POST["age"]; $email = trim($_POST["email"]); $courseId = (int)$_POST["course_id"]; $year_level = (int)$_POST["year_level"];
-
-    $stmt = $db->prepare("UPDATE students SET student_number=?, first_name=?, middle_name=?, last_name=?, age=?, email=?, course_id=?, year_level=? WHERE id=?");
-    $stmt->bindValue(1, $student_number); 
-    $stmt->bindValue(2, $first_name); 
-    $stmt->bindValue(3, $middle_name);
-    $stmt->bindValue(4, $last_name); 
-    $stmt->bindValue(5, $age); 
-    $stmt->bindValue(6, $email);
-    $stmt->bindValue(7, $courseId); 
-    $stmt->bindValue(8, $year_level);
-    $stmt->bindValue(9, $id);
+    $sql = "UPDATE students SET student_number=?, first_name=?, middle_name=?, last_name=?, age=?, email=?, course_id=?, year_level=? WHERE id=?";
+    $stmt = $db->prepare($sql);
+    $stmt->bindValue(1, trim($_POST["student_number"])); 
+    $stmt->bindValue(2, trim($_POST["first_name"])); 
+    $stmt->bindValue(3, trim($_POST["middle_name"]));
+    $stmt->bindValue(4, trim($_POST["last_name"])); 
+    $stmt->bindValue(5, (int)$_POST["age"]); 
+    $stmt->bindValue(6, trim($_POST["email"]));
+    $stmt->bindValue(7, (int)$_POST["course_id"]); 
+    $stmt->bindValue(8, (int)$_POST["year_level"]);
+    $stmt->bindValue(9, (int)$_POST["id"]);
     $stmt->execute();
     
     header("Location: admin_student_manage.php?msg=Student+updated");
     exit;
 }
 
-// --- PART D: HANDLE DELETE ---
+// --- HANDLE DELETE ---
 if ($action === "delete") {
     $id = (int)($_GET["id"] ?? 0);
     if ($id > 0) {
-        $db->exec("DELETE FROM students WHERE id = $id");
+        $stmt = $db->prepare("DELETE FROM students WHERE id = ?");
+        $stmt->bindValue(1, $id, SQLITE3_INTEGER);
+        $stmt->execute();
         header("Location: admin_student_manage.php?msg=Student+deleted");
         exit;
     }
@@ -143,27 +154,27 @@ if ($action === "delete") {
 <head>
     <meta charset="UTF-8">
     <title>Manage Students</title>
+    <link rel="stylesheet" href="../try.css">
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Navbar</a>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-            <a class="nav-item nav-link" href="admin_dashboard.php">Dashboard</a>
-            <a class="nav-item nav-link" href="admin_schedule.php">Schedule</a>
-            <a class="nav-item nav-link" href="admin_student_manage.php">Manage Students</a>
-            </div>
-        </div>
+    <nav>
+        <a href="admin_dashboard.php">Dashboard</a> | 
+        <a href="admin_schedule.php">Schedule</a> | 
+        <a href="admin_student_manage.php"><strong>Manage Students</strong></a>
     </nav>
     <hr>
 
-    <?php if ($msg) echo "<p style='color:green'><b>$msg</b></p>"; ?>
-    <?php if ($error) echo "<p style='color:red'><b>$error</b></p>"; ?>
+    <!-- <?php if ($msg): ?>
+        <p class="msg-success"><?php echo htmlspecialchars($msg); ?></p>
+    <?php endif; ?>
+    <?php if ($error): ?>
+        <p class="msg-error"><?php echo htmlspecialchars($error); ?></p>
+    <?php endif; ?> -->
 
-    <?php 
-    if ($action === 'create') { 
-    ?>
+
+    <?php if ($action === 'create'): ?>
+        
         <h3>Add New Student</h3>
         <form method="post" action="?action=store">
             <p>Student No: <input type="text" name="student_number" required></p>
@@ -174,10 +185,10 @@ if ($action === "delete") {
             <p>Email: <input type="email" name="email" required></p>
             
             <p>Year Level: 
-                <input type="radio" name="year_level" value="1" required> 1st Year
-                <input type="radio" name="year_level" value="2"> 2nd Year
-                <input type="radio" name="year_level" value="3"> 3rd Year
-                <input type="radio" name="year_level" value="4"> 4th Year
+                <label><input type="radio" name="year_level" value="1" required> 1st Year</label>
+                <label><input type="radio" name="year_level" value="2"> 2nd Year</label>
+                <label><input type="radio" name="year_level" value="3"> 3rd Year</label>
+                <label><input type="radio" name="year_level" value="4"> 4th Year</label>
             </p>
 
             <p>Course: 
@@ -187,88 +198,87 @@ if ($action === "delete") {
                     <option value="<?php echo COURSE_ACT; ?>">Associate in Computer Technology</option>
                 </select>
             </p>
-            <button type="submit">Save</button> <a href="admin_student_manage.php">Cancel</a>
+            <button type="submit">Save</button> 
+            <a href="admin_student_manage.php">Cancel</a>
         </form>
 
-    <?php 
-    } elseif ($action === 'edit') { 
+
+    <?php elseif ($action === 'edit'): 
+        // VIEW: EDIT STUDENT FORM
         $id = (int)($_GET["id"] ?? 0);
-        $student = null;
-        if ($id > 0) {
-            $stmt = $db->prepare("SELECT * FROM students WHERE id = ?");
-            $stmt->bindValue(1, $id, SQLITE3_INTEGER);
-            $result = $stmt->execute();
-            $student = $result->fetchArray(SQLITE3_ASSOC);
-        }
+        $student = $db->querySingle("SELECT * FROM students WHERE id = $id", true);
 
-        if (!$student) { 
-            echo "<p>Student not found.</p>";
-            echo '<a class="btn" href="admin_student_manage.php">Back</a>';
-        } else {
-    ?>
-        <h3>Edit Student</h3>
-        <form method="post" action="?action=update">
-            <input type="hidden" name="id" value="<?php echo $student['id']; ?>">
-            <p>Student No: <input type="text" name="student_number" value="<?php echo htmlspecialchars($student['student_number']); ?>" required></p>
-            <p>First Name: <input type="text" name="first_name" value="<?php echo htmlspecialchars($student['first_name']); ?>" required></p>
-            <p>Middle Name: <input type="text" name="middle_name" value="<?php echo htmlspecialchars($student['middle_name']); ?>"></p>
-            <p>Last Name: <input type="text" name="last_name" value="<?php echo htmlspecialchars($student['last_name']); ?>" required></p>
-            <p>Age: <input type="number" name="age" value="<?php echo $student['age']; ?>" required></p>
-            <p>Email: <input type="email" name="email" value="<?php echo htmlspecialchars($student['email']); ?>" required></p>
+        if (!$student): ?>
+            <p>Student not found.</p>
+            <a href="admin_student_manage.php">Back to List</a>
+        <?php else: ?>
             
-            <p>Year Level:
-                <input type="radio" name="year_level" value="1" <?php if($student['year_level']==1) echo 'checked'; ?>> 1st Year
-                <input type="radio" name="year_level" value="2" <?php if($student['year_level']==2) echo 'checked'; ?>> 2nd Year
-                <input type="radio" name="year_level" value="3" <?php if($student['year_level']==3) echo 'checked'; ?>> 3rd Year
-                <input type="radio" name="year_level" value="4" <?php if($student['year_level']==4) echo 'checked'; ?>> 4th Year
-            </p>
+            <h3>Edit Student</h3>
+            <form method="post" action="?action=update">
+                <input type="hidden" name="id" value="<?php echo $student['id']; ?>">
+                
+                <p>Student No: <input type="text" name="student_number" value="<?php echo htmlspecialchars($student['student_number']); ?>" required></p>
+                <p>First Name: <input type="text" name="first_name" value="<?php echo htmlspecialchars($student['first_name']); ?>" required></p>
+                <p>Middle Name: <input type="text" name="middle_name" value="<?php echo htmlspecialchars($student['middle_name']); ?>"></p>
+                <p>Last Name: <input type="text" name="last_name" value="<?php echo htmlspecialchars($student['last_name']); ?>" required></p>
+                <p>Age: <input type="number" name="age" value="<?php echo $student['age']; ?>" required></p>
+                <p>Email: <input type="email" name="email" value="<?php echo htmlspecialchars($student['email']); ?>" required></p>
+                
+                <p>Year Level:
+                    <?php for($i=1; $i<=4; $i++): ?>
+                        <label>
+                            <input type="radio" name="year_level" value="<?php echo $i; ?>" 
+                            <?php if($student['year_level'] == $i) echo 'checked'; ?>> 
+                            <?php echo getYearLevelStr($i); ?>
+                        </label>
+                    <?php endfor; ?>
+                </p>
+                
+                <p>Course:
+                    <select name="course_id" required>
+                        <option value="<?php echo COURSE_BSIS; ?>" <?php if($student['course_id'] == COURSE_BSIS) echo 'selected'; ?>>BS Information System</option>
+                        <option value="<?php echo COURSE_ACT; ?>" <?php if($student['course_id'] == COURSE_ACT) echo 'selected'; ?>>Associate in Computer Tech</option>
+                    </select>
+                </p>
+                
+                <button type="submit">Update</button> 
+                <a href="admin_student_manage.php">Cancel</a>
+            </form>
+        <?php endif; ?>
 
-            <p>Course: 
-                <select name="course_id" required>
-                    <option value="<?php echo COURSE_BSIS; ?>" <?php if($student['course_id']==COURSE_BSIS) echo 'selected'; ?>>Bachelor of Science in Information System</option>
-                    <option value="<?php echo COURSE_ACT; ?>" <?php if($student['course_id']==COURSE_ACT) echo 'selected'; ?>>Associate in Computer Technology</option>
-                </select>
-            </p>
-            <button type="submit">Update</button> <a href="admin_student_manage.php">Cancel</a>
-        </form>
-    <?php 
-        } 
 
-    } else { 
-    ?>
+    <?php else: ?>
+        
         <h2>Manage Students</h2>
-        <div style="background:#eee; padding:10px;">
+        
+        <div class="controls">
             <select id="filter_course" onchange="loadTable()">
                 <option value="">All Courses</option>
                 <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
                 <option value="<?php echo COURSE_ACT; ?>">ACT</option>
             </select>
 
-            <input type="text" id="search" placeholder="Search..." onkeyup="loadTable()">
+            <input type="text" id="search" placeholder="Search name or ID..." onkeyup="loadTable()">
             
             <select id="sort_by" onchange="loadTable()">
-                <option value="last_name">Last Name</option>
-                <option value="first_name">First Name</option>
+                <option value="last_name">Sort by Last Name</option>
+                <option value="first_name">Sort by First Name</option>
             </select>
-
         </div>
-        <br>
 
         <?php 
         $count = $db->querySingle("SELECT COUNT(*) FROM students");
         
-        if ($count == 0) { 
-        ?>
-            <div class="empty-state" style="text-align:center; padding: 20px;">
-                <h3>no students record</h3>
-                <p>Use the "+ Add Student" button to get started.</p>
-                <a href="?action=create">
-                    <button style="float:right">+ Add Student</button>
-                </a>
-            </div>
-        <?php } else { ?>
+        if ($count == 0): ?>
             
-            <table border="1" cellpadding="8" cellspacing="0" width="100%">
+            <div class="empty-state">
+                <h3>No students record found</h3>
+                <p>Click the button below to get started.</p>
+                <a href="?action=create"><button>+ Add Student</button></a>
+            </div>
+
+        <?php else: ?>
+            <table>
                 <thead>
                     <tr>
                         <th>Student Number</th>
@@ -281,18 +291,16 @@ if ($action === "delete") {
                     </tr>
                 </thead>
                 <tbody id="table_data">
-                </tbody>
+                    </tbody>
             </table>
-            <br>
-            
-            <a href="?action=create">
-                <button style="float:right">+ Add Student</button>
-            </a>
+            <div style="margin-bottom: 10px; text-align: right;">
+                <a href="?action=create"><button>+ Add Student</button></a>
+            </div>
 
             <script src="../js/load.js"></script>
 
-        <?php } ?> 
-    <?php } ?>
+        <?php endif; ?> 
+    <?php endif; ?>
 
 </body>
 </html>
