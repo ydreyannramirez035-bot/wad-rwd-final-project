@@ -7,19 +7,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = trim($_POST["password"]);
 
     $db = get_db();
-    $stmt = $db->prepare("SELECT id, username, email, passwordHash FROM users WHERE email = ?");
+    $stmt = $db->prepare("SELECT id, name, email, password_hash FROM users WHERE email = ?");
     $stmt->bindValue(1, $email, SQLITE3_TEXT);
     $result = $stmt->execute();
     $user = $result->fetchArray(SQLITE3_ASSOC);
 
-    if ($user && password_verify($password, $user["passwordHash"])) {
+    if ($user && password_verify($password, $user["password_hash"])) {
         $_SESSION["user"] = [
             "id" => $user["id"],
-            "name" => $user["username"],
+            "name" => $user["name"],
             "email" => $user["email"]
         ];
 
-        if ($user["username"] == "admin") {
+        if ($user["name"] == "admin") {
             header("Location: admin_dashboard.php");
             exit;
         }

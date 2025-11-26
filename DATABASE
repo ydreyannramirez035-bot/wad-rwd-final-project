@@ -1,5 +1,4 @@
 <?php
-// Simple SQLite connection using SQLite3 class and table auto-create
 function get_db(): SQLite3
 {
     static $db = null;
@@ -27,28 +26,25 @@ function get_db(): SQLite3
     ('student', 'Regular user with standard access');
     ");
     
-    // PARENT TABLE 2: Departments 
-    $db->exec('CREATE TABLE IF NOT EXISTS departments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL
-        )');
-
-    // PARENT TABLE 3: Courses 
+    // PARENT TABLE 2: Courses 
     $db->exec('CREATE TABLE IF NOT EXISTS courses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        course_code TEXT NOT NULL UNIQUE,
-        course_name TEXT NOT NULL,
-        department_id INTEGER NOT NULL,
-        FOREIGN KEY (department_id) REFERENCES departments(id)
+        course_name TEXT NOT NULL UNIQUE
     )');
 
-    // PARENT TABLE 4: Users (Centralized Login)
+    $db->exec("
+        INSERT OR IGNORE INTO courses (course_name) VALUES
+        ('Bachelor of Science in Information System'),
+        ('Asscociate in Computer Technology')
+    ");
+
+    // PARENT TABLE 3: Users (Centralized Login)
     $db->exec('CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         role_id INTEGER NOT NULL,
-        username TEXT NOT NULL,
+        name TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
-        passwordHash TEXT NOT NULL,
+        password_hash TEXT NOT NULL,
         FOREIGN KEY (role_id) REFERENCES roles(id)
     )');
 
@@ -63,29 +59,19 @@ function get_db(): SQLite3
 
     // INFO TABLE: Teachers 
     $db->exec('CREATE TABLE IF NOT EXISTS teachers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL UNIQUE, 
-        name TEXT NOT NULL,
-        email TEXT UNIQUE,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-    )');
-
-    // JUNCTION TABLE: TeacherDepartments (Many-to-Many Assignment)
-    $db->exec('CREATE TABLE IF NOT EXISTS teacherDepartments (
-        teacher_id INTEGER NOT NULL,
-        department_id INTEGER NOT NULL,
-        PRIMARY KEY (teacher_id, department_id),
-        FOREIGN KEY (teacher_id) REFERENCES teachers(id),
-        FOREIGN KEY (department_id) REFERENCES departments(id)
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE
     )');
 
     // INFO TABLE: Students (Child of Users)
     $db->exec('CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL UNIQUE,
-        studentNumber TEXT(50) NOT NULL UNIQUE,
-        name TEXT(255) NOT NULL,
-        gender TEXT(50), 
+        user_id INTEGER UNIQUE,
+        student_number TEXT(50) NOT NULL UNIQUE,
+        last_name TEXT(50) NOT NULL,
+        first_name TEXT(50),
+	    middle_name TEXT(50),
         age INTEGER,
         course_id INTEGER NOT NULL,
         year_level INTEGER,
@@ -93,6 +79,7 @@ function get_db(): SQLite3
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (course_id) REFERENCES courses(id)
     )');
+
 
     // INDEPENDENT TABLE: Schedules 
     $db->exec('CREATE TABLE IF NOT EXISTS schedules (

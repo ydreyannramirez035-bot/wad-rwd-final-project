@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ ."/db.php";
-require_once __DIR__ ."/password_validation.php";
 // Initialize database connection
 $db = get_db();
 
@@ -38,28 +37,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $result = $stmt->execute();
         if ($result->fetchArray()) {
             $error = "Email already registered.";
-        } 
-        else { 
-                // Determine role: first user = admin
-                $roleAdmin = $db->querySingle("SELECT id FROM roles WHERE name='admin'");
-                $roleStudent = $db->querySingle("SELECT id FROM roles WHERE name='student'");
+        } else { 
+            // Determine role: first user = admin
+            $roleAdmin = $db->querySingle("SELECT id FROM roles WHERE name='admin'");
+            $roleStudent = $db->querySingle("SELECT id FROM roles WHERE name='student'");
 
-                $userCount = $db->querySingle("SELECT COUNT(*) FROM users");
-                $roleId = ($userCount == 0) ? $roleAdmin : $roleStudent;
+            $userCount = $db->querySingle("SELECT COUNT(*) FROM users");
+            $roleId = ($userCount == 0) ? $roleAdmin : $roleStudent;
 
-                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $db->prepare("INSERT INTO users (roleId, username, passwordHash, email) VALUES (?, ?, ?, ?)");
-                if ($stmt === false) {
-                    $error = "Database error preparing insert: " . $db->lastErrorMsg();
-                } else {
-                    $stmt->bindValue(1, $roleId, SQLITE3_INTEGER);
-                    $stmt->bindValue(2, $name, SQLITE3_TEXT);
-                    $stmt->bindValue(3, $hashedPassword, SQLITE3_TEXT);
-                    $stmt->bindValue(4, $email, SQLITE3_TEXT);
-                    $stmt->execute();
-                    header("Location: login.php?registered=true");
-                    exit;
-                }
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $db->prepare("INSERT INTO users (role_id, name, password_hash, email) VALUES (?, ?, ?, ?)");
+            $stmt->bindValue(1, $roleId, SQLITE3_INTEGER);
+            $stmt->bindValue(2, $name, SQLITE3_TEXT);
+            $stmt->bindValue(3, $hashedPassword, SQLITE3_TEXT);
+            $stmt->bindValue(4, $email, SQLITE3_TEXT);
+            $stmt->execute();
+            header("Location: login.php?registered=true");
+            exit;
             }
         }
     }

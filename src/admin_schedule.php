@@ -4,7 +4,13 @@ if (!isset($_SESSION["user"])) {
     header("Location: login.php");
     exit;
 }
+
 $user = $_SESSION["user"];
+
+require_once __DIR__ ."/db.php";
+// Initialize database connection
+$db = get_db();
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -17,18 +23,27 @@ $user = $_SESSION["user"];
 
 <body>
 
-<nav class="navbar">
-    <div class="logo">ClassSched</div>
-    <ul class="nav-links">
-        <li><a href="dashboard.php">Dashboard</a></li>
-        <li><a href="students.php">Students</a></li>
-        <li><a href="schedule_manage.php" class="active">Schedule</a></li>
-    </ul>
-    <div class="user-menu">
-        <span><?php echo htmlspecialchars($user["name"]); ?></span>
-        <a href="logout.php">Logout</a>
-    </div>
-</nav>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Navbar</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                <a class="nav-link" href="admin_dashboard.php">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                <a class="nav-link" href="admin_student_manage.php">Students</a>
+                </li>
+                <li class="nav-item">
+                <a class="nav-link" href="admin_schedule.php">Schedule</a>
+                </li>
+            </ul>
+            </div>
+        </div>
+    </nav>
 
 <div class="container">
 
