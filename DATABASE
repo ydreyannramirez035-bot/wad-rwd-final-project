@@ -35,7 +35,7 @@ function get_db(): SQLite3
     $db->exec("
         INSERT OR IGNORE INTO courses (course_name) VALUES
         ('Bachelor of Science in Information System'),
-        ('Asscociate in Computer Technology')
+        ('Associate in Computer Technology')
     ");
 
     // PARENT TABLE 3: Users (Centralized Login)
@@ -48,27 +48,31 @@ function get_db(): SQLite3
         FOREIGN KEY (role_id) REFERENCES roles(id)
     )');
 
-    // INFO TABLE: Admins (Child of Users)
-    $db->exec('CREATE TABLE IF NOT EXISTS admins (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL UNIQUE,
-        name TEXT NOT NULL, 
-        position TEXT,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-    )');
-
     // INFO TABLE: Teachers 
     $db->exec('CREATE TABLE IF NOT EXISTS teachers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE
+    name TEXT NOT NULL UNIQUE
     )');
+
+    $db->exec("
+        INSERT OR IGNORE INTO teachers (name) VALUES
+        ('John Doe'),
+        ('Jane Smith'),
+        ('Mark Johnson'),
+        ('Emily Davis'),
+        ('Michael Brown'),
+        ('Sarah Wilson'),
+        ('William Taylor'),
+        ('Olivia Moore'),
+        ('James Anderson'),
+        ('Sophia Martin')
+    ");
 
     // INFO TABLE: Students (Child of Users)
     $db->exec('CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER UNIQUE,
-        student_number TEXT(50) NOT NULL UNIQUE,
+        student_number TEXT(50) NOT NULL,
         last_name TEXT(50) NOT NULL,
         first_name TEXT(50),
 	    middle_name TEXT(50),
@@ -86,7 +90,7 @@ function get_db(): SQLite3
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         day TEXT NOT NULL,
         subject TEXT NOT NULL,
-        teacher_id INTEGER NOT NULL, 
+        teacher_id INTEGER UNIQUE, 
         room TEXT(10),
         time_start TIME,
         time_end TIME,

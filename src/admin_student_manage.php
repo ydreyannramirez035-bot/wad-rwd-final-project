@@ -161,7 +161,9 @@ if ($action === "delete") {
     <?php if ($msg) echo "<p style='color:green'><b>$msg</b></p>"; ?>
     <?php if ($error) echo "<p style='color:red'><b>$error</b></p>"; ?>
 
-    <?php if ($action === 'create'): ?>
+    <?php 
+    if ($action === 'create') { 
+    ?>
         <h3>Add New Student</h3>
         <form method="post" action="?action=store">
             <p>Student No: <input type="text" name="student_number" required></p>
@@ -188,42 +190,54 @@ if ($action === "delete") {
             <button type="submit">Save</button> <a href="admin_student_manage.php">Cancel</a>
         </form>
 
-    <?php elseif ($action === 'edit'): 
-        $id = (int)$_GET['id'];
-        $s = $db->querySingle("SELECT * FROM students WHERE id=$id", true);
+    <?php 
+    } elseif ($action === 'edit') { 
+        $id = (int)($_GET["id"] ?? 0);
+        $student = null;
+        if ($id > 0) {
+            $stmt = $db->prepare("SELECT * FROM students WHERE id = ?");
+            $stmt->bindValue(1, $id, SQLITE3_INTEGER);
+            $result = $stmt->execute();
+            $student = $result->fetchArray(SQLITE3_ASSOC);
+        }
+
+        if (!$student) { 
+            echo "<p>Student not found.</p>";
+            echo '<a class="btn" href="admin_student_manage.php">Back</a>';
+        } else {
     ?>
         <h3>Edit Student</h3>
         <form method="post" action="?action=update">
-            <input type="hidden" name="id" value="<?php echo $s['id']; ?>">
-            <p>Student No: <input type="text" name="student_number" value="<?php echo htmlspecialchars($s['student_number']); ?>" required></p>
-            <p>First Name: <input type="text" name="first_name" value="<?php echo htmlspecialchars($s['first_name']); ?>" required></p>
-            <p>Middle Name: <input type="text" name="middle_name" value="<?php echo htmlspecialchars($s['middle_name']); ?>"></p>
-            <p>Last Name: <input type="text" name="last_name" value="<?php echo htmlspecialchars($s['last_name']); ?>" required></p>
-            <p>Age: <input type="number" name="age" value="<?php echo $s['age']; ?>" required></p>
-            <p>Email: <input type="email" name="email" value="<?php echo htmlspecialchars($s['email']); ?>" required></p>
+            <input type="hidden" name="id" value="<?php echo $student['id']; ?>">
+            <p>Student No: <input type="text" name="student_number" value="<?php echo htmlspecialchars($student['student_number']); ?>" required></p>
+            <p>First Name: <input type="text" name="first_name" value="<?php echo htmlspecialchars($student['first_name']); ?>" required></p>
+            <p>Middle Name: <input type="text" name="middle_name" value="<?php echo htmlspecialchars($student['middle_name']); ?>"></p>
+            <p>Last Name: <input type="text" name="last_name" value="<?php echo htmlspecialchars($student['last_name']); ?>" required></p>
+            <p>Age: <input type="number" name="age" value="<?php echo $student['age']; ?>" required></p>
+            <p>Email: <input type="email" name="email" value="<?php echo htmlspecialchars($student['email']); ?>" required></p>
             
             <p>Year Level:
-                <input type="radio" name="year_level" value="1" <?php if($s['year_level']==1) echo 'checked'; ?>> 1st Year
-                <input type="radio" name="year_level" value="2" <?php if($s['year_level']==2) echo 'checked'; ?>> 2nd Year
-                <input type="radio" name="year_level" value="3" <?php if($s['year_level']==3) echo 'checked'; ?>> 3rd Year
-                <input type="radio" name="year_level" value="4" <?php if($s['year_level']==4) echo 'checked'; ?>> 4th Year
+                <input type="radio" name="year_level" value="1" <?php if($student['year_level']==1) echo 'checked'; ?>> 1st Year
+                <input type="radio" name="year_level" value="2" <?php if($student['year_level']==2) echo 'checked'; ?>> 2nd Year
+                <input type="radio" name="year_level" value="3" <?php if($student['year_level']==3) echo 'checked'; ?>> 3rd Year
+                <input type="radio" name="year_level" value="4" <?php if($student['year_level']==4) echo 'checked'; ?>> 4th Year
             </p>
 
             <p>Course: 
                 <select name="course_id" required>
-                    <option value="<?php echo COURSE_BSIS; ?>" <?php if($s['course_id']==COURSE_BSIS) echo 'selected'; ?>>Bachelor of Science in Information System</option>
-                    <option value="<?php echo COURSE_ACT; ?>" <?php if($s['course_id']==COURSE_ACT) echo 'selected'; ?>>Associate in Computer Technology</option>
+                    <option value="<?php echo COURSE_BSIS; ?>" <?php if($student['course_id']==COURSE_BSIS) echo 'selected'; ?>>Bachelor of Science in Information System</option>
+                    <option value="<?php echo COURSE_ACT; ?>" <?php if($student['course_id']==COURSE_ACT) echo 'selected'; ?>>Associate in Computer Technology</option>
                 </select>
             </p>
             <button type="submit">Update</button> <a href="admin_student_manage.php">Cancel</a>
         </form>
+    <?php 
+        } 
 
-    <?php else: ?>
-
+    } else { 
+    ?>
         <h2>Manage Students</h2>
-        
         <div style="background:#eee; padding:10px;">
-            <label></label>
             <select id="filter_course" onchange="loadTable()">
                 <option value="">All Courses</option>
                 <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
@@ -231,36 +245,54 @@ if ($action === "delete") {
             </select>
 
             <input type="text" id="search" placeholder="Search..." onkeyup="loadTable()">
-            <label></label>
+            
             <select id="sort_by" onchange="loadTable()">
                 <option value="last_name">Last Name</option>
                 <option value="first_name">First Name</option>
             </select>
-            
+
         </div>
         <br>
 
-        <table border="1" cellpadding="8" cellspacing="0" width="100%">
-            <thead>
-                <tr>
-                    <th>Student Number</th>
-                    <th>Last Name</th>
-                    <th>First Name</th>
-                    <th>Middle Name</th>
-                    <th>Age</th>
-                    <th>Year</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="table_data">
+        <?php 
+        $count = $db->querySingle("SELECT COUNT(*) FROM students");
+        
+        if ($count == 0) { 
+        ?>
+            <div class="empty-state" style="text-align:center; padding: 20px;">
+                <h3>no students record</h3>
+                <p>Use the "+ Add Student" button to get started.</p>
+                <a href="?action=create">
+                    <button style="float:right">+ Add Student</button>
+                </a>
+            </div>
+        <?php } else { ?>
+            
+            <table border="1" cellpadding="8" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th>Student Number</th>
+                        <th>Last Name</th>
+                        <th>First Name</th>
+                        <th>Middle Name</th>
+                        <th>Age</th>
+                        <th>Year</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="table_data">
                 </tbody>
-        </table>
-        <br>
-        <a href="?action=create"><button style="float:right">+ Add Student</button></a>
+            </table>
+            <br>
+            
+            <a href="?action=create">
+                <button style="float:right">+ Add Student</button>
+            </a>
 
-        <script src="../js/load.js"></script>
+            <script src="../js/load.js"></script>
 
-    <?php endif; ?>
+        <?php } ?> 
+    <?php } ?>
 
 </body>
 </html>

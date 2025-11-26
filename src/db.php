@@ -19,11 +19,12 @@ function get_db(): SQLite3
         description TEXT
         )');
 
-    // I want to dynamic to inserting the name, and description` for the role
+    // I want to dynamic to inserting the name, and description for the role
     $db->exec("
-    INSERT OR IGNORE INTO roles (name, description) VALUES
+    INSERT INTO roles (name, description) VALUES
     ('admin', 'Full access to the system, can manage users and settings'),
-    ('student', 'Regular user with standard access');
+    ('student', 'Regular user with standard access')
+    ON CONFLICT(name) DO NOTHING;
     ");
     
     // PARENT TABLE 2: Courses 
@@ -33,9 +34,10 @@ function get_db(): SQLite3
     )');
 
     $db->exec("
-        INSERT OR IGNORE INTO courses (course_name) VALUES
+        INSERT INTO courses (course_name) VALUES
         ('Bachelor of Science in Information System'),
         ('Associate in Computer Technology')
+        ON CONFLICT(course_name) DO NOTHING;
     ");
 
     // PARENT TABLE 3: Users (Centralized Login)
@@ -48,21 +50,26 @@ function get_db(): SQLite3
         FOREIGN KEY (role_id) REFERENCES roles(id)
     )');
 
-    // INFO TABLE: Admins (Child of Users)
-    $db->exec('CREATE TABLE IF NOT EXISTS admins (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL UNIQUE,
-        name TEXT NOT NULL, 
-        position TEXT,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-    )');
-
     // INFO TABLE: Teachers 
     $db->exec('CREATE TABLE IF NOT EXISTS teachers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE
+    name TEXT NOT NULL UNIQUE
     )');
+
+    $db->exec("
+        INSERT INTO teachers (name) VALUES
+        ('John Doe'),
+        ('Jane Smith'),
+        ('Mark Johnson'),
+        ('Emily Davis'),
+        ('Michael Brown'),
+        ('Sarah Wilson'),
+        ('William Taylor'),
+        ('Olivia Moore'),
+        ('James Anderson'),
+        ('Sophia Martin')
+        ON CONFLICT(name) DO NOTHING;
+    ");
 
     // INFO TABLE: Students (Child of Users)
     $db->exec('CREATE TABLE IF NOT EXISTS students (
@@ -86,7 +93,7 @@ function get_db(): SQLite3
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         day TEXT NOT NULL,
         subject TEXT NOT NULL,
-        teacher_id INTEGER NOT NULL, 
+        teacher_id INTEGER UNIQUE, 
         room TEXT(10),
         time_start TIME,
         time_end TIME,
