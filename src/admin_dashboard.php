@@ -53,12 +53,9 @@ if ($selected_course === COURSE_ALL) {
     $rooms_count = $db->querySingle("SELECT COUNT(DISTINCT room) FROM schedules WHERE room IS NOT NULL AND room != '' AND course_id = $selected_course");
 }
 
-// --- 3. LAST UPDATE LOGIC (DYNAMIC TIME AGO) ---
-// FIX: Point to the actual database file defined in db.php
 $db_file_path = __DIR__ . '/../users.db'; 
-$last_update_text = "Unknown";
+$last_update_text = "";
 
-// FIX: Clear cache to get the immediate update time
 clearstatcache();
 
 if (file_exists($db_file_path)) {
@@ -88,7 +85,6 @@ if (file_exists($db_file_path)) {
     }
 }
 
-// --- 4. FETCH SCHEDULES WITH JOIN ---
 // Build Query based on selection
 $sql_sched = "
     SELECT 
@@ -104,8 +100,6 @@ $sql_sched = "
 if ($selected_course !== COURSE_ALL) {
     $sql_sched .= " WHERE sch.course_id = :course_id";
 } else {
-    // FIX: Group by details to merge duplicates when showing 'All Courses'
-    // Added sch.day to GROUP BY to ensure classes on different days stay separate
     $sql_sched .= " GROUP BY sch.subject_id, sch.teacher_id, sch.room, sch.time_start, sch.time_end, sch.day";
 }
 
@@ -127,16 +121,11 @@ $sched_result = $stmt->execute();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClassSched Dashboard</title>
-    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="../admin_dashboard.css">
 </head>
 <body>
-
-    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="#">
@@ -278,7 +267,6 @@ $sched_result = $stmt->execute();
                         <?php endwhile; ?>
                         
                         <?php if(!isset($row)): ?>
-                            <!-- Optional: Show if no rows found -->
                         <?php endif; ?>
                     </tbody>
                 </table>
