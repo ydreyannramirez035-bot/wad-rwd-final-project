@@ -110,11 +110,12 @@ function get_db(): SQLite3
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         day TEXT NOT NULL,
         subject_id INTEGER NOT NULL,
-        teacher_id INTEGER UNIQUE, 
+        teacher_id INTEGER NOT NULL,
         room TEXT(10),
         time_start TIME,
         time_end TIME,
         course_id INTEGER NOT NULL,
+        
         FOREIGN KEY (teacher_id) REFERENCES teachers(id),
         FOREIGN KEY (course_id) REFERENCES courses(id),
         FOREIGN KEY (subject_id) REFERENCES subjects(id)
