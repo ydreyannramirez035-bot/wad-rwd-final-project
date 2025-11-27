@@ -81,7 +81,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
             <td><?php echo $row['time_start'] ? date("h:i A", strtotime($row['time_start'])) : ''; ?></td>
             <td><?php echo $row['time_end'] ? date("h:i A", strtotime($row['time_end'])) : ''; ?></td>
             <td>
-                <a href="?action=edit&id=<?php echo $row['id']; ?>" class="btn-link">Edit</a> | 
+                <a href="?action=edit&id=<?php echo $row['id']; ?>" class="btn-link">Edit</a> </br>
                 <a href="?action=delete&id=<?php echo $row['id']; ?>" onclick="return confirm('Delete this schedule?');" class="text-danger">Delete</a>
             </td>
         </tr>

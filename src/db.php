@@ -121,14 +121,5 @@ function get_db(): SQLite3
         FOREIGN KEY (subject_id) REFERENCES subjects(id)
     );');
 
-    // --- JUNCTION TABLE: StudentSchedules ---
-    $db->exec('CREATE TABLE IF NOT EXISTS studentSchedules (
-        user_id INTEGER NOT NULL,
-        schedule_id INTEGER NOT NULL,
-        PRIMARY KEY (user_id, schedule_id),
-        FOREIGN KEY (user_id) REFERENCES users(id),
-        FOREIGN KEY (schedule_id) REFERENCES schedules(id)
-    );');
-
     return $db;
 }
