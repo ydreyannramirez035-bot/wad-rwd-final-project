@@ -184,7 +184,7 @@ $sched_result = $stmt->execute();
                                         
                                         <div class="notif-content">
                                             <div>
-                                                <strong><?php echo htmlspecialchars(!empty($notif['first_name']) ? $notif['first_name'] . ' ' . $notif['last_name'] : 'System Alert'); ?></strong>
+                                                <strong><?php echo htmlspecialchars(!empty($notif['first_name']) ? $notif['first_name'] . ' ' . $notif['last_name'] : 'ClassSched Alert'); ?></strong>
                                             </div>
                                             <div class="text-muted small"><?php echo htmlspecialchars($notif['message']); ?></div>
                                             <div class="notif-time"><?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?></div>
