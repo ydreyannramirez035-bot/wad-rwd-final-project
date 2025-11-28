@@ -4,12 +4,12 @@ require_once __DIR__ ."/db.php";
 $db = get_db();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST["name"];
+    $username = $_POST["username"];
     $email = $_POST["email"];
     $password = $_POST["password"];
     $confirmPassword = $_POST["confirmPassword"];
 
-    if (!$name || !$email || !$password) {
+    if (!$username || !$email || !$password) {
         $error = "All fields are required.";
     } 
     else if ($password !== $confirmPassword) {
@@ -46,9 +46,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $roleId = ($userCount == 0) ? $roleAdmin : $roleStudent;
 
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $db->prepare("INSERT INTO users (role_id, name, password_hash, email) VALUES (?, ?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO users (role_id, username, password_hash, email) VALUES (?, ?, ?, ?)");
             $stmt->bindValue(1, $roleId, SQLITE3_INTEGER);
-            $stmt->bindValue(2, $name, SQLITE3_TEXT);
+            $stmt->bindValue(2, $username, SQLITE3_TEXT);
             $stmt->bindValue(3, $hashedPassword, SQLITE3_TEXT);
             $stmt->bindValue(4, $email, SQLITE3_TEXT);
             $stmt->execute();
@@ -74,7 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h2>Create an Account</h2>
         <?php if (!empty($error)) echo "<p style='color:red;'>$error</p>"; ?>
         <form method="POST" action="">
-            <input type="text" name="name" placeholder="Full Name" required>
+            <input type="text" name="username" placeholder="Username" required>
             <input type="email" name="email" placeholder="Email Address" required>
             <input type="password" name="password" placeholder="Password" required>
             <input type="password" name="confirmPassword" placeholder="Confirm Password" required>

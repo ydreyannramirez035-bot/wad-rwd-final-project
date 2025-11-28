@@ -75,6 +75,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
             <td><?php echo htmlspecialchars($row['first_name']); ?></td>
             <td><?php echo htmlspecialchars($row['middle_name']); ?></td>
             <td><?php echo (int)$row['age']; ?></td>
+            <td><?php echo htmlspecialchars($row['phone_number']); ?></td>
             <td><?php echo getYearLevelStr($row['year_level']); ?></td>
             <td>
                 <a href="?action=edit&id=<?php echo $row['id']; ?>" class="btn-link">Edit</a> | 
@@ -100,16 +101,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "store") {
         $error = "Error: Student Number '$student_number' already exists!";
         $action = "create"; 
     } else {
-        $sql = "INSERT INTO students (student_number, first_name, middle_name, last_name, age, email, course_id, year_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO students (student_number, first_name, middle_name, last_name, age, phone_number, email, course_id, year_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $db->prepare($sql);
         $stmt->bindValue(1, $student_number);
         $stmt->bindValue(2, trim($_POST["first_name"]));
         $stmt->bindValue(3, trim($_POST["middle_name"]));
         $stmt->bindValue(4, trim($_POST["last_name"]));
         $stmt->bindValue(5, (int)$_POST["age"]);
-        $stmt->bindValue(6, trim($_POST["email"]));
-        $stmt->bindValue(7, (int)$_POST["course_id"]);
-        $stmt->bindValue(8, (int)$_POST["year_level"]);
+        $stmt->bindValue(6, trim($_POST["phone_number"]));
+        $stmt->bindValue(7, trim($_POST["email"]));
+        $stmt->bindValue(8, (int)$_POST["course_id"]);
+        $stmt->bindValue(9, (int)$_POST["year_level"]);
         $stmt->execute();
 
         header("Location: admin_student_manage.php?msg=Student+added+successfully");
@@ -119,17 +121,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "store") {
 
 // --- HANDLE FORM SUBMISSION (UPDATE) ---
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "update") {
-    $sql = "UPDATE students SET student_number=?, first_name=?, middle_name=?, last_name=?, age=?, email=?, course_id=?, year_level=? WHERE id=?";
+    $sql = "UPDATE students SET student_number=?, first_name=?, middle_name=?, last_name=?, age=?, phone_number=?, email=?, course_id=?, year_level=? WHERE id=?";
     $stmt = $db->prepare($sql);
     $stmt->bindValue(1, trim($_POST["student_number"])); 
     $stmt->bindValue(2, trim($_POST["first_name"])); 
     $stmt->bindValue(3, trim($_POST["middle_name"]));
     $stmt->bindValue(4, trim($_POST["last_name"])); 
     $stmt->bindValue(5, (int)$_POST["age"]); 
-    $stmt->bindValue(6, trim($_POST["email"]));
-    $stmt->bindValue(7, (int)$_POST["course_id"]); 
-    $stmt->bindValue(8, (int)$_POST["year_level"]);
-    $stmt->bindValue(9, (int)$_POST["id"]);
+    $stmt->bindValue(6, trim($_POST["phone_number"]));
+    $stmt->bindValue(7, trim($_POST["email"]));
+    $stmt->bindValue(8, (int)$_POST["course_id"]); 
+    $stmt->bindValue(9, (int)$_POST["year_level"]);
+    $stmt->bindValue(10, (int)$_POST["id"]);
     $stmt->execute();
     
     header("Location: admin_student_manage.php?msg=Student+updated");
@@ -165,12 +168,12 @@ if ($action === "delete") {
     </nav>
     <hr>
 
-    <!-- <?php if ($msg): ?>
+    <?php if ($msg): ?>
         <p class="msg-success"><?php echo htmlspecialchars($msg); ?></p>
     <?php endif; ?>
     <?php if ($error): ?>
         <p class="msg-error"><?php echo htmlspecialchars($error); ?></p>
-    <?php endif; ?> -->
+    <?php endif; ?>
 
 
     <?php if ($action === 'create'): ?>
@@ -182,6 +185,7 @@ if ($action === "delete") {
             <p>Middle Name: <input type="text" name="middle_name"></p>
             <p>Last Name: <input type="text" name="last_name" required></p>
             <p>Age: <input type="number" name="age" required></p>
+            <p>Phone Number: <input type="text" name="phone_number" required></p>
             <p>Email: <input type="email" name="email" required></p>
             
             <p>Year Level: 
@@ -222,6 +226,7 @@ if ($action === "delete") {
                 <p>Middle Name: <input type="text" name="middle_name" value="<?php echo htmlspecialchars($student['middle_name']); ?>"></p>
                 <p>Last Name: <input type="text" name="last_name" value="<?php echo htmlspecialchars($student['last_name']); ?>" required></p>
                 <p>Age: <input type="number" name="age" value="<?php echo $student['age']; ?>" required></p>
+                <p>Phone Number: <input type="text" name="phone_number" value="<?php echo $student['phone_number']; ?>" required></p>
                 <p>Email: <input type="email" name="email" value="<?php echo htmlspecialchars($student['email']); ?>" required></p>
                 
                 <p>Year Level:
@@ -261,8 +266,8 @@ if ($action === "delete") {
             <input type="text" id="search" placeholder="Search name or ID..." onkeyup="loadTable()">
             
             <select id="sort_by" onchange="loadTable()">
-                <option value="last_name">Sort by Last Name</option>
-                <option value="first_name">Sort by First Name</option>
+                <option value="last_name">Last Name</option>
+                <option value="first_name">First Name</option>
             </select>
         </div>
 
@@ -286,6 +291,7 @@ if ($action === "delete") {
                         <th>First Name</th>
                         <th>Middle Name</th>
                         <th>Age</th>
+                        <th>Phone</th>
                         <th>Year</th>
                         <th>Actions</th>
                     </tr>

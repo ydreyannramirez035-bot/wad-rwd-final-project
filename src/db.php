@@ -49,7 +49,7 @@ function get_db(): SQLite3
     $db->exec('CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         role_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
+        username TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
         FOREIGN KEY (role_id) REFERENCES roles(id)
@@ -97,6 +97,7 @@ function get_db(): SQLite3
         first_name TEXT(50),
         middle_name TEXT(50),
         age INTEGER,
+        phone_number TEXT(20),
         course_id INTEGER NOT NULL,
         year_level INTEGER,
         email TEXT(255) UNIQUE,
@@ -115,7 +116,7 @@ function get_db(): SQLite3
         time_start TIME,
         time_end TIME,
         course_id INTEGER NOT NULL,
-        
+
         FOREIGN KEY (teacher_id) REFERENCES teachers(id),
         FOREIGN KEY (course_id) REFERENCES courses(id),
         FOREIGN KEY (subject_id) REFERENCES subjects(id)

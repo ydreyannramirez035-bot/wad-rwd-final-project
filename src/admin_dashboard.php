@@ -163,7 +163,7 @@ $sched_result = $stmt->execute();
         <!-- Hero Section -->
         <div class="row hero-section align-items-end">
             <div class="col-md-6">
-                <h1 class="fw-bold">Hi, <?php echo htmlspecialchars($user["name"]); ?>!</h1>
+                <h1 class="fw-bold">Hi, <?php echo htmlspecialchars($user["username"]); ?>!</h1>
                 <p class="text-secondary mb-0">Here's what's happening today.</p>
             </div>
             <div class="col-md-6 last-update">
