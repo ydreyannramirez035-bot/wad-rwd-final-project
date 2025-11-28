@@ -105,6 +105,14 @@ function get_db(): SQLite3
         FOREIGN KEY (course_id) REFERENCES courses(id)
     )');
 
+    $db->exec('CREATE TABLE IF NOT EXISTS profiles_students (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER NOT NULL,
+    description TEXT(50),
+
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+    )');
+
 
     // --- INDEPENDENT TABLE: Schedules ---
     $db->exec('CREATE TABLE IF NOT EXISTS schedules (

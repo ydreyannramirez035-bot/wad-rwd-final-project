@@ -10,7 +10,7 @@ require_once __DIR__ ."/db.php";
 $db = get_db();
 
 // --- 1. HANDLE CONSTANTS & DEFAULTS ---
-if (!defined('COURSE_ALL')) define('COURSE_ALL', 0); // Added ID for All
+if (!defined('COURSE_ALL')) define('COURSE_ALL', 0);
 if (!defined('COURSE_BSIS')) define('COURSE_BSIS', 1);
 if (!defined('COURSE_ACT')) define('COURSE_ACT', 2);
 
@@ -21,12 +21,15 @@ $selected_course = isset($_GET['course_id']) ? (int)$_GET['course_id'] : COURSE_
 switch ($selected_course) {
     case COURSE_BSIS:
         $course_name = "Bachelor of Science in Information Systems";
+        $student_title = "BSIS Students";
         break;
     case COURSE_ACT:
         $course_name = "Associate in Computer Technology";
+        $student_title = "ACT Students";
         break;
     default:
         $course_name = "All Courses";
+        $student_title = "All Students";
         break;
 }
 
@@ -38,18 +41,9 @@ if ($selected_course === COURSE_ALL) {
     $teachers_count = $db->querySingle("SELECT COUNT(id) FROM teachers");
     $rooms_count = $db->querySingle("SELECT COUNT(DISTINCT room) FROM schedules WHERE room IS NOT NULL AND room != ''");
 } else {
-    // Get FILTERED counts based on selected course
-    
-    // Students enrolled in this course
     $student_enrolled = $db->querySingle("SELECT COUNT(id) FROM students WHERE course_id = $selected_course");
-    
-    // Classes (schedule entries) for this course
     $classes_count = $db->querySingle("SELECT COUNT(id) FROM schedules WHERE course_id = $selected_course");
-    
-    // Teachers teaching this course (Count distinct teachers in the schedule for this course)
     $teachers_count = $db->querySingle("SELECT COUNT(DISTINCT teacher_id) FROM schedules WHERE course_id = $selected_course");
-    
-    // Rooms used by this course
     $rooms_count = $db->querySingle("SELECT COUNT(DISTINCT room) FROM schedules WHERE room IS NOT NULL AND room != '' AND course_id = $selected_course");
 }
 
@@ -85,7 +79,7 @@ if (file_exists($db_file_path)) {
     }
 }
 
-// Build Query based on selection
+// --- 3. SCHEDULE QUERY ---
 $sql_sched = "
     SELECT 
         sch.*, 
@@ -96,7 +90,6 @@ $sql_sched = "
     LEFT JOIN teachers t ON sch.teacher_id = t.id
 ";
 
-// Add WHERE clause if a specific course is selected
 if ($selected_course !== COURSE_ALL) {
     $sql_sched .= " WHERE sch.course_id = :course_id";
 } else {
@@ -106,14 +99,29 @@ if ($selected_course !== COURSE_ALL) {
 $sql_sched .= " ORDER BY sch.time_start ASC";
 
 $stmt = $db->prepare($sql_sched);
-
-// Bind parameter only if not ALL
 if ($selected_course !== COURSE_ALL) {
     $stmt->bindValue(':course_id', $selected_course, SQLITE3_INTEGER);
 }
-
 $sched_result = $stmt->execute();
 
+
+// --- 4. STUDENT LIST QUERY (NEW ADDITION) ---
+$sql_students = "SELECT * FROM students";
+
+if ($selected_course !== COURSE_ALL) {
+    $sql_students .= " WHERE course_id = :course_id";
+}
+
+// Order alphabetically by last name
+$sql_students .= " ORDER BY last_name ASC";
+
+$stmt_students = $db->prepare($sql_students);
+
+if ($selected_course !== COURSE_ALL) {
+    $stmt_students->bindValue(':course_id', $selected_course, SQLITE3_INTEGER);
+}
+
+$students_result = $stmt_students->execute();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -160,7 +168,6 @@ $sched_result = $stmt->execute();
     </nav>
 
     <div class="container mb-5">
-        <!-- Hero Section -->
         <div class="row hero-section align-items-end">
             <div class="col-md-6">
                 <h1 class="fw-bold">Hi, <?php echo htmlspecialchars($user["username"]); ?>!</h1>
@@ -173,8 +180,6 @@ $sched_result = $stmt->execute();
                 <hr>
             </div>
         </div>
-
-        <!-- Filter Dropdown -->
         <div class="row mb-4">
             <div class="col-md-3">
                 <form action="" method="GET">
@@ -186,8 +191,6 @@ $sched_result = $stmt->execute();
                 </form>
             </div>
         </div>
-
-        <!-- Stats Cards -->
         <div class="row g-4">
             <div class="col-md-3">
                 <div class="stats-card">
@@ -219,8 +222,8 @@ $sched_result = $stmt->execute();
             </div>
         </div>
 
-        <!-- Schedule Table -->
-        <div class="schedule-section">
+        <!-- SCHEDULE SECTION -->
+        <div class="schedule-section mt-5">
             <h5 class="mb-4"><?php echo $course_name; ?> Class Schedule</h5>
             
             <div class="table-responsive">
@@ -238,14 +241,12 @@ $sched_result = $stmt->execute();
                     <tbody>
                         <?php while ($row = $sched_result->fetchArray(SQLITE3_ASSOC)): ?>
                         <tr>
-                            <!-- Added Day Column -->
                             <td><?php echo htmlspecialchars($row['day'] ?? '--'); ?></td>
                             <td><?php echo htmlspecialchars($row['subject_name_display'] ?? 'Unknown Subject'); ?></td>
                             <td><?php echo htmlspecialchars($row['teacher_name_display'] ?? 'Unknown Teacher'); ?></td>
                             <td><?php echo htmlspecialchars($row['room'] ?? 'TBA'); ?></td>
                             <td>
                                 <?php 
-                                    // FORMAT TIME START to AM/PM
                                     if (!empty($row['time_start'])) {
                                         echo date("h:i A", strtotime($row['time_start']));
                                     } else {
@@ -255,7 +256,6 @@ $sched_result = $stmt->execute();
                             </td>
                             <td>
                                 <?php 
-                                    // FORMAT TIME END to AM/PM
                                     if (!empty($row['time_end'])) {
                                         echo date("h:i A", strtotime($row['time_end']));
                                     } else {
@@ -265,9 +265,42 @@ $sched_result = $stmt->execute();
                             </td>
                         </tr>
                         <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- STUDENT LIST SECTION (NEW) -->
+        <div class="schedule-section mt-5">
+            <h5 class="mb-4"><?php echo $student_title; ?> List</h5>
+            
+            <div class="table-responsive">
+                <table class="table custom-table">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Last Name</th>
+                            <th>First Name</th>
+                            <th>Middle Name</th>
+                            <th>Age</th>
+                            <th>Year</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while ($student = $students_result->fetchArray(SQLITE3_ASSOC)): ?>
+                        <tr>
+                            <!-- Assumes columns exist in DB: id, last_name, first_name, middle_name, age, year -->
+                            <td><?php echo htmlspecialchars($student['student_number'] ?? '--'); ?></td>
+                            <td><?php echo htmlspecialchars($student['last_name'] ?? '--'); ?></td>
+                            <td><?php echo htmlspecialchars($student['first_name'] ?? '--'); ?></td>
+                            <td><?php echo htmlspecialchars($student['middle_name'] ?? '--'); ?></td>
+                            <td><?php echo htmlspecialchars($student['age'] ?? '--'); ?></td>
+                            <td><?php echo htmlspecialchars($student['year_level'] ?? '--'); ?></td>
+                        </tr>
+                        <?php endwhile; ?>
                         
-                        <?php if(!isset($row)): ?>
-                        <?php endif; ?>
+                        <?php 
+                        ?>
                     </tbody>
                 </table>
             </div>
