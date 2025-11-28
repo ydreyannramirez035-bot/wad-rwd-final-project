@@ -1,167 +1,323 @@
 <?php
 session_start();
+require_once __DIR__ . "/db.php";
+
 if (!isset($_SESSION["user"])) {
     header("Location: login.php");
     exit;
 }
 $user = $_SESSION["user"];
+$db = get_db();
+
+$user_id = $user['id'];
+$student = $db->querySingle("SELECT * FROM students WHERE user_id = $user_id", true);
+
+if (!$student) {
+    $student = [
+        'id' => 0,
+        'first_name' => $user['name'], 
+        'last_name' => '',
+        'course_id' => 0,
+        'year_level' => 1
+    ];
+}
+$student_id = $student['id'];
+$course_id = (int)$student['course_id'];
+$display_name = $student['first_name'] ?: $user['name']; 
+
+if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
+    $notif_id = (int)$_GET['id'];
+    $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
+    header("Location: student_schedule.php"); 
+    exit;
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'clear_all') {
+    $db->exec("UPDATE notifications SET is_read = 1 WHERE student_id = $student_id");
+    header("Location: student_dashboard.php");
+    exit;
+}
+
+// FIX: Added filter to ONLY show 'New Class' or 'Schedule Update' messages.
+// This hides 'Updated phone number' and 'Updated bio' messages.
+$unread_count = $db->querySingle("
+    SELECT COUNT(*) FROM notifications 
+    WHERE student_id = $student_id 
+    AND is_read = 0 
+    AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+");
+
+// FIX: Added filter to ONLY show 'New Class' or 'Schedule Update' messages.
+$notif_sql = "
+    SELECT * FROM notifications 
+    WHERE student_id = $student_id
+    AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+    ORDER BY created_at DESC LIMIT 10
+";
+
+$notif_result = $db->query($notif_sql);
+$notifications = [];
+while ($row = $notif_result->fetchArray(SQLITE3_ASSOC)) {
+    $notifications[] = $row;
+}
+
+$f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));
+$l_initial = !empty($student['last_name']) ? strtoupper(substr($student['last_name'], 0, 1)) : '';
+
+if ($l_initial === '') {
+    $initials = strtoupper(substr($user['name'], 0, 2));
+} else {
+    $initials = $f_initial . $l_initial;
+}
+
+$selected_day = $_GET['day'] ?? date('l'); 
+$valid_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+if ($selected_day !== 'All' && !in_array($selected_day, $valid_days)) {
+    $selected_day = "Monday";
+}
+
+$actual_day = date('l');
+$sqlToday = "SELECT COUNT(*) FROM schedules WHERE course_id = :cid AND day = :day";
+$stmt = $db->prepare($sqlToday);
+$stmt->bindValue(':cid', $course_id, SQLITE3_INTEGER);
+$stmt->bindValue(':day', $actual_day, SQLITE3_TEXT);
+$classes_today_count = $stmt->execute()->fetchArray()[0];
+
+$sqlSubs = "SELECT COUNT(DISTINCT subject_id) FROM schedules WHERE course_id = :cid";
+$stmt = $db->prepare($sqlSubs);
+$stmt->bindValue(':cid', $course_id, SQLITE3_INTEGER);
+$subjects_count = $stmt->execute()->fetchArray()[0];
+
+$sqlSched = "
+    SELECT sch.*, sub.subject_name, t.name as teacher_name
+    FROM schedules sch
+    LEFT JOIN subjects sub ON sch.subject_id = sub.id
+    LEFT JOIN teachers t ON sch.teacher_id = t.id
+    WHERE sch.course_id = :cid
+";
+
+if ($selected_day !== 'All') {
+    $sqlSched .= " AND sch.day = :day";
+}
+
+$sqlSched .= " ORDER BY 
+    CASE 
+        WHEN sch.day = 'Monday' THEN 1
+        WHEN sch.day = 'Tuesday' THEN 2
+        WHEN sch.day = 'Wednesday' THEN 3
+        WHEN sch.day = 'Thursday' THEN 4
+        WHEN sch.day = 'Friday' THEN 5
+        WHEN sch.day = 'Saturday' THEN 6
+        WHEN sch.day = 'Sunday' THEN 7
+        ELSE 8
+    END,
+    sch.time_start ASC";
+
+$stmt = $db->prepare($sqlSched);
+$stmt->bindValue(':cid', $course_id, SQLITE3_INTEGER);
+
+if ($selected_day !== 'All') {
+    $stmt->bindValue(':day', $selected_day, SQLITE3_TEXT);
+}
+
+$sched_result = $stmt->execute();
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <title>ClassSched | Student Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
-
-    <style>
-        body {
-            background: #f4f7ff;
-        }
-        .navbar {
-            background: #fff;
-            padding: 15px 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-        }
-        /* .logo span {
-            font-weight: 600;
-            font-size: 20px;
-            color: #2662f0;
-        } */
-        .brand-text {
-            color: #2662f0;
-        }
-        .brand-sub {
-            color: #2662f0;
-        }
-        .nav-links a {
-            margin-right: 25px;
-            color: #333;
-            font-weight: 500;
-            text-decoration: none;
-        }
-        .nav-profile button {
-            background: #2662f0;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 50px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .dashboard-section {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/student_dashboard.css">
+    <link rel="stylesheet" href="../styles/notification.css">   
 </head>
 
 <body>
-    <!-- NAVBAR -->
-    <nav class="navbar justify-content-between">
-        <div class="logo">
-            <img src="../img/logo.jpg" width="60" height="60">
-            <span class="brand-text">Class</span>
-            <span class="brand-sub">Sched</span>
-        </div>
 
-        <div class="nav-links">
-            <a href="#">Dashboard</a>
-            <a href="student_schedule.php">Class Schedule</a>
-        </div>
-
-        <div class="dropdown">
-            <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-                <!-- make the profile dropdown show user's initials only, hindi yung buong pangalan -->
-                <?php echo htmlspecialchars($user["name"]); ?>
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <span style="background:#94a3b8; color:white; padding:5px 10px; border-radius:50%; font-size:14px; vertical-align:middle; margin-right:5px;">LOGO</span>
+                Class<span class="brand-blue">Sched</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+                <span class="navbar-toggler-icon"></span>
             </button>
 
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="student_profile.php">Profile</a></li>
-                <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
-            </ul>
+            <div class="collapse navbar-collapse justify-content-center" id="navContent">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link active" href="student_dashboard.php">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="student_schedule.php">Class Schedule</a></li>
+                </ul>
+            </div>
+
+            <div class="d-flex align-items-center">             
+                <div class="dropdown notification-container me-4 position-relative">
+                    <i class="fa-solid fa-bell dropdown-toggle" 
+                       id="notificationDropdown" 
+                       data-bs-toggle="dropdown" 
+                       aria-expanded="false" 
+                       style="font-size: 1.2rem;">
+                    </i>
+                    
+                    <?php if ($unread_count > 0): ?>
+                        <span class="notification-badge">
+                            <?php echo ($unread_count > 9) ? '9+' : $unread_count; ?>
+                        </span>
+                    <?php endif; ?>
+
+                    <ul class="dropdown-menu dropdown-menu-end notification-list shadow" aria-labelledby="notificationDropdown">
+                        <li class="dropdown-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Notifications</span>
+                            <?php if ($unread_count > 0): ?>
+                                <a href="?action=clear_all" class="text-decoration-none small text-primary">Mark all read</a>
+                            <?php endif; ?>
+                        </li>
+
+                        <?php if (count($notifications) > 0): ?>
+                            <?php foreach ($notifications as $notif): ?>
+                                <li>
+                                    <a class="dropdown-item notification-item" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
+                                        
+                                        <div class="notif-content">
+                                            <div>
+                                                <strong><?php echo htmlspecialchars(!empty($notif['first_name']) ? $notif['first_name'] . ' ' . $notif['last_name'] : 'ClassSched Alert'); ?></strong>
+                                            </div>
+                                            <div class="text-muted small"><?php echo htmlspecialchars($notif['message']); ?></div>
+                                            <div class="notif-time"><?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?></div>
+                                        </div>
+
+                                        <?php if ($notif['is_read'] == 0): ?>
+                                            <div class="unread-dot"></div>
+                                        <?php endif; ?>
+
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <li class="text-center py-4 text-muted small">No notifications yet</li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+                
+                <div class="dropdown">
+                    <div class="profile-container dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="profile-circle">
+                            <?php echo $initials; ?>
+                        </div>
+                        <i class="fa-solid fa-chevron-down profile-chevron"></i>
+                    </div>
+
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                        <li><a class="dropdown-item" href="student_profile.php">Profile</a></li>
+                        <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <!-- DASHBOARD -->
     <main class="container py-5">
-        <h3 class="fw-semibold">Hi, <?php echo htmlspecialchars($user["name"]); ?>!</h3>
-        <p class="text-muted mb-4">Here’s what’s happening today.</p>
+        
+        <div class="mb-5">
+            <h1 class="hero-title">Hi, <?php echo htmlspecialchars($display_name); ?>!</h1>
+            <p class="hero-sub">Here’s what’s happening today.</p>
+        </div>
 
-        <!-- STAT CARDS -->
-        <div class="row g-3 mb-4">
+        <div class="row g-4">
             <div class="col-md-4">
                 <div class="stat-card">
-                    <h6 class="text-muted">Classes today</h6>
-                    <h3 class="fw-bold">2</h3>
+                    <div class="stat-label">Classes today</div>
+                    <div class="stat-number"><?php echo $classes_today_count; ?></div>
                 </div>
             </div>
-
             <div class="col-md-4">
                 <div class="stat-card">
-                    <h6 class="text-muted">Subjects enrolled</h6>
-                    <h3 class="fw-bold">10</h3>
+                    <div class="stat-label">Subjects enrolled</div>
+                    <div class="stat-number"><?php echo $subjects_count; ?></div>
                 </div>
             </div>
-
             <div class="col-md-4">
                 <div class="stat-card">
-                    <h6 class="text-muted">Upcoming events</h6>
-                    <h3 class="fw-bold">0</h3>
+                    <div class="stat-label">Upcoming events</div>
+                    <div class="stat-number">0</div>
                 </div>
             </div>
         </div>
 
-        <!-- TODAY’S CLASS SCHEDULE -->
-        <div class="dashboard-section">
-            <div class="d-flex justify-content-between mb-3">
-                <h5 class="fw-semibold">Today’s class schedule</h5>
-
-                <select class="form-select w-auto">
-                    <option>Monday</option>
-                </select>
+        <div class="schedule-box">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="section-title">Today’s class schedule</div>
+                
+                <form method="GET" action="">
+                    <select name="day" class="form-select form-select-sm" style="width: auto; font-weight:500;" onchange="this.form.submit()">
+                        <option value="All" <?php if($selected_day == 'All') echo 'selected'; ?>>All Days</option>
+                        <?php foreach($valid_days as $d): ?>
+                            <option value="<?php echo $d; ?>" <?php if($selected_day == $d) echo 'selected'; ?>>
+                                <?php echo $d; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </form>
             </div>
 
-            <table class="table table-bordered align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Subject</th>
-                        <th>Teacher</th>
-                        <th>Room</th>
-                        <th>Time</th>
-                    </tr>
-                </thead>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th width="15%">Day</th>
+                            <th width="30%">Subject</th>
+                            <th width="25%">Teacher</th>
+                            <th width="15%">Room</th>
+                            <th width="15%">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $hasRows = false;
+                        while ($row = $sched_result->fetchArray(SQLITE3_ASSOC)): 
+                            $hasRows = true;
+                        ?>
+                            <tr>
+                                <td class="text-muted fw-semibold"><?php echo htmlspecialchars($row['day']); ?></td>
+                                <td class="fw-semibold text-primary"><?php echo htmlspecialchars($row['subject_name']); ?></td>
+                                <td><?php echo htmlspecialchars($row['teacher_name']); ?></td>
+                                <td><?php echo htmlspecialchars($row['room'] ?? 'TBA'); ?></td>
+                                <td>
+                                    <?php 
+                                        $start = $row['time_start'] ? date("h:i A", strtotime($row['time_start'])) : '--';
+                                        $end = $row['time_end'] ? date("h:i A", strtotime($row['time_end'])) : '--';
+                                        echo "$start - $end";
+                                    ?>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
 
-                <tbody>
-                    <tr>
-                        <td>Human WAD</td>
-                        <td>Mr. Human</td>
-                        <td>Human B</td>
-                        <td>Human PM</td>
-                    </tr>
-                    <tr>
-                        <td>Hu RWD</td>
-                        <td>Mr. Human1</td>
-                        <td>Human B</td>
-                        <td>Human PM</td>
-                    </tr>
-                </tbody>
-            </table>
+                        <?php if (!$hasRows): ?>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <?php if ($selected_day === 'All'): ?>
+                                        No classes scheduled for this week.
+                                    <?php else: ?>
+                                        No classes scheduled for <?php echo htmlspecialchars($selected_day); ?>.
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
 
-            <div class="text-center mt-3">
-                <a href="student_schedule.php" class="btn btn-primary">View full sched</a>
+            <div class="text-center mt-4">
+                <a href="student_schedule.php" class="btn btn-primary rounded-pill px-4">View full sched</a>
             </div>
         </div>
+
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

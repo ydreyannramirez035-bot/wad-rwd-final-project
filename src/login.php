@@ -5,7 +5,7 @@ require_once __DIR__ . "/db.php";
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $input = trim($_POST["username_or_email"]);
+    $input = strtolower(trim($_POST["username_or_email"]));
     $password = trim($_POST["password"]);
 
     $db = get_db();
@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bindValue(1, $email, SQLITE3_TEXT);
         $result = $stmt->execute();
 
-        if ($user["username"] === "admin" || $user["email"] === $result->fetchArray()) {
+        if ($user["username"] == "admin" || $user["email"] == $result->fetchArray()) {
             header("Location: admin_dashboard.php");
             exit;
         }

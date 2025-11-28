@@ -7,8 +7,8 @@ $error = "";
 $db = get_db();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST["username"]);
-    $email = trim($_POST["email"]);
+    $username = strtolower(trim($_POST["username"]));
+    $email = strtolower(trim($_POST["email"]));
     $password = $_POST["password"];
     $confirmPassword = $_POST["confirmPassword"];
     // 1. Basic Validation
