@@ -14,6 +14,28 @@ if (!isset($_SESSION["user"])) {
     header("Location: login.php");
     exit;
 }
+$user = $_SESSION["user"];
+
+// FETCH NOTIFS
+$unread_count = $db->querySingle("
+    SELECT COUNT(*) FROM notifications 
+    WHERE is_read = 0 
+    AND (message LIKE '%bio%' OR message LIKE '%phone%')
+");
+
+$notif_sql = "
+    SELECT n.*, s.first_name, s.last_name 
+    FROM notifications n
+    LEFT JOIN students s ON n.student_id = s.id
+    WHERE (n.message LIKE '%bio%' OR n.message LIKE '%phone%')
+    ORDER BY n.created_at DESC
+    LIMIT 10
+";
+$notif_result = $db->query($notif_sql);
+$notifications = [];
+while ($row = $notif_result->fetchArray(SQLITE3_ASSOC)) {
+    $notifications[] = $row;
+}
 
 // Initialize Variables
 $action = $_GET["action"] ?? "list";
@@ -157,156 +179,218 @@ if ($action === "delete") {
 <head>
     <meta charset="UTF-8">
     <title>Manage Students</title>
-    <link rel="stylesheet" href="../try.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/admin_student_manage.css">
+    <link rel="stylesheet" href="../styles/notification.css">
 </head>
 <body>
-
-    <nav>
-        <a href="admin_dashboard.php">Dashboard</a> | 
-        <a href="admin_schedule.php">Schedule</a> | 
-        <a href="admin_student_manage.php"><strong>Manage Students</strong></a>
-    </nav>
-    <hr>
-
-    <?php if ($msg): ?>
-        <p class="msg-success"><?php echo htmlspecialchars($msg); ?></p>
-    <?php endif; ?>
-    <?php if ($error): ?>
-        <p class="msg-error"><?php echo htmlspecialchars($error); ?></p>
-    <?php endif; ?>
-
-
-    <?php if ($action === 'create'): ?>
-        
-        <h3>Add New Student</h3>
-        <form method="post" action="?action=store">
-            <p>Student No: <input type="text" name="student_number" required></p>
-            <p>First Name: <input type="text" name="first_name" required></p>
-            <p>Middle Name: <input type="text" name="middle_name"></p>
-            <p>Last Name: <input type="text" name="last_name" required></p>
-            <p>Age: <input type="number" name="age" required></p>
-            <p>Phone Number: <input type="text" name="phone_number" required></p>
-            <p>Email: <input type="email" name="email" required></p>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="../img/logo.jpg" width="50" height="50" class="me-2">
+                <span class="fw-bold text-primary">Class</span><span class="text-primary">Sched</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
             
-            <p>Year Level: 
-                <label><input type="radio" name="year_level" value="1" required> 1st Year</label>
-                <label><input type="radio" name="year_level" value="2"> 2nd Year</label>
-                <label><input type="radio" name="year_level" value="3"> 3rd Year</label>
-                <label><input type="radio" name="year_level" value="4"> 4th Year</label>
-            </p>
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="admin_dashboard.php">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="admin_student_manage.php">Students</a></li>
+                    <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
+                </ul>
+            </div>
 
-            <p>Course: 
-                <select name="course_id" required>
-                    <option value="">-- Select --</option>
-                    <option value="<?php echo COURSE_BSIS; ?>">Bachelor of Science in Information System</option>
-                    <option value="<?php echo COURSE_ACT; ?>">Associate in Computer Technology</option>
-                </select>
-            </p>
-            <button type="submit">Save</button> 
-            <a href="admin_student_manage.php">Cancel</a>
-        </form>
-
-
-    <?php elseif ($action === 'edit'): 
-        // VIEW: EDIT STUDENT FORM
-        $id = (int)($_GET["id"] ?? 0);
-        $student = $db->querySingle("SELECT * FROM students WHERE id = $id", true);
-
-        if (!$student): ?>
-            <p>Student not found.</p>
-            <a href="admin_student_manage.php">Back to List</a>
-        <?php else: ?>
-            
-            <h3>Edit Student</h3>
-            <form method="post" action="?action=update">
-                <input type="hidden" name="id" value="<?php echo $student['id']; ?>">
+            <div class="d-flex align-items-center">
                 
-                <p>Student No: <input type="text" name="student_number" value="<?php echo htmlspecialchars($student['student_number']); ?>" required></p>
-                <p>First Name: <input type="text" name="first_name" value="<?php echo htmlspecialchars($student['first_name']); ?>" required></p>
-                <p>Middle Name: <input type="text" name="middle_name" value="<?php echo htmlspecialchars($student['middle_name']); ?>"></p>
-                <p>Last Name: <input type="text" name="last_name" value="<?php echo htmlspecialchars($student['last_name']); ?>" required></p>
-                <p>Age: <input type="number" name="age" value="<?php echo $student['age']; ?>" required></p>
-                <p>Phone Number: <input type="text" name="phone_number" value="<?php echo $student['phone_number']; ?>" required></p>
-                <p>Email: <input type="email" name="email" value="<?php echo htmlspecialchars($student['email']); ?>" required></p>
-                
-                <p>Year Level:
-                    <?php for($i=1; $i<=4; $i++): ?>
-                        <label>
-                            <input type="radio" name="year_level" value="<?php echo $i; ?>" 
-                            <?php if($student['year_level'] == $i) echo 'checked'; ?>> 
-                            <?php echo getYearLevelStr($i); ?>
-                        </label>
-                    <?php endfor; ?>
-                </p>
-                
-                <p>Course:
-                    <select name="course_id" required>
-                        <option value="<?php echo COURSE_BSIS; ?>" <?php if($student['course_id'] == COURSE_BSIS) echo 'selected'; ?>>BS Information System</option>
-                        <option value="<?php echo COURSE_ACT; ?>" <?php if($student['course_id'] == COURSE_ACT) echo 'selected'; ?>>Associate in Computer Tech</option>
-                    </select>
-                </p>
-                
-                <button type="submit">Update</button> 
-                <a href="admin_student_manage.php">Cancel</a>
-            </form>
-        <?php endif; ?>
+                <div class="dropdown notification-container me-4 position-relative">
+                    <i class="fa-solid fa-bell dropdown-toggle" 
+                       id="notificationDropdown" 
+                       data-bs-toggle="dropdown" 
+                       aria-expanded="false" 
+                       style="font-size: 1.2rem;">
+                    </i>
+                    
+                    <?php if ($unread_count > 0): ?>
+                        <span class="notification-badge">
+                            <?php echo ($unread_count > 9) ? '9+' : $unread_count; ?>
+                        </span>
+                    <?php endif; ?>
 
+                    <ul class="dropdown-menu dropdown-menu-end notification-list shadow" aria-labelledby="notificationDropdown">
+                        <li class="dropdown-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Notifications</span>
+                            <?php if ($unread_count > 0): ?>
+                                <a href="?action=clear_notifications" class="text-decoration-none small text-primary">Mark all read</a>
+                            <?php endif; ?>
+                        </li>
 
-    <?php else: ?>
-        
-        <h2>Manage Students</h2>
-        
-        <div class="controls">
-            <select id="filter_course" onchange="loadTable()">
-                <option value="">All Courses</option>
-                <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
-                <option value="<?php echo COURSE_ACT; ?>">ACT</option>
-            </select>
+                        <?php if (count($notifications) > 0): ?>
+                            <?php foreach ($notifications as $notif): ?>
+                                <li>
+                                    <a class="dropdown-item notification-item" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
+                                        
+                                        <div class="notif-content">
+                                            <div>
+                                                <strong><?php echo htmlspecialchars($notif['first_name'] . ' ' . $notif['last_name']); ?></strong>
+                                            </div>
+                                            <div class="text-muted small"><?php echo htmlspecialchars($notif['message']); ?></div>
+                                            <div class="notif-time"><?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?></div>
+                                        </div>
 
-            <input type="text" id="search" placeholder="Search name or ID..." onkeyup="loadTable()">
-            
-            <select id="sort_by" onchange="loadTable()">
-                <option value="last_name">Last Name</option>
-                <option value="first_name">First Name</option>
-            </select>
+                                        <?php if ($notif['is_read'] == 0): ?>
+                                            <div class="unread-dot"></div>
+                                        <?php endif; ?>
+
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <li class="text-center py-4 text-muted small">No notifications yet</li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+
+                <div class="dropdown">
+                    <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Admin • <?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($user["username"]); ?></b></small></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
+    </nav>
+    <div class="container my-4">
+        <?php if ($action === 'create' || $action === 'edit'): ?>
+            <?php if ($msg): ?>
+                <div class="alert alert-success"><?php echo htmlspecialchars($msg); ?></div>
+            <?php endif; ?>
+            <?php if ($error): ?>
+                <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+            <?php endif; ?>
 
-        <?php 
-        $count = $db->querySingle("SELECT COUNT(*) FROM students");
-        
-        if ($count == 0): ?>
-            
-            <div class="empty-state">
-                <h3>No students record found</h3>
-                <p>Click the button below to get started.</p>
-                <a href="?action=create"><button>+ Add Student</button></a>
-            </div>
+            <?php 
+            $id = (int)($_GET["id"] ?? 0);
+            $student = ($action === 'edit') ? $db->querySingle("SELECT * FROM students WHERE id=$id", true) : [];
+            if ($action === 'edit' && !$student) {
+                echo "<div class='alert alert-warning'>Student not found.</div><a href='admin_student_manage.php' class='btn btn-secondary'>Back</a>";
+                exit;
+            }
+            ?>
+
+            <h3><?php echo ucfirst($action); ?> Student</h3>
+            <form method="post" action="?action=<?php echo ($action==='edit') ? 'update' : 'store'; ?>" class="mt-3">
+                <?php if ($action==='edit') echo '<input type="hidden" name="id" value="'.$student['id'].'">'; ?>
+
+                <div class="mb-3">
+                    <label class="form-label">Student Number</label>
+                    <input type="text" class="form-control" name="student_number" value="<?php echo $student['student_number']??''; ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">First Name</label>
+                    <input type="text" class="form-control" name="first_name" value="<?php echo $student['first_name']??''; ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Middle Name</label>
+                    <input type="text" class="form-control" name="middle_name" value="<?php echo $student['middle_name']??''; ?>">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" class="form-control" name="last_name" value="<?php echo $student['last_name']??''; ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Age</label>
+                    <input type="number" class="form-control" name="age" value="<?php echo $student['age']??''; ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" class="form-control" name="phone_number" value="<?php echo $student['phone_number']??''; ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" name="email" value="<?php echo $student['email']??''; ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Year Level</label><br>
+                    <?php for($i=1; $i<=4; $i++): ?>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="year_level" value="<?php echo $i; ?>" 
+                            <?php if(($student['year_level']??0) == $i) echo 'checked'; ?> required>
+                            <label class="form-check-label"><?php echo getYearLevelStr($i); ?></label>
+                        </div>
+                    <?php endfor; ?>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Course</label>
+                    <select class="form-select" name="course_id" required>
+                        <option value="">-- Select Course --</option>
+                        <option value="<?php echo COURSE_BSIS; ?>" <?php if(($student['course_id']??0)==COURSE_BSIS) echo 'selected'; ?>>BS Information System</option>
+                        <option value="<?php echo COURSE_ACT; ?>" <?php if(($student['course_id']??0)==COURSE_ACT) echo 'selected'; ?>>Associate in Computer Tech</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="admin_student_manage.php" class="btn btn-secondary ms-2">Cancel</a>
+            </form>
 
         <?php else: ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Student Number</th>
-                        <th>Last Name</th>
-                        <th>First Name</th>
-                        <th>Middle Name</th>
-                        <th>Age</th>
-                        <th>Phone</th>
-                        <th>Year</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="table_data">
-                    </tbody>
-            </table>
-            <div style="margin-bottom: 10px; text-align: right;">
-                <a href="?action=create"><button>+ Add Student</button></a>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Manage Students</h2>
             </div>
 
+            <div class="row mb-3 g-2">
+                <div class="col-md-3">
+                    <select id="filter_course" class="form-select" onchange="loadTable()">
+                        <option value="">All Courses</option>
+                        <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
+                        <option value="<?php echo COURSE_ACT; ?>">ACT</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" id="search" class="form-control" placeholder="Search name or ID..." onkeyup="loadTable()">
+                </div>
+                <div class="col-md-3">
+                    <select id="sort_by" class="form-select" onchange="loadTable()">
+                        <option value="last_name">Last Name</option>
+                        <option value="first_name">First Name</option>
+                    </select>
+                </div>
+            </div>
+
+            <?php 
+            $count = $db->querySingle("SELECT COUNT(*) FROM students"); 
+            if ($count == 0): ?>
+                <div class="alert alert-info">No student record found. Click "+ Add Student" to get started.</div>
+                <a href="?action=create" class="btn btn-primary mt-2">+ Add Student</a>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student Number</th>
+                                <th>Last Name</th>
+                                <th>First Name</th>
+                                <th>Middle Name</th>
+                                <th>Age</th>
+                                <th>Phone</th>
+                                <th>Year</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table_data"></tbody>
+                    </table>
+                    <a href="?action=create" class="btn btn-primary btn-sched">+ Add Student</a>
+                </div>
+            <?php endif; ?>
             <script src="../js/load.js"></script>
-
-        <?php endif; ?> 
-    <?php endif; ?>
-
+        <?php endif; ?>
+    </div>
 </body>
 </html>

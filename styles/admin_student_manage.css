@@ -47,13 +47,3 @@ body {
     background-color: #3b5bdb;
     color: white;
 }
-
-/* Add Schedule button */
-.btn-sched {
-    background-color: #4a6cf7;
-}
-
-.btn-sched:hover {
-    background-color: #3b5bdb;
-    color: white;
-}

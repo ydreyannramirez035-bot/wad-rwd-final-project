@@ -14,7 +14,28 @@ if (!isset($_SESSION["user"])) {
 }
 $user = $_SESSION["user"];
 
-// --- FETCH DATA ---
+// FETCH NOTIFS
+$unread_count = $db->querySingle("
+    SELECT COUNT(*) FROM notifications 
+    WHERE is_read = 0 
+    AND (message LIKE '%bio%' OR message LIKE '%phone%')
+");
+
+$notif_sql = "
+    SELECT n.*, s.first_name, s.last_name 
+    FROM notifications n
+    LEFT JOIN students s ON n.student_id = s.id
+    WHERE (n.message LIKE '%bio%' OR n.message LIKE '%phone%')
+    ORDER BY n.created_at DESC
+    LIMIT 10
+";
+$notif_result = $db->query($notif_sql);
+$notifications = [];
+while ($row = $notif_result->fetchArray(SQLITE3_ASSOC)) {
+    $notifications[] = $row;
+}
+
+// FETCH DATA
 $subjectOptions = [];
 $subRes = $db->query("SELECT id, subject_name FROM subjects ORDER BY subject_name ASC");
 while ($row = $subRes->fetchArray(SQLITE3_ASSOC)) { $subjectOptions[] = $row; }
@@ -189,6 +210,7 @@ if ($action === "delete") {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../styles/admin_schedule.css">
+    <link rel="stylesheet" href="../styles/notification.css">
 </head>
 <body>
     <!-- NAVBAR -->
@@ -211,9 +233,57 @@ if ($action === "delete") {
             </div>
 
             <div class="d-flex align-items-center">
-                <i class="fa-solid fa-bell me-3" style="font-size: 1.2rem; cursor: pointer;"></i>
+                
+                <div class="dropdown notification-container me-4 position-relative">
+                    <i class="fa-solid fa-bell dropdown-toggle" 
+                       id="notificationDropdown" 
+                       data-bs-toggle="dropdown" 
+                       aria-expanded="false" 
+                       style="font-size: 1.2rem;">
+                    </i>
+                    
+                    <?php if ($unread_count > 0): ?>
+                        <span class="notification-badge">
+                            <?php echo ($unread_count > 9) ? '9+' : $unread_count; ?>
+                        </span>
+                    <?php endif; ?>
+
+                    <ul class="dropdown-menu dropdown-menu-end notification-list shadow" aria-labelledby="notificationDropdown">
+                        <li class="dropdown-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Notifications</span>
+                            <?php if ($unread_count > 0): ?>
+                                <a href="?action=clear_notifications" class="text-decoration-none small text-primary">Mark all read</a>
+                            <?php endif; ?>
+                        </li>
+
+                        <?php if (count($notifications) > 0): ?>
+                            <?php foreach ($notifications as $notif): ?>
+                                <li>
+                                    <a class="dropdown-item notification-item" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
+                                        
+                                        <div class="notif-content">
+                                            <div>
+                                                <strong><?php echo htmlspecialchars($notif['first_name'] . ' ' . $notif['last_name']); ?></strong>
+                                            </div>
+                                            <div class="text-muted small"><?php echo htmlspecialchars($notif['message']); ?></div>
+                                            <div class="notif-time"><?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?></div>
+                                        </div>
+
+                                        <?php if ($notif['is_read'] == 0): ?>
+                                            <div class="unread-dot"></div>
+                                        <?php endif; ?>
+
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <li class="text-center py-4 text-muted small">No notifications yet</li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+
                 <div class="dropdown">
-                    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         Admin • <?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -339,7 +409,6 @@ if ($action === "delete") {
         <?php else: ?>  
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2>Manage Schedule</h2>
-                <a href="?action=create" class="btn btn-success">+ Add Schedule</a>
             </div>
 
             <div class="row mb-3 g-2">
@@ -383,6 +452,7 @@ if ($action === "delete") {
                         </thead>
                         <tbody id="table_data"></tbody>
                     </table>
+                    <a href="?action=create" class="btn btn-primary btn-sched">+ Add Schedule</a>
                 </div>
             <?php endif; ?>
         <?php endif; ?>

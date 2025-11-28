@@ -168,10 +168,12 @@ $students_result = $stmt_students->execute();
     <link rel="stylesheet" href="../styles/notification.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg">
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="#">
-                <span class="logo-circle">LOGO</span>ClassSched
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="../img/logo.jpg" width="50" height="50" class="me-2">
+                <span class="fw-bold text-primary">Class</span><span class="text-primary">Sched</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -237,10 +239,10 @@ $students_result = $stmt_students->execute();
 
                 <div class="dropdown">
                     <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        Admin • <?php echo htmlspecialchars(substr($user["name"], 0, 2)); ?>
+                        Admin • <?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($user["name"]); ?></b></small></li>
+                        <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($user["username"]); ?></b></small></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
                     </ul>

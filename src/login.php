@@ -47,11 +47,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../styles/style.css">
 </head>
 <body>
     <div class="container">
-        <h2>Login to (app name)</h2>
+        <h2>Already have an account? Please login</h2>
         
         <?php if (isset($_GET["registered"])): ?>
             <p style='color:green;'>Registration successful! Please login.</p>
