@@ -49,7 +49,7 @@ function get_db(): SQLite3
     $db->exec('CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         role_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
+        username TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
         FOREIGN KEY (role_id) REFERENCES roles(id)
@@ -97,6 +97,7 @@ function get_db(): SQLite3
         first_name TEXT(50),
         middle_name TEXT(50),
         age INTEGER,
+        phone_number TEXT(20),
         course_id INTEGER NOT NULL,
         year_level INTEGER,
         email TEXT(255) UNIQUE,
@@ -104,6 +105,13 @@ function get_db(): SQLite3
         FOREIGN KEY (course_id) REFERENCES courses(id)
     )');
 
+    $db->exec('CREATE TABLE IF NOT EXISTS profiles_students (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER NOT NULL,
+    description TEXT(50),
+
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+    )');
 
     // --- INDEPENDENT TABLE: Schedules ---
     $db->exec('CREATE TABLE IF NOT EXISTS schedules (
@@ -115,11 +123,42 @@ function get_db(): SQLite3
         time_start TIME,
         time_end TIME,
         course_id INTEGER NOT NULL,
-        
+
         FOREIGN KEY (teacher_id) REFERENCES teachers(id),
         FOREIGN KEY (course_id) REFERENCES courses(id),
         FOREIGN KEY (subject_id) REFERENCES subjects(id)
     );');
+
+    // NEW: Notifications Table
+    $db->exec('CREATE TABLE IF NOT EXISTS notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_id INTEGER,
+        message TEXT,
+        is_read INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (student_id) REFERENCES students(id)
+    )');
+    
+    $db->exec('CREATE TRIGGER IF NOT EXISTS trigger_schedule_update
+        AFTER UPDATE ON schedules
+        BEGIN
+            INSERT INTO notifications (student_id, message, is_read, created_at)
+            SELECT id, "Schedule updated for " || (SELECT subject_name FROM subjects WHERE id = NEW.subject_id), 0, datetime("now", "localtime")
+            FROM students
+            WHERE course_id = NEW.course_id;
+        END;
+    ');
+
+    // 3. SETUP: Auto-notify students when NEW SCHEDULE is ADDED
+    $db->exec('CREATE TRIGGER IF NOT EXISTS trigger_schedule_insert
+        AFTER INSERT ON schedules
+        BEGIN
+            INSERT INTO notifications (student_id, message, is_read, created_at)
+            SELECT id, "New class schedule added: " || (SELECT subject_name FROM subjects WHERE id = NEW.subject_id), 0, datetime("now", "localtime")
+            FROM students
+            WHERE course_id = NEW.course_id;
+        END;
+    ');
 
     return $db;
 }

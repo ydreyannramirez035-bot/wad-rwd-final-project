@@ -9,15 +9,54 @@ $user = $_SESSION["user"];
 require_once __DIR__ ."/db.php";
 $db = get_db();
 
-// --- 1. HANDLE CONSTANTS & DEFAULTS ---
+$current_db_val = $db->querySingle("SELECT last_activity FROM admin_system_log WHERE id = 1");
+$current_time = time();
+
+if (!is_numeric($current_db_val) || ($current_db_val > $current_time + 60)) {
+    $db->exec("UPDATE admin_system_log SET last_activity = strftime('%s', 'now') WHERE id = 1");
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'clear_notifications') {
+    $db->exec("UPDATE notifications SET is_read = 1 
+               WHERE is_read = 0 
+               AND (message LIKE '%bio%' OR message LIKE '%phone%')");
+    header("Location: admin_dashboard.php");
+    exit;
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
+    $notif_id = (int)$_GET['id'];
+    $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
+    header("Location: admin_student_manage.php"); 
+    exit;
+}
+
+$unread_count = $db->querySingle("
+    SELECT COUNT(*) FROM notifications 
+    WHERE is_read = 0 
+    AND (message LIKE '%bio%' OR message LIKE '%phone%')
+");
+
+$notif_sql = "
+    SELECT n.*, s.first_name, s.last_name 
+    FROM notifications n
+    LEFT JOIN students s ON n.student_id = s.id
+    WHERE (n.message LIKE '%bio%' OR n.message LIKE '%phone%')
+    ORDER BY n.created_at DESC
+    LIMIT 10
+";
+$notif_result = $db->query($notif_sql);
+$notifications = [];
+while ($row = $notif_result->fetchArray(SQLITE3_ASSOC)) {
+    $notifications[] = $row;
+}
+
 if (!defined('COURSE_ALL')) define('COURSE_ALL', 0);
 if (!defined('COURSE_BSIS')) define('COURSE_BSIS', 1);
 if (!defined('COURSE_ACT')) define('COURSE_ACT', 2);
 
-// Get current course from URL or default to ALL
 $selected_course = isset($_GET['course_id']) ? (int)$_GET['course_id'] : COURSE_ALL;
 
-// Determine Course Name Display
 switch ($selected_course) {
     case COURSE_BSIS:
         $course_name = "Bachelor of Science in Information Systems";
@@ -33,9 +72,7 @@ switch ($selected_course) {
         break;
 }
 
-// --- 2. DYNAMIC STATISTICS ---
 if ($selected_course === COURSE_ALL) {
-    // Get TOTALS for everything
     $student_enrolled = $db->querySingle("SELECT COUNT(id) FROM students");
     $classes_count = $db->querySingle("SELECT COUNT(id) FROM schedules");
     $teachers_count = $db->querySingle("SELECT COUNT(id) FROM teachers");
@@ -47,16 +84,15 @@ if ($selected_course === COURSE_ALL) {
     $rooms_count = $db->querySingle("SELECT COUNT(DISTINCT room) FROM schedules WHERE room IS NOT NULL AND room != '' AND course_id = $selected_course");
 }
 
-$db_file_path = __DIR__ . '/../users.db'; 
-$last_update_text = "";
+$last_update_text = "Just now";
 
-clearstatcache();
+$last_activity_row = $db->querySingle("SELECT last_activity FROM admin_system_log WHERE id = 1", true);
 
-if (file_exists($db_file_path)) {
-    $file_mod_time = filemtime($db_file_path);
-    $time_diff = time() - $file_mod_time;
+if ($last_activity_row) {
+    // Force integer cast to be safe
+    $last_update_ts = (int)$last_activity_row['last_activity'];
+    $time_diff = time() - $last_update_ts;
     
-    // Logic for dynamic "Time Ago"
     if ($time_diff < 60) {
         $last_update_text = "Just now";
     } else {
@@ -79,7 +115,6 @@ if (file_exists($db_file_path)) {
     }
 }
 
-// --- 3. SCHEDULE QUERY ---
 $sql_sched = "
     SELECT 
         sch.*, 
@@ -105,14 +140,12 @@ if ($selected_course !== COURSE_ALL) {
 $sched_result = $stmt->execute();
 
 
-// --- 4. STUDENT LIST QUERY (NEW ADDITION) ---
 $sql_students = "SELECT * FROM students";
 
 if ($selected_course !== COURSE_ALL) {
     $sql_students .= " WHERE course_id = :course_id";
 }
 
-// Order alphabetically by last name
 $sql_students .= " ORDER BY last_name ASC";
 
 $stmt_students = $db->prepare($sql_students);
@@ -132,6 +165,7 @@ $students_result = $stmt_students->execute();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../admin_dashboard.css">
+    <link rel="stylesheet" href="../notification.css">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg">
@@ -152,7 +186,55 @@ $students_result = $stmt_students->execute();
             </div>
 
             <div class="d-flex align-items-center">
-                <i class="fa-solid fa-bell me-4" style="font-size: 1.2rem; cursor: pointer;"></i>
+                
+                <div class="dropdown notification-container me-4 position-relative">
+                    <i class="fa-solid fa-bell dropdown-toggle" 
+                       id="notificationDropdown" 
+                       data-bs-toggle="dropdown" 
+                       aria-expanded="false" 
+                       style="font-size: 1.2rem;">
+                    </i>
+                    
+                    <?php if ($unread_count > 0): ?>
+                        <span class="notification-badge">
+                            <?php echo ($unread_count > 9) ? '9+' : $unread_count; ?>
+                        </span>
+                    <?php endif; ?>
+
+                    <ul class="dropdown-menu dropdown-menu-end notification-list shadow" aria-labelledby="notificationDropdown">
+                        <li class="dropdown-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Notifications</span>
+                            <?php if ($unread_count > 0): ?>
+                                <a href="?action=clear_notifications" class="text-decoration-none small text-primary">Mark all read</a>
+                            <?php endif; ?>
+                        </li>
+
+                        <?php if (count($notifications) > 0): ?>
+                            <?php foreach ($notifications as $notif): ?>
+                                <li>
+                                    <a class="dropdown-item notification-item" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
+                                        
+                                        <div class="notif-content">
+                                            <div>
+                                                <strong><?php echo htmlspecialchars($notif['first_name'] . ' ' . $notif['last_name']); ?></strong>
+                                            </div>
+                                            <div class="text-muted small"><?php echo htmlspecialchars($notif['message']); ?></div>
+                                            <div class="notif-time"><?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?></div>
+                                        </div>
+
+                                        <?php if ($notif['is_read'] == 0): ?>
+                                            <div class="unread-dot"></div>
+                                        <?php endif; ?>
+
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <li class="text-center py-4 text-muted small">No notifications yet</li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+
                 <div class="dropdown">
                     <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         Admin • <?php echo htmlspecialchars(substr($user["name"], 0, 2)); ?>
@@ -222,7 +304,6 @@ $students_result = $stmt_students->execute();
             </div>
         </div>
 
-        <!-- SCHEDULE SECTION -->
         <div class="schedule-section mt-5">
             <h5 class="mb-4"><?php echo $course_name; ?> Class Schedule</h5>
             
@@ -270,7 +351,6 @@ $students_result = $stmt_students->execute();
             </div>
         </div>
 
-        <!-- STUDENT LIST SECTION (NEW) -->
         <div class="schedule-section mt-5">
             <h5 class="mb-4"><?php echo $student_title; ?> List</h5>
             
@@ -289,7 +369,6 @@ $students_result = $stmt_students->execute();
                     <tbody>
                         <?php while ($student = $students_result->fetchArray(SQLITE3_ASSOC)): ?>
                         <tr>
-                            <!-- Assumes columns exist in DB: id, last_name, first_name, middle_name, age, year -->
                             <td><?php echo htmlspecialchars($student['student_number'] ?? '--'); ?></td>
                             <td><?php echo htmlspecialchars($student['last_name'] ?? '--'); ?></td>
                             <td><?php echo htmlspecialchars($student['first_name'] ?? '--'); ?></td>

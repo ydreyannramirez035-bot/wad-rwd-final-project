@@ -2,7 +2,6 @@
 session_start();
 require_once __DIR__ . "/db.php";
 
-// 1. Security Check
 if (!isset($_SESSION["user"])) {
     header("Location: login.php");
     exit;
@@ -10,23 +9,58 @@ if (!isset($_SESSION["user"])) {
 $user = $_SESSION["user"];
 $db = get_db();
 
-// 2. Fetch Student Details
 $user_id = $user['id'];
 $student = $db->querySingle("SELECT * FROM students WHERE user_id = $user_id", true);
 
 if (!$student) {
     $student = [
+        'id' => 0,
         'first_name' => $user['name'], 
         'last_name' => '',
         'course_id' => 0,
         'year_level' => 1
     ];
 }
-
+$student_id = $student['id'];
 $course_id = (int)$student['course_id'];
 $display_name = $student['first_name'] ?: $user['name']; 
 
-// CALCULATE INITIALS
+if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
+    $notif_id = (int)$_GET['id'];
+    $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
+    header("Location: student_schedule.php"); 
+    exit;
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'clear_all') {
+    $db->exec("UPDATE notifications SET is_read = 1 WHERE student_id = $student_id");
+    header("Location: student_dashboard.php");
+    exit;
+}
+
+// FIX: Added filter to ONLY show 'New Class' or 'Schedule Update' messages.
+// This hides 'Updated phone number' and 'Updated bio' messages.
+$unread_count = $db->querySingle("
+    SELECT COUNT(*) FROM notifications 
+    WHERE student_id = $student_id 
+    AND is_read = 0 
+    AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+");
+
+// FIX: Added filter to ONLY show 'New Class' or 'Schedule Update' messages.
+$notif_sql = "
+    SELECT * FROM notifications 
+    WHERE student_id = $student_id
+    AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+    ORDER BY created_at DESC LIMIT 10
+";
+
+$notif_result = $db->query($notif_sql);
+$notifications = [];
+while ($row = $notif_result->fetchArray(SQLITE3_ASSOC)) {
+    $notifications[] = $row;
+}
+
 $f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));
 $l_initial = !empty($student['last_name']) ? strtoupper(substr($student['last_name'], 0, 1)) : '';
 
@@ -36,7 +70,6 @@ if ($l_initial === '') {
     $initials = $f_initial . $l_initial;
 }
 
-// 3. Handle Day Selection
 $selected_day = $_GET['day'] ?? date('l'); 
 $valid_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -44,7 +77,6 @@ if ($selected_day !== 'All' && !in_array($selected_day, $valid_days)) {
     $selected_day = "Monday";
 }
 
-// 4. STATS LOGIC
 $actual_day = date('l');
 $sqlToday = "SELECT COUNT(*) FROM schedules WHERE course_id = :cid AND day = :day";
 $stmt = $db->prepare($sqlToday);
@@ -57,7 +89,6 @@ $stmt = $db->prepare($sqlSubs);
 $stmt->bindValue(':cid', $course_id, SQLITE3_INTEGER);
 $subjects_count = $stmt->execute()->fetchArray()[0];
 
-// 5. FETCH SCHEDULE DATA
 $sqlSched = "
     SELECT sch.*, sub.subject_name, t.name as teacher_name
     FROM schedules sch
@@ -100,6 +131,7 @@ $sched_result = $stmt->execute();
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../student_dashboard.css">
+    <link rel="stylesheet" href="../notification.css">   
 </head>
 
 <body>
@@ -122,11 +154,56 @@ $sched_result = $stmt->execute();
                 </ul>
             </div>
 
-            <div class="d-flex align-items-center">
-                <i class="fa-solid fa-bell notification-icon"></i>
+            <div class="d-flex align-items-center">             
+                <div class="dropdown notification-container me-4 position-relative">
+                    <i class="fa-solid fa-bell dropdown-toggle" 
+                       id="notificationDropdown" 
+                       data-bs-toggle="dropdown" 
+                       aria-expanded="false" 
+                       style="font-size: 1.2rem;">
+                    </i>
+                    
+                    <?php if ($unread_count > 0): ?>
+                        <span class="notification-badge">
+                            <?php echo ($unread_count > 9) ? '9+' : $unread_count; ?>
+                        </span>
+                    <?php endif; ?>
+
+                    <ul class="dropdown-menu dropdown-menu-end notification-list shadow" aria-labelledby="notificationDropdown">
+                        <li class="dropdown-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Notifications</span>
+                            <?php if ($unread_count > 0): ?>
+                                <a href="?action=clear_all" class="text-decoration-none small text-primary">Mark all read</a>
+                            <?php endif; ?>
+                        </li>
+
+                        <?php if (count($notifications) > 0): ?>
+                            <?php foreach ($notifications as $notif): ?>
+                                <li>
+                                    <a class="dropdown-item notification-item" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
+                                        
+                                        <div class="notif-content">
+                                            <div>
+                                                <strong><?php echo htmlspecialchars(!empty($notif['first_name']) ? $notif['first_name'] . ' ' . $notif['last_name'] : 'System Alert'); ?></strong>
+                                            </div>
+                                            <div class="text-muted small"><?php echo htmlspecialchars($notif['message']); ?></div>
+                                            <div class="notif-time"><?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?></div>
+                                        </div>
+
+                                        <?php if ($notif['is_read'] == 0): ?>
+                                            <div class="unread-dot"></div>
+                                        <?php endif; ?>
+
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <li class="text-center py-4 text-muted small">No notifications yet</li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
                 
                 <div class="dropdown">
-                    <!-- Profile Toggle -->
                     <div class="profile-container dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="profile-circle">
                             <?php echo $initials; ?>

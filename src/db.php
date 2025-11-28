@@ -113,7 +113,6 @@ function get_db(): SQLite3
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
     )');
 
-
     // --- INDEPENDENT TABLE: Schedules ---
     $db->exec('CREATE TABLE IF NOT EXISTS schedules (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -129,6 +128,104 @@ function get_db(): SQLite3
         FOREIGN KEY (course_id) REFERENCES courses(id),
         FOREIGN KEY (subject_id) REFERENCES subjects(id)
     );');
+
+    // NEW: Notifications Table
+    $db->exec('CREATE TABLE IF NOT EXISTS notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_id INTEGER,
+        message TEXT,
+        is_read INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (student_id) REFERENCES students(id)
+    )');
+
+   $db->exec('CREATE TABLE IF NOT EXISTS admin_system_log (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        last_activity DATETIME DEFAULT CURRENT_TIMESTAMP
+    )');
+
+    $db->exec("INSERT OR IGNORE INTO admin_system_log (id, last_activity) VALUES (1, strftime('%s', 'now'))");
+
+    $db->exec('CREATE TRIGGER IF NOT EXISTS track_student_creation
+        AFTER INSERT ON students
+        BEGIN
+            UPDATE admin_system_log SET last_activity = datetime("now", "localtime") WHERE id = 1;
+        END;
+    ');
+
+    $db->exec('CREATE TRIGGER IF NOT EXISTS track_schedule_creation
+        AFTER INSERT ON schedules
+        BEGIN
+            UPDATE admin_system_log SET last_activity = datetime("now", "localtime") WHERE id = 1;
+        END;
+    ');
+
+    $db->exec('CREATE TRIGGER IF NOT EXISTS track_schedule_modification
+        AFTER UPDATE ON schedules
+        BEGIN
+            UPDATE admin_system_log SET last_activity = datetime("now", "localtime") WHERE id = 1;
+        END;
+    ');
+
+    $db->exec('CREATE TRIGGER IF NOT EXISTS trigger_bio_update
+        AFTER UPDATE OF description ON profiles_students
+        WHEN OLD.description IS NOT NEW.description
+        BEGIN
+            INSERT INTO notifications (student_id, message, is_read, created_at)
+            VALUES (NEW.student_id, "Updated their bio description.", 0, datetime("now", "localtime"));
+        END;
+    ');
+
+    $db->exec('CREATE TRIGGER IF NOT EXISTS trigger_bio_insert
+        AFTER INSERT ON profiles_students
+        BEGIN
+            INSERT INTO notifications (student_id, message, is_read, created_at)
+            VALUES (NEW.student_id, "Added a new bio description.", 0, datetime("now", "localtime"));
+        END;
+    ');
+
+    $db->exec('CREATE TRIGGER IF NOT EXISTS trigger_phone_update
+        AFTER UPDATE OF phone_number ON students
+        WHEN OLD.phone_number IS NOT NEW.phone_number
+        BEGIN
+            INSERT INTO notifications (student_id, message, is_read, created_at)
+            VALUES (NEW.id, "Updated their phone number.", 0, datetime("now", "localtime"));
+        END;
+    ');
+
+    $db->exec('CREATE TRIGGER IF NOT EXISTS trigger_schedule_update
+        AFTER UPDATE ON schedules
+        BEGIN
+            INSERT INTO notifications (student_id, message, is_read, created_at)
+            SELECT id, 
+                "Schedule Update: " || 
+                (SELECT subject_name FROM subjects WHERE id = NEW.subject_id) || 
+                " on " || NEW.day || " (" || IFNULL(NEW.time_start, "TBA") || "-" || IFNULL(NEW.time_end, "TBA") || ") " ||
+                "in " || IFNULL(NEW.room, "TBA") || 
+                " with " || (SELECT name FROM teachers WHERE id = NEW.teacher_id), 
+                0, 
+                datetime("now", "localtime")
+            FROM students
+            WHERE course_id = NEW.course_id;
+        END;
+    ');
+
+    $db->exec('CREATE TRIGGER IF NOT EXISTS trigger_schedule_insert
+        AFTER INSERT ON schedules
+        BEGIN
+            INSERT INTO notifications (student_id, message, is_read, created_at)
+            SELECT id, 
+                "New Class: " || 
+                (SELECT subject_name FROM subjects WHERE id = NEW.subject_id) || 
+                " on " || NEW.day || " (" || IFNULL(NEW.time_start, "TBA") || "-" || IFNULL(NEW.time_end, "TBA") || ") " ||
+                "in " || IFNULL(NEW.room, "TBA") || 
+                " with " || (SELECT name FROM teachers WHERE id = NEW.teacher_id), 
+                0, 
+                datetime("now", "localtime")
+            FROM students
+            WHERE course_id = NEW.course_id;
+        END;
+    ');
 
     return $db;
 }
