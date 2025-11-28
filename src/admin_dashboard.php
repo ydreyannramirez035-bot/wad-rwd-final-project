@@ -123,6 +123,7 @@ if ($selected_course !== COURSE_ALL) {
 
 $students_result = $stmt_students->execute();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -131,13 +132,16 @@ $students_result = $stmt_students->execute();
     <title>ClassSched Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../admin_dashboard.css">
+    <link rel="stylesheet" href="../styles/admin_dashboard.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg">
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <span class="logo-circle">LOGO</span>ClassSched
+                <img src="../img/logo.jpg" width="60" height="60">
+                <span class="fw-bold text-primary">Class</span>
+                <span class="text-primary">Sched</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -155,10 +159,10 @@ $students_result = $stmt_students->execute();
                 <i class="fa-solid fa-bell me-4" style="font-size: 1.2rem; cursor: pointer;"></i>
                 <div class="dropdown">
                     <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        Admin • <?php echo htmlspecialchars(substr($user["name"], 0, 2)); ?>
+                        Admin • <?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($user["name"]); ?></b></small></li>
+                        <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($user["username"]); ?></b></small></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
                     </ul>

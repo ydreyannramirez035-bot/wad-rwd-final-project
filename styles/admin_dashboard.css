@@ -10,9 +10,7 @@ body {
     padding: 15px 0;
 }
 .navbar-brand {
-    font-weight: 700;
     font-size: 1.5rem;
-    color: #4a6cf7 !important; /* Logo Blue */
 }
 .logo-circle {
     display: inline-block;

@@ -1,0 +1,51 @@
+body {
+    background-color: #f8f9fa; /* Light gray background like wireframe */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navbar Styling */
+.navbar {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    padding: 15px 0;
+}
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #4a6cf7 !important; /* Logo Blue */
+}
+.logo-circle {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    background-color: #999;
+    border-radius: 50%;
+    color: white;
+    text-align: center;
+    line-height: 40px;
+    font-size: 12px;
+    margin-right: 10px;
+}
+.nav-link {
+    color: #333 !important;
+    font-weight: 500;
+    margin: 0 15px;
+}
+.nav-link.active {
+    text-decoration: underline;
+    text-decoration-color: #333;
+    text-underline-offset: 5px;
+}
+
+/* Admin Profile Button */
+.btn-admin {
+    background-color: #4a6cf7;
+    color: white;
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-weight: 600;
+}
+.btn-admin:hover {
+    background-color: #3b5bdb;
+    color: white;
+}
