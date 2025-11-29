@@ -1,5 +1,10 @@
 <?php
 session_start();
+
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 require_once __DIR__ . "/db.php";
 $db = get_db();
 
@@ -11,7 +16,31 @@ if (!isset($_SESSION["user"])) {
     exit;
 }
 $user = $_SESSION["user"];
+$user_id = $user['id']; // Needed for notification logic
 
+// --- 1. Auto-Migration: Ensure Column Exists (Safety Check) ---
+$cols = $db->query("PRAGMA table_info(users)");
+$hasCol = false;
+while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
+    if ($col['name'] === 'last_notification_check') {
+        $hasCol = true;
+        break;
+    }
+}
+if (!$hasCol) {
+    $db->exec("ALTER TABLE users ADD COLUMN last_notification_check DATETIME DEFAULT '1970-01-01 00:00:00'");
+}
+
+// --- 2. AJAX Handler for Bell Click (Syncs with Dashboard) ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
+    $db->exec("UPDATE users SET last_notification_check = datetime('now', 'localtime') WHERE id = $user_id");
+    
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'success']);
+    exit;
+}
+
+// --- Existing GET Actions ---
 if (isset($_GET['action']) && $_GET['action'] === 'clear_notifications') {
     $db->exec("UPDATE notifications SET is_read = 1 
                WHERE is_read = 0 
@@ -27,12 +56,22 @@ if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['i
     exit;
 }
 
-$unread_count = $db->querySingle("
+// --- 3. Read Timestamp & Count Unread Notifications ---
+$last_check_row = $db->querySingle("SELECT last_notification_check FROM users WHERE id = $user_id", true);
+$last_click = ($last_check_row && $last_check_row['last_notification_check']) 
+              ? $last_check_row['last_notification_check'] 
+              : '1970-01-01 00:00:00';
+
+$stmt_count = $db->prepare("
     SELECT COUNT(*) FROM notifications 
     WHERE is_read = 0 
+    AND created_at > :last_click
     AND (message LIKE '%bio%' OR message LIKE '%phone%')
 ");
+$stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
+$unread_count = $stmt_count->execute()->fetchArray()[0];
 
+// --- 4. Fetch Notifications List ---
 $notif_sql = "
     SELECT n.*, s.first_name, s.last_name 
     FROM notifications n
@@ -228,7 +267,7 @@ if ($action === "delete") {
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
+            <a class="navbar-brand d-flex align-items-center" href="admin_dashboard.php">
                 <img src="../img/logo.jpg" width="50" height="50" class="me-2">
                 <span class="fw-bold text-primary">Class</span><span class="text-primary">Sched</span>
             </a>
@@ -270,20 +309,31 @@ if ($action === "delete") {
 
                         <?php if (count($notifications) > 0): ?>
                             <?php foreach ($notifications as $notif): ?>
+                                <?php 
+                                    $status_class = ($notif['is_read'] == 0) ? 'fw-bold bg-light border-start border-3 border-primary' : 'text-muted';
+                                ?>
                                 <li>
-                                    <a class="dropdown-item notification-item" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
+                                    <a class="dropdown-item notification-item p-3 <?php echo $status_class; ?>" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
                                         
                                         <div class="notif-content">
-                                            <div>
-                                                <strong><?php echo htmlspecialchars($notif['first_name'] . ' ' . $notif['last_name']); ?></strong>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <strong class="<?php echo ($notif['is_read'] == 0) ? 'text-dark' : ''; ?>">
+                                                    <?php echo htmlspecialchars($notif['first_name'] . ' ' . $notif['last_name']); ?>
+                                                </strong>
+                                                
+                                                <?php if ($notif['is_read'] == 0): ?>
+                                                    <span class="badge bg-primary rounded-pill" style="font-size: 0.5rem;">NEW</span>
+                                                <?php endif; ?>
                                             </div>
-                                            <div class="text-muted small"><?php echo htmlspecialchars($notif['message']); ?></div>
-                                            <div class="notif-time"><?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?></div>
-                                        </div>
 
-                                        <?php if ($notif['is_read'] == 0): ?>
-                                            <div class="unread-dot"></div>
-                                        <?php endif; ?>
+                                            <div class="small mt-1 <?php echo ($notif['is_read'] == 0) ? 'text-dark' : ''; ?>">
+                                                <?php echo htmlspecialchars($notif['message']); ?>
+                                            </div>
+                                            
+                                            <div class="notif-time small mt-1 text-secondary">
+                                                <?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?>
+                                            </div>
+                                        </div>
 
                                     </a>
                                 </li>

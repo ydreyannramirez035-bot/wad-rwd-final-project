@@ -1,5 +1,10 @@
 <?php
 session_start();
+
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 require_once __DIR__ . "/db.php";
 
 if (!isset($_SESSION["user"])) {
@@ -25,10 +30,30 @@ $student_id = $student['id'];
 $course_id = (int)$student['course_id'];
 $display_name = $student['first_name'] ?: $user['name']; 
 
+$cols = $db->query("PRAGMA table_info(students)");
+$hasCol = false;
+while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
+    if ($col['name'] === 'last_notification_check') {
+        $hasCol = true;
+        break;
+    }
+}
+if (!$hasCol) {
+    $db->exec("ALTER TABLE students ADD COLUMN last_notification_check DATETIME DEFAULT '1970-01-01 00:00:00'");
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
+    $db->exec("UPDATE students SET last_notification_check = datetime('now', 'localtime') WHERE id = $student_id");
+    
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'success']);
+    exit;
+}
+
 if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
     $notif_id = (int)$_GET['id'];
     $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
-    header("Location: student_schedule.php"); 
+    header("Location: student_dashboard.php?v=" . time()); 
     exit;
 }
 
@@ -38,16 +63,22 @@ if (isset($_GET['action']) && $_GET['action'] === 'clear_all') {
     exit;
 }
 
-// FIX: Added filter to ONLY show 'New Class' or 'Schedule Update' messages.
-// This hides 'Updated phone number' and 'Updated bio' messages.
-$unread_count = $db->querySingle("
+$last_check_row = $db->querySingle("SELECT last_notification_check FROM students WHERE id = $student_id", true);
+$last_click = ($last_check_row && $last_check_row['last_notification_check']) 
+              ? $last_check_row['last_notification_check'] 
+              : '1970-01-01 00:00:00';
+
+$stmt_count = $db->prepare("
     SELECT COUNT(*) FROM notifications 
-    WHERE student_id = $student_id 
+    WHERE student_id = :sid 
     AND is_read = 0 
+    AND created_at > :last_click
     AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
 ");
+$stmt_count->bindValue(':sid', $student_id, SQLITE3_INTEGER);
+$stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
+$unread_count = $stmt_count->execute()->fetchArray()[0];
 
-// FIX: Added filter to ONLY show 'New Class' or 'Schedule Update' messages.
 $notif_sql = "
     SELECT * FROM notifications 
     WHERE student_id = $student_id
@@ -128,6 +159,7 @@ $sched_result = $stmt->execute();
 <head>
     <meta charset="UTF-8">
     <title>ClassSched | Student Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../styles/student_dashboard.css">
