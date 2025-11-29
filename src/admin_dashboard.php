@@ -203,7 +203,7 @@ $students_result = $stmt_students->execute();
 <body>
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="admin_dashboard.php">
+            <a class="navbar-brand d-flex align-items-center" href="index.php">
                 <img src="../img/logo.jpg" width="50" height="50" class="me-2">
                 <span class="fw-bold text-primary">Class</span><span class="text-primary">Sched</span>
             </a>
@@ -213,6 +213,7 @@ $students_result = $stmt_students->execute();
             
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
                     <li class="nav-item"><a class="nav-link active" href="admin_dashboard.php">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
                     <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>

@@ -115,7 +115,7 @@ $yearLevel = $student['year_level'] ?? 1;
 
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="index.php">
                 <div style="width:40px; height:40px; background:#e0e5f2; border-radius:50%;"></div> 
                 <span class="brand-text">ClassSched</span>
             </a>

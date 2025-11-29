@@ -1,6 +1,3 @@
-/**
- * Validates that at least one course is selected before submitting the form.
- */
 function validateCourseSelection() {
     // Select all checkboxes with the name 'course_ids[]'
     const checkboxes = document.querySelectorAll('input[name="course_ids[]"]');
