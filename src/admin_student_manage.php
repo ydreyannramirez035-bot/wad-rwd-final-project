@@ -1,22 +1,32 @@
 <?php
 session_start();
-
-// --- CONFIGURATION & DATABASE ---
 require_once __DIR__ . "/db.php";
 $db = get_db();
 
-// Constants
 define('COURSE_BSIS', 1);
 define('COURSE_ACT', 2);
 
-// Security Check
 if (!isset($_SESSION["user"])) {
     header("Location: login.php");
     exit;
 }
 $user = $_SESSION["user"];
 
-// FETCH NOTIFS
+if (isset($_GET['action']) && $_GET['action'] === 'clear_notifications') {
+    $db->exec("UPDATE notifications SET is_read = 1 
+               WHERE is_read = 0 
+               AND (message LIKE '%bio%' OR message LIKE '%phone%')");
+    header("Location: admin_schedule.php");
+    exit;
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
+    $notif_id = (int)$_GET['id'];
+    $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
+    header("Location: admin_student_manage.php"); 
+    exit;
+}
+
 $unread_count = $db->querySingle("
     SELECT COUNT(*) FROM notifications 
     WHERE is_read = 0 
@@ -389,6 +399,7 @@ if ($action === "delete") {
                     <a href="?action=create" class="btn btn-primary btn-sched">+ Add Student</a>
                 </div>
             <?php endif; ?>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
             <script src="../js/load.js"></script>
         <?php endif; ?>
     </div>
