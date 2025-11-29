@@ -149,7 +149,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
             <td><?php echo htmlspecialchars($row['phone_number']); ?></td>
             <td><?php echo getYearLevelStr($row['year_level']); ?></td>
             <td>
-                <a href="?action=edit&id=<?php echo $row['id']; ?>" class="btn-link">Edit</a> | 
+                <a href="?action=edit&id=<?php echo $row['id']; ?>" class="btn-link">Edit</a> </br>
                 <a href="?action=delete&id=<?php echo $row['id']; ?>" onclick="return confirm('Delete this student?');" class="text-danger">Delete</a>
             </td>
         </tr>
