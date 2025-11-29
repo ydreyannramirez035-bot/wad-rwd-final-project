@@ -122,6 +122,7 @@ $yearLevel = $student['year_level'] ?? 1;
 
             <div class="d-flex align-items-center gap-4">
                 <div class="d-none d-md-flex gap-4">
+                    <a href="index.php" class="text-decoration-none text-dark fw-medium">Home</a>
                     <a href="student_dashboard.php" class="text-decoration-none text-dark fw-medium">Dashboard</a>
                     <a href="student_schedule.php" class="text-decoration-none text-dark fw-medium">Class Schedule</a>
                 </div>

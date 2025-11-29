@@ -181,6 +181,7 @@ $sched_result = $stmt->execute();
 
             <div class="collapse navbar-collapse justify-content-center" id="navContent">
                 <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
                     <li class="nav-item"><a class="nav-link active" href="student_dashboard.php">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="student_schedule.php">Class Schedule</a></li>
                 </ul>

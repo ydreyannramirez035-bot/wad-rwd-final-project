@@ -173,12 +173,14 @@ while ($row = $notif_result->fetchArray(SQLITE3_ASSOC)) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                     <?php if ($is_student): ?>
-                        <li class="nav-item"><a class="nav-link active" href="student_dashboard.php">Dashboard</a></li>
-                        <li class="nav-item"><a class="nav-link" href="student_schedule.php">Class Schedule</a></li>
+                      <li class="nav-item"><a class="nav-link active" href="index.php">Home</a></li>
+                      <li class="nav-item"><a class="nav-link" href="student_dashboard.php">Dashboard</a></li>
+                      <li class="nav-item"><a class="nav-link" href="student_schedule.php">Class Schedule</a></li>
                     <?php else: ?>
-                        <li class="nav-item"><a class="nav-link active" href="admin_dashboard.php">Dashboard</a></li>
-                        <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
-                        <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
+                      <li class="nav-item"><a class="nav-link active" href="index.php">Home</a></li>
+                      <li class="nav-item"><a class="nav-link" href="admin_dashboard.php">Dashboard</a></li>
+                      <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
+                      <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
                     <?php endif; ?>
                 </ul>
 
