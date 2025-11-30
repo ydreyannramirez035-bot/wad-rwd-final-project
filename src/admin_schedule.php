@@ -260,14 +260,13 @@ if ($action === "delete") {
     <title>Manage Schedule</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../styles/admin_dashboard.css">
     <link rel="stylesheet" href="../styles/admin_schedule.css">
     <link rel="stylesheet" href="../styles/notification.css">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="index.php">
+            <a class="navbar-brand d-flex align-items-center" href="admin_dashboard.php">
                 <img src="../img/logo.jpg" width="50" height="50" class="me-2">
                 <span class="fw-bold text-primary">Class</span><span class="text-primary">Sched</span>
             </a>
@@ -277,7 +276,6 @@ if ($action === "delete") {
             
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="admin_dashboard.php">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
                     <li class="nav-item"><a class="nav-link active" href="admin_schedule.php">Schedule</a></li>

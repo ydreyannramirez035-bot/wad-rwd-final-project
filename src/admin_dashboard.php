@@ -203,7 +203,7 @@ $students_result = $stmt_students->execute();
 <body>
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="index.php">
+            <a class="navbar-brand d-flex align-items-center" href="admin_dashboard.php">
                 <img src="../img/logo.jpg" width="50" height="50" class="me-2">
                 <span class="fw-bold text-primary">Class</span><span class="text-primary">Sched</span>
             </a>

@@ -170,7 +170,7 @@ $sched_result = $stmt->execute();
 
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="index.php">
+            <a class="navbar-brand" href="student_dashboard.php">
                 <span style="background:#94a3b8; color:white; padding:5px 10px; border-radius:50%; font-size:14px; vertical-align:middle; margin-right:5px;">LOGO</span>
                 Class<span class="brand-blue">Sched</span>
             </a>
