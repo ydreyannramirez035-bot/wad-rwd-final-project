@@ -1,5 +1,10 @@
 <?php
 session_start();
+
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 require_once __DIR__ . "/db.php";
 
 if (!isset($_SESSION["user"])) {
@@ -17,32 +22,47 @@ if (!$student) {
         'id' => 0,
         'first_name' => $user['name'], 
         'last_name' => '',
-        'course_id' => 0
+        'course_id' => 0,
+        'year_level' => 1
     ];
 }
 
 $student_id = $student['id'];
 $course_id = (int)$student['course_id'];
 
+// --- SYNC FIX: Add Database Update Logic to Schedule Page ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
+    // Update the database column so the change is reflected on the dashboard too
+    $db->exec("UPDATE students SET last_notification_check = datetime('now', 'localtime') WHERE id = $student_id");
+    
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'success']);
+    exit;
+}
+// -----------------------------------------------------------
+
 if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
     $notif_id = (int)$_GET['id'];
     $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
-    header("Location: student_schedule.php"); 
+    header("Location: student_schedule.php?v=" . time()); 
     exit;
 }
 
-if (isset($_GET['action']) && $_GET['action'] === 'clear_all') {
-    $db->exec("UPDATE notifications SET is_read = 1 WHERE student_id = $student_id");
-    header("Location: student_schedule.php");
-    exit;
-}
+$last_check_row = $db->querySingle("SELECT last_notification_check FROM students WHERE id = $student_id", true);
+$last_click = ($last_check_row && $last_check_row['last_notification_check']) 
+              ? $last_check_row['last_notification_check'] 
+              : '1970-01-01 00:00:00';
 
-$unread_count = $db->querySingle("
+$stmt_count = $db->prepare("
     SELECT COUNT(*) FROM notifications 
-    WHERE student_id = $student_id 
+    WHERE student_id = :sid 
     AND is_read = 0 
+    AND created_at > :last_click
     AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
 ");
+$stmt_count->bindValue(':sid', $student_id, SQLITE3_INTEGER);
+$stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
+$unread_count = $stmt_count->execute()->fetchArray()[0];
 
 $notif_sql = "
     SELECT * FROM notifications 
@@ -57,33 +77,36 @@ while ($row = $notif_result->fetchArray(SQLITE3_ASSOC)) {
     $notifications[] = $row;
 }
 
+// Initials Logic
 $f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));
 $l_initial = !empty($student['last_name']) ? strtoupper(substr($student['last_name'], 0, 1)) : '';
-
 if ($l_initial === '') {
     $initials = strtoupper(substr($user['name'], 0, 2));
 } else {
     $initials = $f_initial . $l_initial;
 }
 
-$selected_day = $_GET['day'] ?? 'All';
+// Schedule Display Logic
+$selected_day = $_GET['day'] ?? 'All'; 
 $valid_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 if ($selected_day !== 'All' && !in_array($selected_day, $valid_days)) {
-    $selected_day = 'All';
+    $selected_day = "Monday";
 }
 
-$sql = "
+$sqlSched = "
     SELECT sch.*, sub.subject_name, t.name as teacher_name
     FROM schedules sch
     LEFT JOIN subjects sub ON sch.subject_id = sub.id
     LEFT JOIN teachers t ON sch.teacher_id = t.id
     WHERE sch.course_id = :cid
 ";
+
 if ($selected_day !== 'All') {
-    $sql .= " AND sch.day = :day";
+    $sqlSched .= " AND sch.day = :day";
 }
-$sql .= " ORDER BY 
+
+$sqlSched .= " ORDER BY 
     CASE 
         WHEN sch.day = 'Monday' THEN 1
         WHEN sch.day = 'Tuesday' THEN 2
@@ -96,31 +119,31 @@ $sql .= " ORDER BY
     END,
     sch.time_start ASC";
 
-$stmt = $db->prepare($sql);
+$stmt = $db->prepare($sqlSched);
 $stmt->bindValue(':cid', $course_id, SQLITE3_INTEGER);
 
 if ($selected_day !== 'All') {
     $stmt->bindValue(':day', $selected_day, SQLITE3_TEXT);
 }
 
-$result = $stmt->execute();
+$sched_result = $stmt->execute();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Class Schedule</title>
+    <title>ClassSched | Full Schedule</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../student_schedule.css">
-    <link rel="stylesheet" href="../notification.css">
+    <link rel="stylesheet" href="../styles/student_dashboard.css">
+    <link rel="stylesheet" href="../styles/notification.css">
 </head>
-
 <body>
+
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="index.php">
                 <span style="background:#94a3b8; color:white; padding:5px 10px; border-radius:50%; font-size:14px; vertical-align:middle; margin-right:5px;">LOGO</span>
                 Class<span class="brand-blue">Sched</span>
             </a>
@@ -130,10 +153,13 @@ $result = $stmt->execute();
             </button>
 
             <div class="collapse navbar-collapse justify-content-center" id="navContent">
+                <div class="collapse navbar-collapse justify-content-center" id="navContent">
                 <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="student_dashboard.php">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link active" href="student_schedule.php">Class Schedule</a></li>
                 </ul>
+            </div>
             </div>
 
             <div class="d-flex align-items-center">             
@@ -161,21 +187,30 @@ $result = $stmt->execute();
 
                         <?php if (count($notifications) > 0): ?>
                             <?php foreach ($notifications as $notif): ?>
+                                <?php 
+                                    $status_class = ($notif['is_read'] == 0) ? 'fw-bold bg-light border-start border-3 border-primary' : 'text-muted';
+                                ?>
                                 <li>
-                                    <a class="dropdown-item notification-item" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
-                                        
+                                    <a class="dropdown-item notification-item p-3 <?php echo $status_class; ?>" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
                                         <div class="notif-content">
-                                            <div>
-                                                <strong><?php echo htmlspecialchars(!empty($notif['first_name']) ? $notif['first_name'] . ' ' . $notif['last_name'] : 'ClassSched Alert'); ?></strong>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <strong class="<?php echo ($notif['is_read'] == 0) ? 'text-dark' : ''; ?>">
+                                                    <?php echo htmlspecialchars(!empty($notif['first_name']) ? $notif['first_name'] . ' ' . $notif['last_name'] : 'ClassSched Alert'); ?>
+                                                </strong>
+                                                
+                                                <?php if ($notif['is_read'] == 0): ?>
+                                                    <span class="badge bg-primary rounded-pill" style="font-size: 0.5rem;">NEW</span>
+                                                <?php endif; ?>
                                             </div>
-                                            <div class="text-muted small"><?php echo htmlspecialchars($notif['message']); ?></div>
-                                            <div class="notif-time"><?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?></div>
+
+                                            <div class="small mt-1 <?php echo ($notif['is_read'] == 0) ? 'text-dark' : ''; ?>">
+                                                <?php echo htmlspecialchars($notif['message']); ?>
+                                            </div>
+                                            
+                                            <div class="notif-time small mt-1 text-secondary">
+                                                <?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?>
+                                            </div>
                                         </div>
-
-                                        <?php if ($notif['is_read'] == 0): ?>
-                                            <div class="unread-dot"></div>
-                                        <?php endif; ?>
-
                                     </a>
                                 </li>
                             <?php endforeach; ?>
@@ -201,25 +236,31 @@ $result = $stmt->execute();
             </div>
         </div>
     </nav>
+
     <main class="container py-5">
-        <div class="mb-4">
-            <h2 class="page-title">My class schedule</h2>
-            <p class="page-subtitle">View your class schedule per week</p>
-            <form method="GET" action="">
-                <select name="day" class="form-select day-select" onchange="this.form.submit()">
-                    <option value="All" <?php if($selected_day == 'All') echo 'selected'; ?>>All Days</option>
-                    <?php foreach($valid_days as $d): ?>
-                        <option value="<?php echo $d; ?>" <?php if($selected_day == $d) echo 'selected'; ?>>
-                            <?php echo $d; ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </form>
+        <div class="mb-5">
+            <h1 class="hero-title">Class Schedule</h1>
+            <p class="hero-sub">View your full weekly schedule.</p>
         </div>
 
-        <div class="schedule-card">
+        <div class="schedule-box">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="section-title">Weekly Schedule</div>
+                
+                <form method="GET" action="">
+                    <select name="day" class="form-select form-select-sm" style="width: auto; font-weight:500;" onchange="this.form.submit()">
+                        <option value="All" <?php if($selected_day == 'All') echo 'selected'; ?>>All Days</option>
+                        <?php foreach($valid_days as $d): ?>
+                            <option value="<?php echo $d; ?>" <?php if($selected_day == $d) echo 'selected'; ?>>
+                                <?php echo $d; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </form>
+            </div>
+
             <div class="table-responsive">
-                <table class="table table-bordered mb-0">
+                <table class="table table-hover">
                     <thead>
                         <tr>
                             <th width="15%">Day</th>
@@ -232,12 +273,12 @@ $result = $stmt->execute();
                     <tbody>
                         <?php 
                         $hasRows = false;
-                        while ($row = $result->fetchArray(SQLITE3_ASSOC)): 
+                        while ($row = $sched_result->fetchArray(SQLITE3_ASSOC)): 
                             $hasRows = true;
                         ?>
                             <tr>
-                                <td class="text-secondary"><?php echo htmlspecialchars($row['day']); ?></td>
-                                <td class="fw-semibold"><?php echo htmlspecialchars($row['subject_name']); ?></td>
+                                <td class="text-muted fw-semibold"><?php echo htmlspecialchars($row['day']); ?></td>
+                                <td class="fw-semibold text-primary"><?php echo htmlspecialchars($row['subject_name']); ?></td>
                                 <td><?php echo htmlspecialchars($row['teacher_name']); ?></td>
                                 <td><?php echo htmlspecialchars($row['room'] ?? 'TBA'); ?></td>
                                 <td>
@@ -261,9 +302,9 @@ $result = $stmt->execute();
                 </table>
             </div>
         </div>
-
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/notification.js"></script>
 </body>
 </html>

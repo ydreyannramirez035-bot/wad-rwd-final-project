@@ -1,13 +1,39 @@
 <?php
 session_start();
+
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 if (!isset($_SESSION["user"])) {
     header("Location: ../index.php");
     exit;
 }
 $user = $_SESSION["user"];
+$user_id = $user['id'];
 
 require_once __DIR__ ."/db.php";
 $db = get_db();
+
+$cols = $db->query("PRAGMA table_info(users)");
+$hasCol = false;
+while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
+    if ($col['name'] === 'last_notification_check') {
+        $hasCol = true;
+        break;
+    }
+}
+if (!$hasCol) {
+    $db->exec("ALTER TABLE users ADD COLUMN last_notification_check DATETIME DEFAULT '1970-01-01 00:00:00'");
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
+    $db->exec("UPDATE users SET last_notification_check = datetime('now', 'localtime') WHERE id = $user_id");
+    
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'success']);
+    exit;
+}
 
 $current_db_val = $db->querySingle("SELECT last_activity FROM admin_system_log WHERE id = 1");
 $current_time = time();
@@ -31,11 +57,19 @@ if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['i
     exit;
 }
 
-$unread_count = $db->querySingle("
+$last_check_row = $db->querySingle("SELECT last_notification_check FROM users WHERE id = $user_id", true);
+$last_click = ($last_check_row && $last_check_row['last_notification_check']) 
+              ? $last_check_row['last_notification_check'] 
+              : '1970-01-01 00:00:00';
+
+$stmt_count = $db->prepare("
     SELECT COUNT(*) FROM notifications 
     WHERE is_read = 0 
+    AND created_at > :last_click
     AND (message LIKE '%bio%' OR message LIKE '%phone%')
 ");
+$stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
+$unread_count = $stmt_count->execute()->fetchArray()[0];
 
 $notif_sql = "
     SELECT n.*, s.first_name, s.last_name 
@@ -89,7 +123,6 @@ $last_update_text = "Just now";
 $last_activity_row = $db->querySingle("SELECT last_activity FROM admin_system_log WHERE id = 1", true);
 
 if ($last_activity_row) {
-    // Force integer cast to be safe
     $last_update_ts = (int)$last_activity_row['last_activity'];
     $time_diff = time() - $last_update_ts;
     
@@ -168,10 +201,9 @@ $students_result = $stmt_students->execute();
     <link rel="stylesheet" href="../styles/notification.css">
 </head>
 <body>
-    <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
+            <a class="navbar-brand d-flex align-items-center" href="index.php">
                 <img src="../img/logo.jpg" width="50" height="50" class="me-2">
                 <span class="fw-bold text-primary">Class</span><span class="text-primary">Sched</span>
             </a>
@@ -181,6 +213,7 @@ $students_result = $stmt_students->execute();
             
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
                     <li class="nav-item"><a class="nav-link active" href="admin_dashboard.php">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
                     <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
@@ -213,20 +246,31 @@ $students_result = $stmt_students->execute();
 
                         <?php if (count($notifications) > 0): ?>
                             <?php foreach ($notifications as $notif): ?>
+                                <?php 
+                                    $status_class = ($notif['is_read'] == 0) ? 'fw-bold bg-light border-start border-3 border-primary' : 'text-muted';
+                                ?>
                                 <li>
-                                    <a class="dropdown-item notification-item" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
+                                    <a class="dropdown-item notification-item p-3 <?php echo $status_class; ?>" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
                                         
                                         <div class="notif-content">
-                                            <div>
-                                                <strong><?php echo htmlspecialchars($notif['first_name'] . ' ' . $notif['last_name']); ?></strong>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <strong class="<?php echo ($notif['is_read'] == 0) ? 'text-dark' : ''; ?>">
+                                                    <?php echo htmlspecialchars($notif['first_name'] . ' ' . $notif['last_name']); ?>
+                                                </strong>
+                                                
+                                                <?php if ($notif['is_read'] == 0): ?>
+                                                    <span class="badge bg-primary rounded-pill" style="font-size: 0.5rem;">NEW</span>
+                                                <?php endif; ?>
                                             </div>
-                                            <div class="text-muted small"><?php echo htmlspecialchars($notif['message']); ?></div>
-                                            <div class="notif-time"><?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?></div>
-                                        </div>
 
-                                        <?php if ($notif['is_read'] == 0): ?>
-                                            <div class="unread-dot"></div>
-                                        <?php endif; ?>
+                                            <div class="small mt-1 <?php echo ($notif['is_read'] == 0) ? 'text-dark' : ''; ?>">
+                                                <?php echo htmlspecialchars($notif['message']); ?>
+                                            </div>
+                                            
+                                            <div class="notif-time small mt-1 text-secondary">
+                                                <?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?>
+                                            </div>
+                                        </div>
 
                                     </a>
                                 </li>
@@ -379,9 +423,6 @@ $students_result = $stmt_students->execute();
                             <td><?php echo htmlspecialchars($student['year_level'] ?? '--'); ?></td>
                         </tr>
                         <?php endwhile; ?>
-                        
-                        <?php 
-                        ?>
                     </tbody>
                 </table>
             </div>
@@ -390,5 +431,6 @@ $students_result = $stmt_students->execute();
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/notification.js"></script>
 </body>
 </html>

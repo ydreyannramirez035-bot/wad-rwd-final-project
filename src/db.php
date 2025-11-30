@@ -101,6 +101,7 @@ function get_db(): SQLite3
         course_id INTEGER NOT NULL,
         year_level INTEGER,
         email TEXT(255) UNIQUE,
+        last_notification_check DATETIME DEFAULT "1970-01-01 00:00:00",
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (course_id) REFERENCES courses(id)
     )');

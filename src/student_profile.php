@@ -108,20 +108,21 @@ $yearLevel = $student['year_level'] ?? 1;
     <title>Profile | ClassSched</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../student_profile.css">
+    <link rel="stylesheet" href="../styles/student_profile.css">
 </head>
 
 <body>
 
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="index.php">
                 <div style="width:40px; height:40px; background:#e0e5f2; border-radius:50%;"></div> 
                 <span class="brand-text">ClassSched</span>
             </a>
 
             <div class="d-flex align-items-center gap-4">
                 <div class="d-none d-md-flex gap-4">
+                    <a href="index.php" class="text-decoration-none text-dark fw-medium">Home</a>
                     <a href="student_dashboard.php" class="text-decoration-none text-dark fw-medium">Dashboard</a>
                     <a href="student_schedule.php" class="text-decoration-none text-dark fw-medium">Class Schedule</a>
                 </div>
