@@ -213,7 +213,6 @@ $students_result = $stmt_students->execute();
             
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
                     <li class="nav-item"><a class="nav-link active" href="admin_dashboard.php">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
                     <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
