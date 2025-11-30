@@ -342,9 +342,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 <!-- Text Content -->
                 <div class="col-lg-6 text-center text-lg-start">
-                    <div class="d-inline-block px-3 py-1 bg-light text-brand-blue text-uppercase fw-bold rounded-pill mb-3" style="font-size: 0.75rem; letter-spacing: 0.05em;">
-                        Version 2.0 is live
-                    </div>
                     <h1 class="display-4 fw-bolder text-dark mb-4 lh-sm">
                         Simplify Your <br>
                         <span class="text-brand-blue">School Scheduling</span>
@@ -357,6 +354,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             Create Schedule
                         </button>
                         <button class="btn btn-outline-brand d-flex align-items-center justify-content-center gap-2">
+                            <!-- add dito siguro ng vid tut how mag manage ng sched, students, mag view ng sched and students, ect (pano gumagana yung mga features) -->
                             <i class="fa-solid fa-play"></i> Watch Demo
                         </button>
                     </div>
@@ -440,7 +438,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
 
                         <!-- Floating Badge -->
-                        <div class="position-absolute bg-white p-3 rounded-3 shadow-sm border animate-bounce-slow d-flex align-items-center gap-3" style="bottom: -1.5rem; left: -1.5rem;">
+                        <!-- <div class="position-absolute bg-white p-3 rounded-3 shadow-sm border animate-bounce-slow d-flex align-items-center gap-3" style="bottom: -1.5rem; left: -1.5rem;">
                             <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                                 <i class="fa-solid fa-check"></i>
                             </div>
@@ -448,7 +446,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <div class="text-muted fw-medium" style="font-size: 0.75rem;">Export Status</div>
                                 <div class="fw-bold text-dark small">Ready to Print</div>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
@@ -461,24 +459,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="row g-4 text-center">
                 <div class="col-md-4">
                     <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3 bg-primary bg-opacity-10 text-primary" style="width: 48px; height: 48px; font-size: 1.25rem;">
-                        <i class="fa-solid fa-bolt"></i>
+                        <i class="fa-solid fa-database"></i>
                     </div>
-                    <h3 class="h5 fw-bold mb-2">Instant Generation</h3>
-                    <p class="text-muted small">Create complex schedules in seconds using our advanced AI algorithm.</p>
+                    <h3 class="h5 fw-bold mb-2">Centralized Schedule Management</h3>
+                    <p class="text-muted small">Efficiently add, edit, and remove class schedules and student records in one secure dashboard.</p>
                 </div>
                 <div class="col-md-4">
                     <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3 bg-info bg-opacity-10 text-info" style="width: 48px; height: 48px; font-size: 1.25rem;">
-                        <i class="fa-solid fa-shield-halved"></i>
+                        <i class="fa-solid fa-laptop-code"></i>
                     </div>
-                    <h3 class="h5 fw-bold mb-2">Conflict Free</h3>
-                    <p class="text-muted small">Automatically detects and resolves double-bookings for teachers and rooms.</p>
+                    <h3 class="h5 fw-bold mb-2">BSIS & ACT Focused</h3>
+                    <p class="text-muted small">A dedicated portal tailored specifically for Information Systems and Computer Technology departments.</p>
                 </div>
                 <div class="col-md-4">
                     <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3 bg-warning bg-opacity-10 text-warning" style="width: 48px; height: 48px; font-size: 1.25rem;">
-                        <i class="fa-solid fa-cloud-arrow-down"></i>
+                        <i class="fa-solid fa-satellite-dish"></i>
                     </div>
-                    <h3 class="h5 fw-bold mb-2">Easy Export</h3>
-                    <p class="text-muted small">Download schedules as PDF, Excel, or share directly via email.</p>
+                    <h3 class="h5 fw-bold mb-2">Real-Time Notifications</h3>
+                    <p class="text-muted small">Students get alerts for new classes, while Admins are notified of student profile updates.</p>
                 </div>
             </div>
         </div>
