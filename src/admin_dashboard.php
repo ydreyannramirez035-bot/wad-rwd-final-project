@@ -332,7 +332,7 @@ $students_result = $stmt_students->execute();
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="index.php">
+            <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
                 <img src="../img/logo.jpg" width="50" height="50" class="me-2">
             </a>
 
