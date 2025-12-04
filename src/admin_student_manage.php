@@ -180,7 +180,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "store") {
         $stmt->bindValue(4, trim($_POST["last_name"]));
         $stmt->bindValue(5, (int)$_POST["age"]);
         $stmt->bindValue(6, trim($_POST["phone_number"]));
-        $stmt->bindValue(7, trim($_POST["email"]));
+        $stmt->bindValue(7, strtolower(trim($_POST["email"])));
         $stmt->bindValue(8, (int)$_POST["course_id"]);
         $stmt->bindValue(9, (int)$_POST["year_level"]);
         $stmt->execute();
@@ -200,7 +200,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "update") {
     $stmt->bindValue(4, trim($_POST["last_name"])); 
     $stmt->bindValue(5, (int)$_POST["age"]); 
     $stmt->bindValue(6, trim($_POST["phone_number"]));
-    $stmt->bindValue(7, trim($_POST["email"]));
+    $stmt->bindValue(7, strtolower(trim($_POST["email"])));
     $stmt->bindValue(8, (int)$_POST["course_id"]); 
     $stmt->bindValue(9, (int)$_POST["year_level"]);
     $stmt->bindValue(10, (int)$_POST["id"]);
@@ -214,10 +214,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "update") {
 if ($action === "delete") {
     $id = (int)($_GET["id"] ?? 0);
     if ($id > 0) {
+        // Step 1: Find if this student has a linked User Account
+        $stmtGetUser = $db->prepare("SELECT user_id FROM students WHERE id = ?");
+        $stmtGetUser->bindValue(1, $id, SQLITE3_INTEGER);
+        $result = $stmtGetUser->execute()->fetchArray(SQLITE3_ASSOC);
+        $linked_user_id = $result['user_id'] ?? null;
+
+        // Step 2: Delete the Student Profile
         $stmt = $db->prepare("DELETE FROM students WHERE id = ?");
         $stmt->bindValue(1, $id, SQLITE3_INTEGER);
         $stmt->execute();
-        header("Location: admin_student_manage.php?msg=Student+deleted");
+
+        // Step 3: If a linked User Account exists, delete it too!
+        if ($linked_user_id) {
+            $stmtUser = $db->prepare("DELETE FROM users WHERE id = ?");
+            $stmtUser->bindValue(1, $linked_user_id, SQLITE3_INTEGER);
+            $stmtUser->execute();
+        }
+
+        header("Location: admin_student_manage.php?msg=Student+and+linked+User+Account+deleted");
         exit;
     }
 }

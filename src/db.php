@@ -19,7 +19,6 @@ function get_db(): SQLite3
         description TEXT
     )');
 
-    // FIX: Check if roles exist before trying to insert
     $roleCount = $db->querySingle("SELECT COUNT(*) FROM roles");
     if ($roleCount == 0) {
         $db->exec("
@@ -35,7 +34,6 @@ function get_db(): SQLite3
         course_name TEXT NOT NULL UNIQUE
     )');
 
-    // FIX: Check if courses exist before inserting
     $courseCount = $db->querySingle("SELECT COUNT(*) FROM courses");
     if ($courseCount == 0) {
         $db->exec("
@@ -46,10 +44,11 @@ function get_db(): SQLite3
     }
 
     // --- PARENT TABLE 3: Users ---
+    // FIX: Added 'UNIQUE' to username to prevent duplicates at the database level
     $db->exec('CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         role_id INTEGER NOT NULL,
-        username TEXT NOT NULL,
+        username TEXT NOT NULL UNIQUE, 
         email TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
         FOREIGN KEY (role_id) REFERENCES roles(id)
@@ -61,7 +60,6 @@ function get_db(): SQLite3
         name TEXT NOT NULL UNIQUE
     )');
 
-    // FIX: Check if teachers exist before inserting
     $teacherCount = $db->querySingle("SELECT COUNT(*) FROM teachers");
     if ($teacherCount == 0) {
         $db->exec("
@@ -140,7 +138,7 @@ function get_db(): SQLite3
         FOREIGN KEY (student_id) REFERENCES students(id)
     )');
 
-   $db->exec('CREATE TABLE IF NOT EXISTS admin_system_log (
+    $db->exec('CREATE TABLE IF NOT EXISTS admin_system_log (
         id INTEGER PRIMARY KEY CHECK (id = 1),
         last_activity DATETIME DEFAULT CURRENT_TIMESTAMP
     )');

@@ -1,11 +1,7 @@
 <?php
 session_start();
 
-// Path to point to 'src/db.php' based on the folder structure
-if (file_exists(__DIR__ . "/src/db.php")) {
-    require_once __DIR__ . "/src/db.php";
-}
-
+require_once __DIR__ . "../src/db.php";
 // Variables to hold state
 $loginError = "";
 $registerError = "";
@@ -103,13 +99,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $registerError = "Password must include at least one number.";
             }
             else {
-                // 2. Check if Email is ALREADY registered
-                $stmt = $db->prepare("SELECT 1 FROM users WHERE email = ?");
-                $stmt->bindValue(1, $email, SQLITE3_TEXT);
+                $emailStmt = $db->prepare("SELECT 1 FROM users WHERE LOWER(email) = ?");
+                $usernameStmt = $db->prepare("SELECT 1 FROM users WHERE LOWER(username) = ?");
                 
-                if ($stmt->execute()->fetchArray()) {
-                    $registerError = "Email already registered. Please login.";
-                } else { 
+                $emailStmt->bindValue(1, $email, SQLITE3_TEXT);
+                $usernameStmt->bindValue(1, $username, SQLITE3_TEXT);
+                
+                $emailExists = $emailStmt->execute()->fetchArray();
+                $usernameExists = $usernameStmt->execute()->fetchArray();
+
+                if ($emailExists) {
+                    $registerError = "Email already registered.";
+                } else if ($usernameExists) {
+                    $registerError = "Username already registered.";
+                }
+                else { 
                     // 3. Logic: Is this an Admin or a Student?
                     $countStmt = $db->prepare("SELECT COUNT(*) as count FROM users");
                     $countResult = $countStmt->execute();

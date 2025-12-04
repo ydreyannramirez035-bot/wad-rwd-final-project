@@ -35,76 +35,112 @@ body {
     text-underline-offset: 5px;
 }
 
-/* Admin Profile Button */
-.btn-admin {
-    background-color: #4a6cf7;
-    color: white;
-    border-radius: 20px;
-    padding: 8px 20px;
-    font-weight: 600;
-}
-.btn-admin:hover {
-    background-color: #3b5bdb;
-    color: white;
+:root {
+    --brand-blue: #3b66d1;
+    --brand-blue-hover: #2d52b0;
+    --brand-dark: #0f1724;
+    --brand-light: #f5f7ff;
 }
 
-/* Main Content */
-.hero-section {
-    margin-top: 40px;
-    margin-bottom: 30px;
-}
-.last-update {
-    text-align: right;
-    color: #666;
-    font-size: 0.9rem;
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--brand-dark);
+    background-color: white;
 }
 
-/* Stats Cards */
+/* Branding Utilities */
+.text-brand-blue { color: var(--brand-blue) !important; }
+.bg-brand-blue { background-color: var(--brand-blue) !important; }
+
+/* Stats Cards Styling to Match Landing Page Cards */
 .stats-card {
     background: white;
-    border: none;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border-radius: 1rem;
+    border: 1px solid #f3f4f6;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    padding: 1.5rem;
     height: 100%;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 .stats-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(59, 102, 209, 0.1);
+    border-color: var(--brand-blue);
 }
 .stats-label {
-    color: #4a6cf7;
-    font-weight: 700;
-    font-size: 1.1rem;
-    margin-bottom: 5px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
 }
 .stats-number {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #222;
-    line-height: 1.2;
+    color: var(--brand-dark);
+    line-height: 1;
+    margin-bottom: 0.25rem;
 }
 .stats-sub {
-    color: #888;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
+    color: #9ca3af;
 }
 
-/* Schedule Section */
-.schedule-section {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    margin-top: 30px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+/* Decoration Blobs */
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: -1;
+    pointer-events: none;
 }
+.blob-blue {
+    top: -5rem;
+    right: -5rem;
+    width: 24rem;
+    height: 24rem;
+    background-color: #eff6ff; 
+}
+.blob-purple {
+    top: 10rem;
+    left: -5rem;
+    width: 18rem;
+    height: 18rem;
+    background-color: #faf5ff;
+}
+
+/* Navbar Tweaks */
+.navbar {
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #f3f4f6;
+}
+.nav-link {
+    font-weight: 500;
+    color: #6b7280;
+}
+.nav-link.active {
+    color: var(--brand-blue) !important;
+    font-weight: 600;
+}
+.nav-link:hover {
+    color: var(--brand-blue);
+}
+
+/* Table Styling */
 .custom-table thead th {
-    background-color: #b3c7f9; /* Light Blue Header */
-    color: #222;
+    background-color: var(--brand-light);
+    color: var(--brand-blue);
+    font-weight: 600;
     border: none;
-    padding: 15px;
+    padding: 1rem;
 }
 .custom-table tbody td {
-    padding: 15px;
-    border-bottom: 1px solid #eee;
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
     vertical-align: middle;
+}
+.custom-table tr:hover td {
+    background-color: #f9fafb;
 }
