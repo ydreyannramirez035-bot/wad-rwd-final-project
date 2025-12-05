@@ -99,8 +99,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $registerError = "Password must include at least one number.";
             }
             else {
-                $emailStmt = $db->prepare("SELECT 1 FROM users WHERE LOWER(email) = ?");
-                $usernameStmt = $db->prepare("SELECT 1 FROM users WHERE LOWER(username) = ?");
+                $emailStmt = $db->prepare("SELECT 1 FROM users WHERE (email) = ?");
+                $usernameStmt = $db->prepare("SELECT 1 FROM users WHERE (username) = ?");
                 
                 $emailStmt->bindValue(1, $email, SQLITE3_TEXT);
                 $usernameStmt->bindValue(1, $username, SQLITE3_TEXT);
