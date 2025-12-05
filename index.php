@@ -319,7 +319,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
             <!-- Logo -->
             <div class="d-flex align-items-center cursor-pointer" onclick="window.scrollTo(0,0)" style="cursor: pointer;">
-                <img src="../img/logo.jpg" width="50" height="50" class="me-2">
+                <img src="../img/logo.png" width="50" height="50" class="me-2">
                 <span class="fs-4 fw-bold text-dark lh-1">Class</span><span class="fs-4 text-brand-blue">Sched</span></span>
             </div>
 
@@ -580,7 +580,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <label class="form-label fw-medium text-secondary small">Confirm Password</label>
                             <input type="password" name="confirmPassword" class="form-control form-control-lg fs-6" placeholder="Confirm password" required>
                         </div>
-                        <button type="submit" class="btn btn-brand w-100 py-2">Start Free Trial</button>
+                        <button type="submit" class="btn btn-brand w-100 py-2">Submit</button>
                     </form>
                     <div class="mt-4 text-center small text-muted">
                         Already registered? 
