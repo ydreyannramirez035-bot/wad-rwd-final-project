@@ -262,6 +262,7 @@ if ($action === "delete") {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../styles/admin_schedule.css">
     <link rel="stylesheet" href="../styles/notification.css">
+    
 </head>
 <body>
     <nav class="navbar navbar-expand-lg sticky-top">
@@ -497,6 +498,7 @@ if ($action === "delete") {
             
             if ($count == 0): ?>
                 <div class="alert alert-info">No schedule record found. Click "Add Schedule" to get started.</div>
+                <a href="?action=create" class="btn btn-primary btn-sched">+ Add Schedule</a>
             <?php else: ?>
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered align-middle">
