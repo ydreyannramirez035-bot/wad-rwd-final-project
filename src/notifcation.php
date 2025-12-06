@@ -12,9 +12,6 @@ function notif($role = null, $handle_actions = true) {
     $user_id = $user['id'];
     $db = get_db();
 
-    // ==========================================
-    // ADMIN LOGIC
-    // ==========================================
     if ($role === 'admin') {
         // 1. Check Table Columns
         $cols = $db->query("PRAGMA table_info(users)");
@@ -70,9 +67,6 @@ function notif($role = null, $handle_actions = true) {
         $notif_result = $db->query("SELECT n.*, s.first_name, s.last_name FROM notifications n LEFT JOIN students s ON n.student_id = s.id WHERE (n.message LIKE '%bio%' OR n.message LIKE '%phone%') ORDER BY n.created_at DESC LIMIT 10");
     } 
     
-    // ==========================================
-    // STUDENT LOGIC
-    // ==========================================
     elseif ($role === 'student') {
         // 1. Get Student ID
         $student = $db->querySingle("SELECT id FROM students WHERE user_id = $user_id", true);
@@ -127,9 +121,6 @@ function notif($role = null, $handle_actions = true) {
         $notif_result = $db->query("SELECT * FROM notifications WHERE student_id = $student_id ORDER BY created_at DESC LIMIT 10");
     }
 
-    // ==========================================
-    // COMMON RETURN
-    // ==========================================
     $notifications = [];
     if (isset($notif_result) && $notif_result) {
         while ($row = $notif_result->fetchArray(SQLITE3_ASSOC)) {
