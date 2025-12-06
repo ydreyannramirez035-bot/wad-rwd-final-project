@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION["user"])) {
-    header("Location: login.php");
+    header("Location: index.php");
     exit;
 }
 
@@ -13,11 +13,12 @@ header("Expires: 0");
 require_once __DIR__ ."/notifcation.php";
 require_once __DIR__ ."/db.php";
 
-$notif_data = notif('student', true); ;
+$user = $_SESSION['user'];
+$db = get_db();
+$notif_data = notif('student', true); 
 $unread_count = $notif_data['unread_count'];
 $notifications = $notif_data['notifications'];
-$user = $_SESSION["user"];
-$db = get_db();
+
 $user_id = $user['id'];
 $student = $db->querySingle("SELECT * FROM students WHERE user_id = $user_id", true);
 
@@ -33,52 +34,22 @@ if (!$student) {
 
 $student_id = $student['id'];
 $course_id = (int)$student['course_id'];
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
-    $db->exec("UPDATE students SET last_notification_check = datetime('now', 'localtime') WHERE id = $student_id");
-    
-    header('Content-Type: application/json');
-    echo json_encode(['status' => 'success']);
-    exit;
-}
-
-
-if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
-    $notif_id = (int)$_GET['id'];
-    $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
-    header("Location: student_schedule.php?v=" . time()); 
-    exit;
-}
-
-$last_check_row = $db->querySingle("SELECT last_notification_check FROM students WHERE id = $student_id", true);
-$last_click = ($last_check_row && $last_check_row['last_notification_check']) 
-              ? $last_check_row['last_notification_check'] 
-              : '1970-01-01 00:00:00';
-
-$stmt_count = $db->prepare("
-    SELECT COUNT(*) FROM notifications 
-    WHERE student_id = :sid 
-    AND is_read = 0 
-    AND created_at > :last_click
-    AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
-");
-$stmt_count->bindValue(':sid', $student_id, SQLITE3_INTEGER);
-$stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
-$unread_count = $stmt_count->execute()->fetchArray()[0];
-
+$display_name = $student['first_name'] ?: $user['name']; 
+$f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));
+$l_initial = !empty($student['last_name']) ? strtoupper(substr($student['last_name'], 0, 1)) : '';
 $highlight_stmt = $db->prepare("
     SELECT COUNT(*) FROM notifications 
     WHERE student_id = :sid 
-      AND is_read = 0 
+      AND is_read = 0
       AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
 ");
+
 $highlight_stmt->bindValue(':sid', $student_id, SQLITE3_INTEGER);
 $highlight_count = $highlight_stmt->execute()->fetchArray()[0];
-
 $notif_sql = "
     SELECT * FROM notifications 
     WHERE student_id = $student_id
-    AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+      AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
     ORDER BY created_at DESC LIMIT 10
 ";
 
@@ -191,7 +162,7 @@ $sched_result = $stmt->execute();
                         <li class="dropdown-header d-flex justify-content-between align-items-center">
                             <span class="fw-bold">Notifications</span>
                             <?php if ($highlight_count > 0): ?>
-                                <a href="?action=clear_all" class="text-decoration-none small text-primary">Mark all read</a>
+                                <a href="?action=clear_notifications" class="text-decoration-none small text-primary">Mark all read</a>
                             <?php endif; ?>
                         </li>
 

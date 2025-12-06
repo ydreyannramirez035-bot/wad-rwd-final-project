@@ -169,7 +169,7 @@ $sched_result = $stmt->execute();
                         <li class="dropdown-header d-flex justify-content-between align-items-center">
                             <span class="fw-bold">Notifications</span>
                             <?php if ($highlight_count > 0): ?>
-                                <a href="?action=clear_all" class="text-decoration-none small text-primary">Mark all read</a>
+                                <a href="?action=clear_notifications" class="text-decoration-none small text-primary">Mark all read</a>
                             <?php endif; ?>
                         </li>
 
