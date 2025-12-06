@@ -1,95 +1,30 @@
 <?php
 session_start();
 
-header("Cache-Control: no-cache, no-store, must-revalidate");
-header("Pragma: no-cache");
-header("Expires: 0");
-
 if (!isset($_SESSION["user"])) {
     header("Location: ../index.php");
     exit;
 }
-$user = $_SESSION["user"];
-$user_id = $user['id'];
 
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+require_once __DIR__ ."/notifcation.php";
 require_once __DIR__ ."/db.php";
 $db = get_db();
 
-// Ensure column exists
-$cols = $db->query("PRAGMA table_info(users)");
-$hasCol = false;
-while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
-    if ($col['name'] === 'last_notification_check') {
-        $hasCol = true;
-        break;
-    }
-}
-if (!$hasCol) {
-    $db->exec("ALTER TABLE users ADD COLUMN last_notification_check DATETIME DEFAULT '1970-01-01 00:00:00'");
-}
-
-// Handle Badge Clearing
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
-    $db->exec("UPDATE users SET last_notification_check = datetime('now', 'localtime') WHERE id = $user_id");
-    
-    header('Content-Type: application/json');
-    echo json_encode(['status' => 'success']);
-    exit;
-}
-
-// Update System Log
-$current_db_val = $db->querySingle("SELECT last_activity FROM admin_system_log WHERE id = 1");
-$current_time = time();
-
-if (!is_numeric($current_db_val) || ($current_db_val > $current_time + 60)) {
-    $db->exec("UPDATE admin_system_log SET last_activity = strftime('%s', 'now') WHERE id = 1");
-}
-
-// Handle Clear/Read Notifications
-if (isset($_GET['action']) && $_GET['action'] === 'clear_notifications') {
-    $db->exec("UPDATE notifications SET is_read = 1 
-               WHERE is_read = 0 
-               AND (message LIKE '%bio%' OR message LIKE '%phone%')");
-    header("Location: admin_dashboard.php");
-    exit;
-}
-
-if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
-    $notif_id = (int)$_GET['id'];
-    $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
-    header("Location: admin_student_manage.php"); 
-    exit;
-}
-
-// Calculate Unread Count
-$last_check_row = $db->querySingle("SELECT last_notification_check FROM users WHERE id = $user_id", true);
-$last_click = ($last_check_row && $last_check_row['last_notification_check']) 
-              ? $last_check_row['last_notification_check'] 
-              : '1970-01-01 00:00:00';
-
-$stmt_count = $db->prepare("
+$user = $_SESSION["user"];
+$user_id = $user['id'];
+$notif_data = notif('admin', true); ;
+$unread_count = $notif_data['unread_count'];
+$notifications = $notif_data['notifications'];
+$highlight_stmt = $db->prepare("
     SELECT COUNT(*) FROM notifications 
-    WHERE is_read = 0 
-    AND created_at > :last_click
-    AND (message LIKE '%bio%' OR message LIKE '%phone%')
+    WHERE is_read = 0
+      AND (message LIKE '%bio%' OR message LIKE '%phone%')
 ");
-$stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
-$unread_count = $stmt_count->execute()->fetchArray()[0];
-
-// Fetch Notifications
-$notif_sql = "
-    SELECT n.*, s.first_name, s.last_name 
-    FROM notifications n
-    LEFT JOIN students s ON n.student_id = s.id
-    WHERE (n.message LIKE '%bio%' OR n.message LIKE '%phone%')
-    ORDER BY n.created_at DESC
-    LIMIT 10
-";
-$notif_result = $db->query($notif_sql);
-$notifications = [];
-while ($row = $notif_result->fetchArray(SQLITE3_ASSOC)) {
-    $notifications[] = $row;
-}
+$highlight_count = $highlight_stmt->execute()->fetchArray()[0];
 
 // Course Constants
 if (!defined('COURSE_ALL')) define('COURSE_ALL', 0);
@@ -254,7 +189,7 @@ $students_result = $stmt_students->execute();
                     <ul class="dropdown-menu dropdown-menu-end notification-list shadow-lg border-0 rounded-4 mt-2" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
                         <li class="dropdown-header d-flex justify-content-between align-items-center bg-white sticky-top py-3 border-bottom">
                             <span class="fw-bold text-dark">Notifications</span>
-                            <?php if ($unread_count > 0): ?>
+                            <?php if ($highlight_count > 0): ?>
                                 <a href="?action=clear_notifications" class="text-decoration-none small text-brand-blue fw-semibold">Mark read</a>
                             <?php endif; ?>
                         </li>
