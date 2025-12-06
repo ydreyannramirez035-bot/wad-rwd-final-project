@@ -26,6 +26,9 @@ $highlight_stmt = $db->prepare("
 ");
 $highlight_count = $highlight_stmt->execute()->fetchArray()[0];
 
+define('COURSE_BSIS', 1);
+define('COURSE_ACT', 2);
+
 // FETCH DATA
 $subjectOptions = [];
 $subRes = $db->query("SELECT id, subject_name FROM subjects ORDER BY subject_name ASC");
