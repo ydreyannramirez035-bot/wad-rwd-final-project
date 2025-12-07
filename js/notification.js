@@ -1,27 +1,27 @@
 document.addEventListener('DOMContentLoaded', function() {
-    var bellIcon = document.getElementById('notificationDropdown');
-    var badge = document.querySelector('.notification-badge');
+    const bellBtn = document.querySelector('#notificationDropdown');
+    const badge = document.querySelector('.notification-container .badge');
 
-    if (bellIcon) {
-        bellIcon.addEventListener('click', function() {
+    if (bellBtn) {
+        bellBtn.addEventListener('click', function() {
             if (badge) {
-                badge.style.display = 'none';
-            }
+                const formData = new FormData();
+                formData.append('action', 'clear_badge_only');
 
-            fetch(window.location.href, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'action=clear_badge_only'
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Badge cleared in session (text remains bold).');
-            })
-            .catch(error => {
-                console.error('Error clearing badge:', error);
-            });
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        badge.remove();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error clearing badge:', error);
+                });
+            }
         });
     }
 });
