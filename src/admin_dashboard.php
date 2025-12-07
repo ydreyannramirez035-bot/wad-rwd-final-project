@@ -130,13 +130,13 @@ if ($selected_course !== COURSE_ALL) {
 
 $students_result = $stmt_students->execute();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClassSched Dashboard</title>
-    <link rel="icon" type="image/x-icon" href="../img/logo.png">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Font -->
@@ -145,47 +145,55 @@ $students_result = $stmt_students->execute();
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../styles/admin_dashboard.css">
+    <link rel="stylesheet" href="../styles/notification.css">
+    <link rel="stylesheet" href="../styles/header.css">
 </head>
+
 <body class="d-flex flex-column min-vh-100 position-relative">
-
-    <!-- Background Decoration -->
-    <div class="blob blob-blue"></div>
-    <div class="blob blob-purple"></div>
-
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="admin_dashboard.php">
-                <img src="../img/logo.png" width="50" height="50" class="me-2">
-            </a>
+        <div class="container-fluid px-4">
 
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
-            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link active" href="admin_dashboard.php">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
-                    <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
+
+            <a class="navbar-brand ms-2" href="admin_dashboard.php">
+                <img src="../img/logo.png" width="60" height="60" class="me-2">
+            </a>
+
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+            <div class="offcanvas-header">
+                <img src="../img/logo.png" width="60" height="60" class="me-2">
+                <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
+                <li class="nav-item"><a class="nav-link active" href="admin_dashboard.php">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
+                <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
                 </ul>
             </div>
-
+            </div>
+            
             <div class="d-flex align-items-center gap-3">
-                
-                <!-- Notifications -->
-                <div class="dropdown notification-container position-relative">
-                    <button class="btn btn-link text-secondary p-0 border-0" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-bell fs-5"></i>
-                    </button>
+                <!-- Notif -->
+                <div class="dropdown notification-container me-4 position-relative">
+                    <i class="fa-solid fa-bell dropdown-toggle" 
+                       id="notificationDropdown" 
+                       data-bs-toggle="dropdown" 
+                       aria-expanded="false" 
+                       style="font-size: 1.2rem;">
+                    </i>
                     
                     <?php if ($unread_count > 0): ?>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
+                        <span class="notification-badge">
                             <?php echo ($unread_count > 9) ? '9+' : $unread_count; ?>
                         </span>
                     <?php endif; ?>
 
-                    <ul class="dropdown-menu dropdown-menu-end notification-list shadow-lg border-0 rounded-4 mt-2" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                    <ul class="dropdown-menu dropdown-menu-end notification-list shadow" aria-labelledby="notificationDropdown">
                         <li class="dropdown-header d-flex justify-content-between align-items-center">
                             <span class="fw-bold text-dark">Notifications</span>
                             <?php if ($highlight_count > 0): ?>
@@ -193,59 +201,51 @@ $students_result = $stmt_students->execute();
                             <?php endif; ?>
                         </li>
 
-                        <?php if (!empty($notifications)): ?>
+                        <?php if (count($notifications) > 0): ?>
                             <?php foreach ($notifications as $notif): ?>
-                                <?php $isUnread = ($notif['is_read'] == 0); ?>
-                                    <li>
-                                        <a class="dropdown-item p-3 border-bottom <?php echo $isUnread ? 'bg-light' : ''; ?>" 
-                                            href="?action=read_notif&id=<?php echo $notif['id']; ?>">
-                                            
-                                            <!-- FIX: Removed the immediate closing </div> that was here -->
-                                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                                <span class="small text-dark <?php echo $isUnread ? 'fw-bold' : 'fw-normal'; ?>">
+                                <?php 
+                                    $status_class = ($notif['is_read'] == 0) ? 'fw-bold bg-light border-start border-3 border-primary' : 'text-muted';
+                                ?>
+                                <li>
+                                    <a class="dropdown-item notification-item p-3 <?php echo $status_class; ?>" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
+                                        
+                                        <div class="notif-content">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <strong class="<?php echo ($notif['is_read'] == 0) ? 'text-dark' : ''; ?>">
                                                     <?php echo htmlspecialchars($notif['first_name'] . ' ' . $notif['last_name']); ?>
-                                                </span>
-
-                                                <?php if ($isUnread): ?>
-                                                    <span class="badge bg-primary rounded-pill" style="font-size: 0.7rem;">NEW</span>
+                                                </strong>
+                                                
+                                                <?php if ($notif['is_read'] == 0): ?>
+                                                    <span class="badge bg-primary rounded-pill" style="font-size: 0.5rem;">NEW</span>
                                                 <?php endif; ?>
                                             </div>
-                                            
-                                            <div class="text-secondary small text-wrap mb-1">
+
+                                            <div class="small mt-1 <?php echo ($notif['is_read'] == 0) ? 'text-dark' : ''; ?>">
                                                 <?php echo htmlspecialchars($notif['message']); ?>
                                             </div>
-                                            <div class="text-muted" style="font-size: 0.7rem;">
+                                            
+                                            <div class="notif-time small mt-1 text-secondary">
                                                 <?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?>
                                             </div>
-                                        </a>
-                                    </li>
+                                        </div>
+
+                                    </a>
+                                </li>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <li><span class="dropdown-item p-3 text-muted text-center">No notifications</span></li>
+                            <li class="text-center py-4 text-muted small">No notifications yet</li>
                         <?php endif; ?>
                     </ul>
                 </div>
-
-                <!-- Admin Profile Dropdown -->
+                <!-- Profile -->
                 <div class="dropdown">
-                    <button class="btn btn-white border rounded-pill px-3 py-1 d-flex align-items-center gap-2 shadow-sm" type="button" data-bs-toggle="dropdown">
-                        <div class="rounded-circle bg-brand-blue text-white d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 12px;">
-                            <?php echo htmlspecialchars(substr($user["username"], 0, 1)); ?>
-                        </div>
-                        <span class="small fw-semibold text-secondary">Admin</span>
-                        <i class="fa-solid fa-chevron-down text-muted" style="font-size: 10px;"></i>
+                    <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Admin • <?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-2">
-                        <li class="px-3 py-2">
-                            <small class="text-muted d-block" style="font-size: 10px;">SIGNED IN AS</small>
-                            <span class="fw-bold text-dark"><?php echo htmlspecialchars($user["username"]); ?></span>
-                        </li>
-                        <li><hr class="dropdown-divider my-2"></li>
-                        <li>
-                            <a class="dropdown-item rounded-2 text-danger fw-medium" href="logout.php">
-                                <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Logout
-                            </a>
-                        </li>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($user["username"]); ?></b></small></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
                     </ul>
                 </div>
             </div>
@@ -253,12 +253,12 @@ $students_result = $stmt_students->execute();
     </nav>
 
     <!-- MAIN CONTENT -->
-    <div class="container py-5">
+    <div class="container px-4 py-5">
         
         <!-- Header Section -->
         <div class="row align-items-end mb-5">
             <div class="col-md-6">
-                <h1 class="fw-bold display-5 text-dark mb-1">Hi, <?php echo htmlspecialchars($user["username"]); ?>!</h1>
+                <h1 class="fw-bold text-dark mb-4">Hi, <?php echo htmlspecialchars($user["username"]); ?>!</h1>
                 <p class="text-secondary mb-0">Here's what's happening today.</p>
             </div>
             <div class="col-md-6 text-md-end mt-3 mt-md-0">
@@ -272,7 +272,7 @@ $students_result = $stmt_students->execute();
         <div class="row mb-4">
             <div class="col-md-4">
                 <form action="" method="GET">
-                    <select name="course_id" class="form-select form-select-lg border-0 shadow-sm bg-light fw-medium text-secondary" style="cursor: pointer;" onchange="this.form.submit()">
+                    <select name="course_id" class="form-select bg-light border-0" style="cursor: pointer;" onchange="this.form.submit()">
                         <option value="<?php echo COURSE_ALL; ?>" <?php if($selected_course == COURSE_ALL) echo 'selected'; ?>>All Courses</option>
                         <option value="<?php echo COURSE_BSIS; ?>" <?php if($selected_course == COURSE_BSIS) echo 'selected'; ?>>BSIS</option>
                         <option value="<?php echo COURSE_ACT; ?>" <?php if($selected_course == COURSE_ACT) echo 'selected'; ?>>ACT</option>
@@ -364,7 +364,7 @@ $students_result = $stmt_students->execute();
                         <?php while ($row = $sched_result->fetchArray(SQLITE3_ASSOC)): ?>
                         <tr>
                             <td class="fw-medium text-secondary"><?php echo htmlspecialchars($row['day'] ?? '--'); ?></td>
-                            <td class="fw-bold text-dark"><?php echo htmlspecialchars($row['subject_name_display'] ?? 'Unknown Subject'); ?></td>
+                            <td class="fw-medium text-dark"><?php echo htmlspecialchars($row['subject_name_display'] ?? 'Unknown Subject'); ?></td>
                             <td class="text-secondary"><?php echo htmlspecialchars($row['teacher_name_display'] ?? 'Unknown Teacher'); ?></td>
                             <td><span class="badge bg-light text-dark border"><?php echo htmlspecialchars($row['room'] ?? 'TBA'); ?></span></td>
                             <td class="text-secondary">
@@ -403,7 +403,7 @@ $students_result = $stmt_students->execute();
                         <?php while ($student = $students_result->fetchArray(SQLITE3_ASSOC)): ?>
                         <tr>
                             <td class="fw-medium font-monospace text-primary"><?php echo htmlspecialchars($student['student_number'] ?? '--'); ?></td>
-                            <td class="fw-bold text-dark"><?php echo htmlspecialchars($student['last_name'] ?? '--'); ?></td>
+                            <td class="fw-medium text-dark"><?php echo htmlspecialchars($student['last_name'] ?? '--'); ?></td>
                             <td><?php echo htmlspecialchars($student['first_name'] ?? '--'); ?></td>
                             <td class="text-secondary"><?php echo htmlspecialchars($student['middle_name'] ?? '--'); ?></td>
                             <td class="text-secondary"><?php echo htmlspecialchars($student['age'] ?? '--'); ?></td>
