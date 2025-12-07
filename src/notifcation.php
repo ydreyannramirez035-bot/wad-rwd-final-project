@@ -1,10 +1,12 @@
 <?php
+session_start();
+
 require_once __DIR__ ."/db.php";
 
 function notif($role = null, $handle_actions = true) {
     if (!isset($_SESSION["user"])) {
-        header("Location: ../index.php");
-        exit;
+        // Redirect or handle unauthenticated state gracefully if needed
+        return ['unread_count' => 0, 'notifications' => []];
     }
 
     $current_page = basename($_SERVER['PHP_SELF']);
@@ -60,11 +62,34 @@ function notif($role = null, $handle_actions = true) {
         $last_check_row = $db->querySingle("SELECT last_notification_check FROM users WHERE id = $user_id", true);
         $last_click = ($last_check_row && $last_check_row['last_notification_check']) ? $last_check_row['last_notification_check'] : '1970-01-01 00:00:00';
 
-        $stmt_count = $db->prepare("SELECT COUNT(*) FROM notifications WHERE is_read = 0 AND created_at > :last_click AND (message LIKE '%bio%' OR message LIKE '%phone%')");
+        // Count unread messages created AFTER the last click (For Red Badge)
+        $stmt_count = $db->prepare("
+            SELECT COUNT(*) FROM notifications 
+            WHERE is_read = 0 
+            AND created_at > :last_click 
+            AND (message LIKE '%bio%' OR message LIKE '%phone%')
+        ");
         $stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
         $unread_count = $stmt_count->execute()->fetchArray()[0];
 
-        $notif_result = $db->query("SELECT n.*, s.first_name, s.last_name FROM notifications n LEFT JOIN students s ON n.student_id = s.id WHERE (n.message LIKE '%bio%' OR n.message LIKE '%phone%') ORDER BY n.created_at DESC LIMIT 10");
+        // Highlight count: Count ALL unread messages (For 'Mark Read' button)
+        // This ensures the button stays visible even if the red badge is gone
+        $stmt_highlight = $db->prepare("
+            SELECT COUNT(*) FROM notifications 
+            WHERE is_read = 0 
+            AND (message LIKE '%bio%' OR message LIKE '%phone%')
+        ");
+        $highlight_count = $stmt_highlight->execute()->fetchArray()[0];
+
+        // Get the list of notifications
+        $notif_result = $db->query("
+            SELECT n.*, s.first_name, s.last_name 
+            FROM notifications n 
+            LEFT JOIN students s ON n.student_id = s.id 
+            WHERE (n.message LIKE '%bio%' OR n.message LIKE '%phone%') 
+            ORDER BY n.created_at DESC LIMIT 10
+        ");
+        
     } 
     
     elseif ($role === 'student') {
@@ -113,12 +138,36 @@ function notif($role = null, $handle_actions = true) {
         $last_check_row = $db->querySingle("SELECT last_notification_check FROM students WHERE id = $student_id", true);
         $last_click = ($last_check_row && $last_check_row['last_notification_check']) ? $last_check_row['last_notification_check'] : '1970-01-01 00:00:00';
 
-        $stmt_count = $db->prepare("SELECT COUNT(*) FROM notifications WHERE student_id = :sid AND is_read = 0 AND created_at > :last_click");
+        $stmt_count = $db->prepare("
+            SELECT COUNT(*) FROM notifications 
+            WHERE student_id = :sid 
+            AND is_read = 0 
+            AND created_at > :last_click
+            AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+        ");
         $stmt_count->bindValue(':sid', $student_id, SQLITE3_INTEGER);
         $stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
         $unread_count = $stmt_count->execute()->fetchArray()[0];
 
-        $notif_result = $db->query("SELECT * FROM notifications WHERE student_id = $student_id ORDER BY created_at DESC LIMIT 10");
+        // Highlight count for 'Mark Read' button logic
+        $highlight_stmt = $db->prepare("
+            SELECT COUNT(*) FROM notifications 
+            WHERE student_id = :sid 
+            AND is_read = 0
+            AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+        ");
+        $highlight_stmt->bindValue(':sid', $student_id, SQLITE3_INTEGER);
+        $highlight_count = $highlight_stmt->execute()->fetchArray()[0];
+
+        // Fetch the filtered list
+        $notif_sql = "
+            SELECT * FROM notifications 
+            WHERE student_id = $student_id
+            AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+            ORDER BY created_at DESC LIMIT 10
+        ";
+        $notif_result = $db->query($notif_sql);
+        
     }
 
     $notifications = [];
@@ -130,6 +179,7 @@ function notif($role = null, $handle_actions = true) {
     
     return [
         'unread_count' => $unread_count ?? 0,
-        'notifications' => $notifications
+        'notifications' => $notifications,
+        'highlight_count' => $highlight_count ?? 0
     ];
 }
