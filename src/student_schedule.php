@@ -18,6 +18,7 @@ $db = get_db();
 $notif_data = notif('student', true); 
 $unread_count = $notif_data['unread_count'];
 $notifications = $notif_data['notifications'];
+$highlight_count = $notif_data['highlight_count'];
 
 $user_id = $user['id'];
 $student = $db->querySingle("SELECT * FROM students WHERE user_id = $user_id", true);
@@ -32,32 +33,10 @@ if (!$student) {
     ];
 }
 
-$student_id = $student['id'];
 $course_id = (int)$student['course_id'];
 $display_name = $student['first_name'] ?: $user['name']; 
 $f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));
 $l_initial = !empty($student['last_name']) ? strtoupper(substr($student['last_name'], 0, 1)) : '';
-$highlight_stmt = $db->prepare("
-    SELECT COUNT(*) FROM notifications 
-    WHERE student_id = :sid 
-      AND is_read = 0
-      AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
-");
-
-$highlight_stmt->bindValue(':sid', $student_id, SQLITE3_INTEGER);
-$highlight_count = $highlight_stmt->execute()->fetchArray()[0];
-$notif_sql = "
-    SELECT * FROM notifications 
-    WHERE student_id = $student_id
-      AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
-    ORDER BY created_at DESC LIMIT 10
-";
-
-$notif_result = $db->query($notif_sql);
-$notifications = [];
-while ($row = $notif_result->fetchArray(SQLITE3_ASSOC)) {
-    $notifications[] = $row;
-}
 
 // Initials Logic
 $f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));

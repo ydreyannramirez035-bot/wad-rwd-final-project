@@ -16,7 +16,7 @@ $db = get_db();
 
 $user = $_SESSION["user"];
 $user_id = $user['id'];
-$notif_data = notif('admin', true); ;
+$notif_data = notif('admin', true);
 $unread_count = $notif_data['unread_count'];
 $notifications = $notif_data['notifications'];
 $highlight_stmt = $db->prepare("
@@ -145,7 +145,6 @@ $students_result = $stmt_students->execute();
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../styles/admin_dashboard.css">
-    <link rel="stylesheet" href="../styles/notification.css">
 </head>
 <body class="d-flex flex-column min-vh-100 position-relative">
 
@@ -187,40 +186,42 @@ $students_result = $stmt_students->execute();
                     <?php endif; ?>
 
                     <ul class="dropdown-menu dropdown-menu-end notification-list shadow-lg border-0 rounded-4 mt-2" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
-                        <li class="dropdown-header d-flex justify-content-between align-items-center bg-white sticky-top py-3 border-bottom">
+                        <li class="dropdown-header d-flex justify-content-between align-items-center">
                             <span class="fw-bold text-dark">Notifications</span>
                             <?php if ($highlight_count > 0): ?>
-                                <a href="?action=clear_notifications" class="text-decoration-none small text-brand-blue fw-semibold">Mark read</a>
+                                <a href="?action=clear_notifications" class="text-decoration-none small text-brand-blue fw-semibold">Mark all read</a>
                             <?php endif; ?>
                         </li>
 
-                        <?php if (count($notifications) > 0): ?>
+                        <?php if (!empty($notifications)): ?>
                             <?php foreach ($notifications as $notif): ?>
                                 <?php $isUnread = ($notif['is_read'] == 0); ?>
-                                <li>
-                                    <a class="dropdown-item p-3 border-bottom <?php echo $isUnread ? 'bg-light' : ''; ?>" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
-                                        <div class="d-flex justify-content-between align-items-start mb-1">
-                                            <strong class="small text-dark">
-                                                <?php echo htmlspecialchars($notif['first_name'] . ' ' . $notif['last_name']); ?>
-                                            </strong>
-                                            <?php if ($isUnread): ?>
-                                                <span class="badge bg-primary rounded-pill" style="font-size: 0.5rem;">NEW</span>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div class="text-secondary small text-wrap mb-1" style="font-size: 0.8rem; line-height: 1.4;">
-                                            <?php echo htmlspecialchars($notif['message']); ?>
-                                        </div>
-                                        <div class="text-muted" style="font-size: 0.7rem;">
-                                            <?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?>
-                                        </div>
-                                    </a>
-                                </li>
+                                    <li>
+                                        <a class="dropdown-item p-3 border-bottom <?php echo $isUnread ? 'bg-light' : ''; ?>" 
+                                            href="?action=read_notif&id=<?php echo $notif['id']; ?>">
+                                            
+                                            <!-- FIX: Removed the immediate closing </div> that was here -->
+                                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                                <span class="small text-dark <?php echo $isUnread ? 'fw-bold' : 'fw-normal'; ?>">
+                                                    <?php echo htmlspecialchars($notif['first_name'] . ' ' . $notif['last_name']); ?>
+                                                </span>
+
+                                                <?php if ($isUnread): ?>
+                                                    <span class="badge bg-primary rounded-pill" style="font-size: 0.7rem;">NEW</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            
+                                            <div class="text-secondary small text-wrap mb-1">
+                                                <?php echo htmlspecialchars($notif['message']); ?>
+                                            </div>
+                                            <div class="text-muted" style="font-size: 0.7rem;">
+                                                <?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?>
+                                            </div>
+                                        </a>
+                                    </li>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <li class="text-center py-5 text-muted small">
-                                <i class="fa-regular fa-bell-slash fs-4 mb-2 d-block opacity-50"></i>
-                                No notifications yet
-                            </li>
+                            <li><span class="dropdown-item p-3 text-muted text-center">No notifications</span></li>
                         <?php endif; ?>
                     </ul>
                 </div>
