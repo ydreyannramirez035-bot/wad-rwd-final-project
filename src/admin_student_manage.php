@@ -399,8 +399,8 @@ if ($action === "delete") {
         <?php else: ?>
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
                 <div>
-                    <h1 class="fw-bold text-dark mb-2">Schedule</h1>
-                    <p class="text-secondary mb-0 small d-none d-sm-block">Manage class schedules and assignments.</p>
+                    <h1 class="fw-bold text-dark mb-2">Students</h1>
+                    <p class="text-secondary mb-0 small d-none d-sm-block">Manage student records and information.</p>
                 </div>
                 <div>
                     <a href="?action=create" class="btn btn-primary btn-sched rounded-pill px-3 px-md-4">
@@ -422,7 +422,7 @@ if ($action === "delete") {
                     <div class="col-5 col-md-6">
                         <div class="input-group">
                             <span class="input-group-text bg-light border-0 ps-2 pe-1"><i class="fa-solid fa-search text-secondary small"></i></span>
-                            <input type="text" id="search" class="form-control bg-light border-0 ps-1" placeholder="Search" onkeyup="loadTable()">
+                            <input type="text" id="search" class="form-control bg-light border-0 ps-1" placeholder="Search..." onkeyup="loadTable()">
                         </div>
                     </div>
                     

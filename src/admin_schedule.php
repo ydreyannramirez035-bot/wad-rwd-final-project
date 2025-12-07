@@ -203,6 +203,8 @@ if ($action === "delete") {
 <head>
     <meta charset="UTF-8">
     <title>Manage Schedule</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -211,7 +213,7 @@ if ($action === "delete") {
     <link rel="stylesheet" href="../styles/notification.css">
 </head>
 <body class="d-flex flex-column min-vh-100 position-relative">
-    <!-- NAVBAR -->
+
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid px-4">
 
@@ -239,7 +241,6 @@ if ($action === "delete") {
             </div>
             
             <div class="d-flex align-items-center gap-3">
-                <!-- Notif -->
                 <div class="dropdown notification-container me-4 position-relative">
                     <i class="fa-solid fa-bell dropdown-toggle" 
                        id="notificationDropdown" 
@@ -298,7 +299,6 @@ if ($action === "delete") {
                         <?php endif; ?>
                     </ul>
                 </div>
-                <!-- Profile -->
                 <div class="dropdown">
                     <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         Admin • <?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
@@ -445,7 +445,7 @@ if ($action === "delete") {
         <?php else: ?> 
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
                 <div>
-                    <h1 class="fw-bold text-dark mb-2">Schedule</h1>
+                    <h1 class="fw-bold text-dark mb-1 fs-3">Schedule</h1>
                     <p class="text-secondary mb-0 small d-none d-sm-block">Manage class schedules and assignments.</p>
                 </div>
                 <div>
