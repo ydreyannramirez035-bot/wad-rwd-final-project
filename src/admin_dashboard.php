@@ -1,95 +1,30 @@
 <?php
 session_start();
 
-header("Cache-Control: no-cache, no-store, must-revalidate");
-header("Pragma: no-cache");
-header("Expires: 0");
-
 if (!isset($_SESSION["user"])) {
     header("Location: ../index.php");
     exit;
 }
-$user = $_SESSION["user"];
-$user_id = $user['id'];
 
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+require_once __DIR__ ."/notifcation.php";
 require_once __DIR__ ."/db.php";
 $db = get_db();
 
-// Ensure column exists
-$cols = $db->query("PRAGMA table_info(users)");
-$hasCol = false;
-while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
-    if ($col['name'] === 'last_notification_check') {
-        $hasCol = true;
-        break;
-    }
-}
-if (!$hasCol) {
-    $db->exec("ALTER TABLE users ADD COLUMN last_notification_check DATETIME DEFAULT '1970-01-01 00:00:00'");
-}
-
-// Handle Badge Clearing
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
-    $db->exec("UPDATE users SET last_notification_check = datetime('now', 'localtime') WHERE id = $user_id");
-    
-    header('Content-Type: application/json');
-    echo json_encode(['status' => 'success']);
-    exit;
-}
-
-// Update System Log
-$current_db_val = $db->querySingle("SELECT last_activity FROM admin_system_log WHERE id = 1");
-$current_time = time();
-
-if (!is_numeric($current_db_val) || ($current_db_val > $current_time + 60)) {
-    $db->exec("UPDATE admin_system_log SET last_activity = strftime('%s', 'now') WHERE id = 1");
-}
-
-// Handle Clear/Read Notifications
-if (isset($_GET['action']) && $_GET['action'] === 'clear_notifications') {
-    $db->exec("UPDATE notifications SET is_read = 1 
-               WHERE is_read = 0 
-               AND (message LIKE '%bio%' OR message LIKE '%phone%')");
-    header("Location: admin_dashboard.php");
-    exit;
-}
-
-if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
-    $notif_id = (int)$_GET['id'];
-    $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
-    header("Location: admin_student_manage.php"); 
-    exit;
-}
-
-// Calculate Unread Count
-$last_check_row = $db->querySingle("SELECT last_notification_check FROM users WHERE id = $user_id", true);
-$last_click = ($last_check_row && $last_check_row['last_notification_check']) 
-              ? $last_check_row['last_notification_check'] 
-              : '1970-01-01 00:00:00';
-
-$stmt_count = $db->prepare("
+$user = $_SESSION["user"];
+$user_id = $user['id'];
+$notif_data = notif('admin', true); ;
+$unread_count = $notif_data['unread_count'];
+$notifications = $notif_data['notifications'];
+$highlight_stmt = $db->prepare("
     SELECT COUNT(*) FROM notifications 
-    WHERE is_read = 0 
-    AND created_at > :last_click
-    AND (message LIKE '%bio%' OR message LIKE '%phone%')
+    WHERE is_read = 0
+      AND (message LIKE '%bio%' OR message LIKE '%phone%')
 ");
-$stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
-$unread_count = $stmt_count->execute()->fetchArray()[0];
-
-// Fetch Notifications
-$notif_sql = "
-    SELECT n.*, s.first_name, s.last_name 
-    FROM notifications n
-    LEFT JOIN students s ON n.student_id = s.id
-    WHERE (n.message LIKE '%bio%' OR n.message LIKE '%phone%')
-    ORDER BY n.created_at DESC
-    LIMIT 10
-";
-$notif_result = $db->query($notif_sql);
-$notifications = [];
-while ($row = $notif_result->fetchArray(SQLITE3_ASSOC)) {
-    $notifications[] = $row;
-}
+$highlight_count = $highlight_stmt->execute()->fetchArray()[0];
 
 // Course Constants
 if (!defined('COURSE_ALL')) define('COURSE_ALL', 0);
@@ -201,6 +136,7 @@ $students_result = $stmt_students->execute();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClassSched Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="../img/logo.png">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Font -->
@@ -210,118 +146,6 @@ $students_result = $stmt_students->execute();
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../styles/admin_dashboard.css">
     <link rel="stylesheet" href="../styles/notification.css">
-
-    <style>
-        :root {
-            --brand-blue: #3b66d1;
-            --brand-blue-hover: #2d52b0;
-            --brand-dark: #0f1724;
-            --brand-light: #f5f7ff;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            color: var(--brand-dark);
-            background-color: white;
-        }
-
-        /* Branding Utilities */
-        .text-brand-blue { color: var(--brand-blue) !important; }
-        .bg-brand-blue { background-color: var(--brand-blue) !important; }
-        
-        /* Stats Cards Styling to Match Landing Page Cards */
-        .stats-card {
-            background: white;
-            border-radius: 1rem;
-            border: 1px solid #f3f4f6;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            padding: 1.5rem;
-            height: 100%;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .stats-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(59, 102, 209, 0.1);
-            border-color: var(--brand-blue);
-        }
-        .stats-label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-        .stats-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--brand-dark);
-            line-height: 1;
-            margin-bottom: 0.25rem;
-        }
-        .stats-sub {
-            font-size: 0.75rem;
-            color: #9ca3af;
-        }
-
-        /* Decoration Blobs */
-        .blob {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: -1;
-            pointer-events: none;
-        }
-        .blob-blue {
-            top: -5rem;
-            right: -5rem;
-            width: 24rem;
-            height: 24rem;
-            background-color: #eff6ff; 
-        }
-        .blob-purple {
-            top: 10rem;
-            left: -5rem;
-            width: 18rem;
-            height: 18rem;
-            background-color: #faf5ff;
-        }
-
-        /* Navbar Tweaks */
-        .navbar {
-            background-color: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid #f3f4f6;
-        }
-        .nav-link {
-            font-weight: 500;
-            color: #6b7280;
-        }
-        .nav-link.active {
-            color: var(--brand-blue) !important;
-            font-weight: 600;
-        }
-        .nav-link:hover {
-            color: var(--brand-blue);
-        }
-
-        /* Table Styling */
-        .custom-table thead th {
-            background-color: var(--brand-light);
-            color: var(--brand-blue);
-            font-weight: 600;
-            border: none;
-            padding: 1rem;
-        }
-        .custom-table tbody td {
-            padding: 1rem;
-            border-bottom: 1px solid #f3f4f6;
-            vertical-align: middle;
-        }
-        .custom-table tr:hover td {
-            background-color: #f9fafb;
-        }
-    </style>
 </head>
 <body class="d-flex flex-column min-vh-100 position-relative">
 
@@ -332,9 +156,8 @@ $students_result = $stmt_students->execute();
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <!-- Brand Logo -->
-            <a class="navbar-brand d-flex align-items-center cursor-pointer" href="admin_dashboard.php">
-                <img src="../img/logo.jpg" width="50" height="50" class="me-2">
+            <a class="navbar-brand d-flex align-items-center" href="admin_dashboard.php">
+                <img src="../img/logo.png" width="50" height="50" class="me-2">
             </a>
 
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -366,7 +189,7 @@ $students_result = $stmt_students->execute();
                     <ul class="dropdown-menu dropdown-menu-end notification-list shadow-lg border-0 rounded-4 mt-2" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
                         <li class="dropdown-header d-flex justify-content-between align-items-center bg-white sticky-top py-3 border-bottom">
                             <span class="fw-bold text-dark">Notifications</span>
-                            <?php if ($unread_count > 0): ?>
+                            <?php if ($highlight_count > 0): ?>
                                 <a href="?action=clear_notifications" class="text-decoration-none small text-brand-blue fw-semibold">Mark read</a>
                             <?php endif; ?>
                         </li>

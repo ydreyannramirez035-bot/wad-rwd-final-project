@@ -1,90 +1,33 @@
 <?php
 session_start();
 
+if (!isset($_SESSION["user"])) {
+    header("Location: ../index.php");
+    exit;
+}
+
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-require_once __DIR__ . "/db.php";
+require_once __DIR__ ."/notifcation.php";
+require_once __DIR__ ."/db.php";
 $db = get_db();
+
+$user = $_SESSION["user"];
+$user_id = $user['id'];
+$notif_data = notif('admin', true); ;
+$unread_count = $notif_data['unread_count'];
+$notifications = $notif_data['notifications'];
+$highlight_stmt = $db->prepare("
+    SELECT COUNT(*) FROM notifications 
+    WHERE is_read = 0
+      AND (message LIKE '%bio%' OR message LIKE '%phone%')
+");
+$highlight_count = $highlight_stmt->execute()->fetchArray()[0];
 
 define('COURSE_BSIS', 1);
 define('COURSE_ACT', 2);
-
-if (!isset($_SESSION["user"])) {
-    header("Location: login.php");
-    exit;
-}
-$user = $_SESSION["user"];
-$user_id = $user['id']; // Needed for notification logic
-
-// --- 1. Auto-Migration: Ensure Column Exists (Safety Check) ---
-$cols = $db->query("PRAGMA table_info(users)");
-$hasCol = false;
-while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
-    if ($col['name'] === 'last_notification_check') {
-        $hasCol = true;
-        break;
-    }
-}
-if (!$hasCol) {
-    $db->exec("ALTER TABLE users ADD COLUMN last_notification_check DATETIME DEFAULT '1970-01-01 00:00:00'");
-}
-
-// --- 2. AJAX Handler for Bell Click (Syncs with Dashboard) ---
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
-    $db->exec("UPDATE users SET last_notification_check = datetime('now', 'localtime') WHERE id = $user_id");
-    
-    header('Content-Type: application/json');
-    echo json_encode(['status' => 'success']);
-    exit;
-}
-
-// --- Existing GET Actions ---
-if (isset($_GET['action']) && $_GET['action'] === 'clear_notifications') {
-    $db->exec("UPDATE notifications SET is_read = 1 
-               WHERE is_read = 0 
-               AND (message LIKE '%bio%' OR message LIKE '%phone%')");
-    header("Location: admin_schedule.php");
-    exit;
-}
-
-if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
-    $notif_id = (int)$_GET['id'];
-    $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
-    header("Location: admin_student_manage.php"); 
-    exit;
-}
-
-// --- 3. Read Timestamp & Count Unread Notifications ---
-$last_check_row = $db->querySingle("SELECT last_notification_check FROM users WHERE id = $user_id", true);
-$last_click = ($last_check_row && $last_check_row['last_notification_check']) 
-              ? $last_check_row['last_notification_check'] 
-              : '1970-01-01 00:00:00';
-
-$stmt_count = $db->prepare("
-    SELECT COUNT(*) FROM notifications 
-    WHERE is_read = 0 
-    AND created_at > :last_click
-    AND (message LIKE '%bio%' OR message LIKE '%phone%')
-");
-$stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
-$unread_count = $stmt_count->execute()->fetchArray()[0];
-
-// --- 4. Fetch Notifications List ---
-$notif_sql = "
-    SELECT n.*, s.first_name, s.last_name 
-    FROM notifications n
-    LEFT JOIN students s ON n.student_id = s.id
-    WHERE (n.message LIKE '%bio%' OR n.message LIKE '%phone%')
-    ORDER BY n.created_at DESC
-    LIMIT 10
-";
-$notif_result = $db->query($notif_sql);
-$notifications = [];
-while ($row = $notif_result->fetchArray(SQLITE3_ASSOC)) {
-    $notifications[] = $row;
-}
 
 // FETCH DATA
 $subjectOptions = [];
@@ -260,14 +203,14 @@ if ($action === "delete") {
     <title>Manage Schedule</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../styles/admin_dashboard.css">
     <link rel="stylesheet" href="../styles/admin_schedule.css">
     <link rel="stylesheet" href="../styles/notification.css">
+    
 </head>
 <body>
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="index.php">
+            <a class="navbar-brand d-flex align-items-center" href="admin_dashboard.php">
                 <img src="../img/logo.jpg" width="50" height="50" class="me-2">
                 <span class="fw-bold text-primary">Class</span><span class="text-primary">Sched</span>
             </a>
@@ -277,7 +220,6 @@ if ($action === "delete") {
             
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="admin_dashboard.php">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
                     <li class="nav-item"><a class="nav-link active" href="admin_schedule.php">Schedule</a></li>
@@ -499,6 +441,7 @@ if ($action === "delete") {
             
             if ($count == 0): ?>
                 <div class="alert alert-info">No schedule record found. Click "Add Schedule" to get started.</div>
+                <a href="?action=create" class="btn btn-primary btn-sched">+ Add Schedule</a>
             <?php else: ?>
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered align-middle">

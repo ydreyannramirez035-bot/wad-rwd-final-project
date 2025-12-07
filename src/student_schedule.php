@@ -1,18 +1,23 @@
 <?php
 session_start();
 
+if (!isset($_SESSION["user"])) {
+    header("Location: index.php");
+    exit;
+}
+
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-require_once __DIR__ . "/db.php";
+require_once __DIR__ ."/notifcation.php";
+require_once __DIR__ ."/db.php";
 
-if (!isset($_SESSION["user"])) {
-    header("Location: login.php");
-    exit;
-}
-$user = $_SESSION["user"];
+$user = $_SESSION['user'];
 $db = get_db();
+$notif_data = notif('student', true); 
+$unread_count = $notif_data['unread_count'];
+$notifications = $notif_data['notifications'];
 
 $user_id = $user['id'];
 $student = $db->querySingle("SELECT * FROM students WHERE user_id = $user_id", true);
@@ -29,45 +34,22 @@ if (!$student) {
 
 $student_id = $student['id'];
 $course_id = (int)$student['course_id'];
-
-// --- SYNC FIX: Add Database Update Logic to Schedule Page ---
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
-    // Update the database column so the change is reflected on the dashboard too
-    $db->exec("UPDATE students SET last_notification_check = datetime('now', 'localtime') WHERE id = $student_id");
-    
-    header('Content-Type: application/json');
-    echo json_encode(['status' => 'success']);
-    exit;
-}
-// -----------------------------------------------------------
-
-if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
-    $notif_id = (int)$_GET['id'];
-    $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
-    header("Location: student_schedule.php?v=" . time()); 
-    exit;
-}
-
-$last_check_row = $db->querySingle("SELECT last_notification_check FROM students WHERE id = $student_id", true);
-$last_click = ($last_check_row && $last_check_row['last_notification_check']) 
-              ? $last_check_row['last_notification_check'] 
-              : '1970-01-01 00:00:00';
-
-$stmt_count = $db->prepare("
+$display_name = $student['first_name'] ?: $user['name']; 
+$f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));
+$l_initial = !empty($student['last_name']) ? strtoupper(substr($student['last_name'], 0, 1)) : '';
+$highlight_stmt = $db->prepare("
     SELECT COUNT(*) FROM notifications 
     WHERE student_id = :sid 
-    AND is_read = 0 
-    AND created_at > :last_click
-    AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+      AND is_read = 0
+      AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
 ");
-$stmt_count->bindValue(':sid', $student_id, SQLITE3_INTEGER);
-$stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
-$unread_count = $stmt_count->execute()->fetchArray()[0];
 
+$highlight_stmt->bindValue(':sid', $student_id, SQLITE3_INTEGER);
+$highlight_count = $highlight_stmt->execute()->fetchArray()[0];
 $notif_sql = "
     SELECT * FROM notifications 
     WHERE student_id = $student_id
-    AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+      AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
     ORDER BY created_at DESC LIMIT 10
 ";
 
@@ -143,7 +125,7 @@ $sched_result = $stmt->execute();
 
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="index.php">
+            <a class="navbar-brand" href="student_dashboard.php">
                 <span style="background:#94a3b8; color:white; padding:5px 10px; border-radius:50%; font-size:14px; vertical-align:middle; margin-right:5px;">LOGO</span>
                 Class<span class="brand-blue">Sched</span>
             </a>
@@ -155,7 +137,6 @@ $sched_result = $stmt->execute();
             <div class="collapse navbar-collapse justify-content-center" id="navContent">
                 <div class="collapse navbar-collapse justify-content-center" id="navContent">
                 <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="student_dashboard.php">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link active" href="student_schedule.php">Class Schedule</a></li>
                 </ul>
@@ -180,8 +161,8 @@ $sched_result = $stmt->execute();
                     <ul class="dropdown-menu dropdown-menu-end notification-list shadow" aria-labelledby="notificationDropdown">
                         <li class="dropdown-header d-flex justify-content-between align-items-center">
                             <span class="fw-bold">Notifications</span>
-                            <?php if ($unread_count > 0): ?>
-                                <a href="?action=clear_all" class="text-decoration-none small text-primary">Mark all read</a>
+                            <?php if ($highlight_count > 0): ?>
+                                <a href="?action=clear_notifications" class="text-decoration-none small text-primary">Mark all read</a>
                             <?php endif; ?>
                         </li>
 
