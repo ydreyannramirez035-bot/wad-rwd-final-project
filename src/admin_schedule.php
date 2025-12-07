@@ -445,7 +445,7 @@ if ($action === "delete") {
         <?php else: ?> 
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
                 <div>
-                    <h1 class="fw-bold text-dark mb-1 fs-3">Schedule</h1>
+                    <h1 class="fw-bold text-dark mb-2">Schedule</h1>
                     <p class="text-secondary mb-0 small d-none d-sm-block">Manage class schedules and assignments.</p>
                 </div>
                 <div>
