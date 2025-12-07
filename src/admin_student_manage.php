@@ -19,7 +19,12 @@ $user_id = $user['id'];
 $notif_data = notif('admin', true); ;
 $unread_count = $notif_data['unread_count'];
 $notifications = $notif_data['notifications'];
-$highlight_count = $notif_data['highlight_count'];
+$highlight_stmt = $db->prepare("
+    SELECT COUNT(*) FROM notifications 
+    WHERE is_read = 0
+      AND (message LIKE '%bio%' OR message LIKE '%phone%')
+");
+$highlight_count = $highlight_stmt->execute()->fetchArray()[0];
 
 define('COURSE_BSIS', 1);
 define('COURSE_ACT', 2);
@@ -237,9 +242,9 @@ if ($action === "delete") {
 
                     <ul class="dropdown-menu dropdown-menu-end notification-list shadow" aria-labelledby="notificationDropdown">
                         <li class="dropdown-header d-flex justify-content-between align-items-center">
-                            <span class="fw-bold text-dark">Notifications</span>
-                            <?php if ($highlight_count > 0): ?>
-                                <a href="?action=clear_notifications" class="text-decoration-none small text-brand-blue fw-semibold">Mark all read</a>
+                            <span class="fw-bold">Notifications</span>
+                            <?php if ($unread_count > 0): ?>
+                                <a href="?action=clear_notifications" class="text-decoration-none small text-primary">Mark all read</a>
                             <?php endif; ?>
                         </li>
 
