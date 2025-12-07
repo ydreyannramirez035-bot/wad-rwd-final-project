@@ -89,15 +89,17 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         ?>
         <tr>
-            <td><?php echo htmlspecialchars($row['day']); ?></td>
-            <td><?php echo htmlspecialchars($row['subject_name']); ?></td>
-            <td><?php echo htmlspecialchars($row['teacher_name']); ?></td>
-            <td><?php echo htmlspecialchars($row['room']); ?></td>
-            <td><?php echo $row['time_start'] ? date("h:i A", strtotime($row['time_start'])) : ''; ?></td>
-            <td><?php echo $row['time_end'] ? date("h:i A", strtotime($row['time_end'])) : ''; ?></td>
+            <td class="fw-medium text-secondary"><?php echo htmlspecialchars($row['day']); ?></td>
+            <td class="fw-medium text-dark"><?php echo htmlspecialchars($row['subject_name']); ?></td>
+            <td class="text-secondary"><?php echo htmlspecialchars($row['teacher_name']); ?></td>
+            <td><span class="badge bg-light text-dark border"><?php echo htmlspecialchars($row['room']); ?></span></td>
+            <td class="text-secondary"><?php echo $row['time_start'] ? date("h:i A", strtotime($row['time_start'])) : ''; ?></td>
+            <td class="text-secondary"><?php echo $row['time_end'] ? date("h:i A", strtotime($row['time_end'])) : ''; ?></td>
             <td>
-                <a href="?action=edit&id=<?php echo $row['id']; ?>" class="btn-link">Edit</a> </br>
-                <a href="?action=delete&id=<?php echo $row['id']; ?>" onclick="return confirm('Delete this schedule?');" class="text-danger">Delete</a>
+                <div class="d-flex gap-2">
+                    <a href="?action=edit&id=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i></a>
+                    <a href="?action=delete&id=<?php echo $row['id']; ?>" onclick="return confirm('Delete this schedule?');" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+                </div>
             </td>
         </tr>
         <?php
@@ -201,33 +203,43 @@ if ($action === "delete") {
 <head>
     <meta charset="UTF-8">
     <title>Manage Schedule</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../styles/admin_schedule.css">
+    <link rel="stylesheet" href="../styles/header.css">
     <link rel="stylesheet" href="../styles/notification.css">
-    
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100 position-relative">
+    <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="admin_dashboard.php">
-                <img src="../img/logo.jpg" width="50" height="50" class="me-2">
-                <span class="fw-bold text-primary">Class</span><span class="text-primary">Sched</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <div class="container-fluid px-4">
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
-            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="admin_dashboard.php">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="admin_schedule.php">Schedule</a></li>
+
+            <a class="navbar-brand ms-2" href="admin_dashboard.php">
+                <img src="../img/logo.png" width="60" height="60" class="me-2">
+            </a>
+
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+            <div class="offcanvas-header">
+                <img src="../img/logo.png" width="60" height="60" class="me-2">
+                <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
+                <li class="nav-item"><a class="nav-link" href="admin_dashboard.php">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
+                <li class="nav-item"><a class="nav-link active" href="admin_schedule.php">Schedule</a></li>
                 </ul>
             </div>
-
-            <div class="d-flex align-items-center">
-                
+            </div>
+            
+            <div class="d-flex align-items-center gap-3">
+                <!-- Notif -->
                 <div class="dropdown notification-container me-4 position-relative">
                     <i class="fa-solid fa-bell dropdown-toggle" 
                        id="notificationDropdown" 
@@ -286,7 +298,7 @@ if ($action === "delete") {
                         <?php endif; ?>
                     </ul>
                 </div>
-
+                <!-- Profile -->
                 <div class="dropdown">
                     <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         Admin • <?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
@@ -301,170 +313,207 @@ if ($action === "delete") {
         </div>
     </nav>
 
-    <div class="container my-4">
+    <div class="container px-4 py-5">
         <?php if ($action === 'create' || $action === 'edit'): ?>
-            <?php if ($error): ?>
-                <div class="alert alert-danger"><?php echo $error; ?></div>
-            <?php endif; ?>
+            <div class="bg-white rounded-4 shadow-sm border p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                        <i class="fa-regular fa-calendar-plus text-brand-blue"></i>
+                        <?php echo ucfirst($action); ?> Schedule
+                    </h5>
+                    <a href="admin_schedule.php" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa-solid fa-arrow-left me-1"></i> Back
+                    </a>
+                </div>
 
-            <?php 
-            $id = (int)($_GET["id"] ?? 0);
-            $row = ($action === 'edit') ? $db->querySingle("SELECT * FROM schedules WHERE id=$id", true) : [];
-            if ($action === 'edit' && !$row) {
-                echo "<div class='alert alert-warning'>Schedule not found.</div><a href='admin_schedule.php' class='btn btn-secondary'>Back</a>";
-                exit;
-            }
+                <?php if ($error): ?>
+                    <div class="alert alert-danger"><?php echo $error; ?></div>
+                <?php endif; ?>
 
-            // Get related courses for edit
-            $currentCourseIds = [];
-            if ($action === 'edit') {
-                $sqlSiblings = "SELECT course_id FROM schedules 
-                                WHERE day = :day 
-                                AND room = :room 
-                                AND time_start = :ts 
-                                AND teacher_id = :tid";
-                
-                $stmtSib = $db->prepare($sqlSiblings);
-                $stmtSib->bindValue(':day', $row['day']);
-                $stmtSib->bindValue(':room', $row['room']);
-                $stmtSib->bindValue(':ts', $row['time_start']);
-                $stmtSib->bindValue(':tid', $row['teacher_id']);
-                
-                $resSib = $stmtSib->execute();
-                while($sib = $resSib->fetchArray(SQLITE3_ASSOC)){
-                    $currentCourseIds[] = $sib['course_id'];
+                <?php 
+                $id = (int)($_GET["id"] ?? 0);
+                $row = ($action === 'edit') ? $db->querySingle("SELECT * FROM schedules WHERE id=$id", true) : [];
+                if ($action === 'edit' && !$row) {
+                    echo "<div class='alert alert-warning'>Schedule not found.</div><a href='admin_schedule.php' class='btn btn-secondary'>Back</a>";
+                    exit;
                 }
-            }
-            ?>
 
-            <h3><?php echo ucfirst($action); ?> Schedule</h3>
-            <form id="scheduleForm" method="post" action="?action=<?php echo ($action==='edit') ? 'update' : 'store'; ?>" class="mt-3" onsubmit="return validateCourseSelection()">
-                <?php if ($action==='edit') echo '<input type="hidden" name="id" value="'.$row['id'].'">'; ?>
+                // Get related courses for edit
+                $currentCourseIds = [];
+                if ($action === 'edit') {
+                    $sqlSiblings = "SELECT course_id FROM schedules 
+                                    WHERE day = :day 
+                                    AND room = :room 
+                                    AND time_start = :ts 
+                                    AND teacher_id = :tid";
+                    
+                    $stmtSib = $db->prepare($sqlSiblings);
+                    $stmtSib->bindValue(':day', $row['day']);
+                    $stmtSib->bindValue(':room', $row['room']);
+                    $stmtSib->bindValue(':ts', $row['time_start']);
+                    $stmtSib->bindValue(':tid', $row['teacher_id']);
+                    
+                    $resSib = $stmtSib->execute();
+                    while($sib = $resSib->fetchArray(SQLITE3_ASSOC)){
+                        $currentCourseIds[] = $sib['course_id'];
+                    }
+                }
+                ?>
 
-                <div class="mb-3">
-                    <label class="form-label">Day</label>
-                    <select class="form-select" name="day" required>
-                        <?php $val = $row['day'] ?? ''; ?>
-                        <option value="" disabled <?php if($val == "") echo "selected"; ?>>-- Select Day --</option>
-                        <?php foreach(["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"] as $d): ?>
-                            <option value="<?php echo $d; ?>" <?php if($val==$d) echo "selected"; ?>><?php echo $d; ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                <form id="scheduleForm" method="post" action="?action=<?php echo ($action==='edit') ? 'update' : 'store'; ?>" onsubmit="return validateCourseSelection()">
+                    <?php if ($action==='edit') echo '<input type="hidden" name="id" value="'.$row['id'].'">'; ?>
 
-                <div class="mb-3">
-                    <label class="form-label">Subject</label>
-                    <select class="form-select" name="subject_id" required>
-                        <option value="" disabled <?php if(!isset($row['subject_id'])) echo "selected"; ?>>-- Select Subject --</option>
-                        <?php foreach($subjectOptions as $o): ?>
-                            <option value="<?php echo $o['id']; ?>" <?php echo ($o['id']==($row['subject_id']??0)?'selected':''); ?>>
-                                <?php echo htmlspecialchars($o['subject_name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium text-secondary small">Day</label>
+                            <select class="form-select" name="day" required>
+                                <?php $val = $row['day'] ?? ''; ?>
+                                <option value="" disabled <?php if($val == "") echo "selected"; ?>>-- Select Day --</option>
+                                <?php foreach(["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"] as $d): ?>
+                                    <option value="<?php echo $d; ?>" <?php if($val==$d) echo "selected"; ?>><?php echo $d; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium text-secondary small">Room</label>
+                            <input type="text" class="form-control" name="room" value="<?php echo $row['room']??''; ?>" required>
+                        </div>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Teacher</label>
-                    <select class="form-select" name="teacher_id" required>
-                        <option value="" disabled <?php if(!isset($row['teacher_id'])) echo "selected"; ?>>-- Select Teacher --</option>
-                        <?php foreach($teacherOptions as $o): ?>
-                            <option value="<?php echo $o['id']; ?>" <?php echo ($o['id']==($row['teacher_id']??0)?'selected':''); ?>>
-                                <?php echo htmlspecialchars($o['name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium text-secondary small">Subject</label>
+                            <select class="form-select" name="subject_id" required>
+                                <option value="" disabled <?php if(!isset($row['subject_id'])) echo "selected"; ?>>-- Select Subject --</option>
+                                <?php foreach($subjectOptions as $o): ?>
+                                    <option value="<?php echo $o['id']; ?>" <?php echo ($o['id']==($row['subject_id']??0)?'selected':''); ?>>
+                                        <?php echo htmlspecialchars($o['subject_name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium text-secondary small">Teacher</label>
+                            <select class="form-select" name="teacher_id" required>
+                                <option value="" disabled <?php if(!isset($row['teacher_id'])) echo "selected"; ?>>-- Select Teacher --</option>
+                                <?php foreach($teacherOptions as $o): ?>
+                                    <option value="<?php echo $o['id']; ?>" <?php echo ($o['id']==($row['teacher_id']??0)?'selected':''); ?>>
+                                        <?php echo htmlspecialchars($o['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Course(s)</label>
-                    <div id="course_checkbox_group" class="d-flex flex-column">
-                        <?php foreach($courseOptions as $o): 
-                            $isChecked = in_array($o['id'], $currentCourseIds) ? 'checked' : '';
-                        ?>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="course_ids[]" value="<?php echo $o['id']; ?>" <?php echo $isChecked; ?>>
-                                <label class="form-check-label"><?php echo htmlspecialchars($o['course_name']); ?></label>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium text-secondary small">Start Time</label>
+                            <input type="time" class="form-control" name="time_start" value="<?php echo $row['time_start']??''; ?>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium text-secondary small">End Time</label>
+                            <input type="time" class="form-control" name="time_end" value="<?php echo $row['time_end']??''; ?>" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-medium text-secondary small">Applicable Course(s)</label>
+                        <div class="card p-3 bg-light border-0">
+                            <div id="course_checkbox_group" class="d-flex flex-wrap gap-3">
+                                <?php foreach($courseOptions as $o): 
+                                    $isChecked = in_array($o['id'], $currentCourseIds) ? 'checked' : '';
+                                ?>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="course_ids[]" value="<?php echo $o['id']; ?>" <?php echo $isChecked; ?>>
+                                        <label class="form-check-label"><?php echo htmlspecialchars($o['course_name']); ?></label>
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
-                        <?php endforeach; ?>
+                            <div id="course_error" class="text-danger mt-2 small" style="display:none;">
+                                <i class="fa-solid fa-circle-exclamation me-1"></i> Please select at least one course.
+                            </div>
+                        </div>
                     </div>
-                    <div id="course_error" class="text-danger mt-1" style="display:none;">Please select at least one course.</div>
-                </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Room</label>
-                    <input type="text" class="form-control" name="room" value="<?php echo $row['room']??''; ?>" required>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col">
-                        <label class="form-label">Start Time</label>
-                        <input type="time" class="form-control" name="time_start" value="<?php echo $row['time_start']??''; ?>" required>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">Save Schedule</button>
+                        <a href="admin_schedule.php" class="btn btn-light px-4">Cancel</a>
                     </div>
-                    <div class="col">
-                        <label class="form-label">End Time</label>
-                        <input type="time" class="form-control" name="time_end" value="<?php echo $row['time_end']??''; ?>" required>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a href="admin_schedule.php" class="btn btn-secondary ms-2">Cancel</a>
-            </form>
-
-        <?php else: ?>  
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2>Manage Schedule</h2>
+                </form>
             </div>
 
-            <div class="row mb-3 g-2">
-                <div class="col-md-3">
-                    <select id="filter_course" class="form-select" onchange="loadTable()">
-                        <option value="">All Courses</option>
-                        <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
-                        <option value="<?php echo COURSE_ACT; ?>">ACT</option>
-                    </select>
+        <?php else: ?> 
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h1 class="fw-bold text-dark mb-2">Schedule</h1>
+                    <p class="text-secondary mb-0 small d-none d-sm-block">Manage class schedules and assignments.</p>
                 </div>
-                <div class="col-md-4">
-                    <input type="text" id="search" class="form-control" placeholder="Search subject, room..." onkeyup="loadTable()">
-                </div>
-                <div class="col-md-3">
-                    <select id="sort_by" class="form-select" onchange="loadTable()">
-                        <option value="time_start">Start Time</option>
-                        <option value="time_end">End Time</option>
-                        <option value="day">By Day</option>
-                    </select>
+                <div>
+                    <a href="?action=create" class="btn btn-primary btn-sched rounded-pill px-3 px-md-4">
+                        <i class="fa-solid fa-plus me-1"></i> <span>Add Schedule</span>
+                    </a>
                 </div>
             </div>
 
-            <?php 
-            $count = $db->querySingle("SELECT COUNT(*) FROM schedules"); 
-            
-            if ($count == 0): ?>
-                <div class="alert alert-info">No schedule record found. Click "Add Schedule" to get started.</div>
-                <a href="?action=create" class="btn btn-primary btn-sched">+ Add Schedule</a>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Day</th>
-                                <th>Subject</th>
-                                <th>Teacher</th>
-                                <th>Room</th>
-                                <th>Time Start</th>
-                                <th>Time End</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table_data"></tbody>
-                    </table>
-                    <a href="?action=create" class="btn btn-primary btn-sched">+ Add Schedule</a>
+            <div class="bg-white rounded-4 shadow-sm border p-4">
+                
+                <div class="row mb-4 g-2">
+                    <div class="col-3 col-md-3">
+                        <select id="filter_course" class="form-select bg-light border-0 text-truncate" onchange="loadTable()" style="cursor: pointer;">
+                            <option value="">All</option>
+                            <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
+                            <option value="<?php echo COURSE_ACT; ?>">ACT</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-5 col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0 ps-2 pe-1"><i class="fa-solid fa-search text-secondary small"></i></span>
+                            <input type="text" id="search" class="form-control bg-light border-0 ps-1" placeholder="Search..." onkeyup="loadTable()">
+                        </div>
+                    </div>
+                    
+                    <div class="col-4 col-md-3">
+                        <select id="sort_by" class="form-select bg-light border-0 text-truncate" onchange="loadTable()" style="cursor: pointer;">
+                            <option value="time_start">Sort: Start</option>
+                            <option value="time_end">Sort: End</option>
+                            <option value="day">Sort: Day</option>
+                        </select>
+                    </div>
                 </div>
-            <?php endif; ?>
+
+                <?php 
+                $count = $db->querySingle("SELECT COUNT(*) FROM schedules"); 
+                
+                if ($count == 0): ?>
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-regular fa-calendar-xmark fs-1 mb-3 text-secondary opacity-50"></i>
+                        <p class="mb-0">No schedule records found.</p>
+                        <small>Click "Add Schedule" to get started.</small>
+                    </div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table custom-table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Day</th>
+                                    <th>Subject</th>
+                                    <th>Teacher</th>
+                                    <th>Room</th>
+                                    <th>Time Start</th>
+                                    <th>Time End</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table_data"></tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
         <?php endif; ?>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/load.js"></script>
     <script src="../js/selected.js"></script>
     <script src="../js/notification.js"></script>

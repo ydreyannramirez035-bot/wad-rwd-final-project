@@ -1,49 +1,96 @@
+:root {
+    --brand-blue: #3b66d1;
+    --brand-blue-hover: #2d52b0;
+    --brand-dark: #0f1724;
+    --brand-light: #f5f7ff;
+}
+
 body {
-    background-color: #f8f9fa; /* Light gray background like wireframe */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Navbar Styling */
-.navbar {
+    font-family: 'Poppins', sans-serif;
+    color: var(--brand-dark);
     background-color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    padding: 15px 0;
-}
-.navbar-brand {
-    font-size: 1.5rem;
-}
-.logo-circle {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    background-color: #999;
-    border-radius: 50%;
-    color: white;
-    text-align: center;
-    line-height: 40px;
-    font-size: 12px;
-    margin-right: 10px;
-}
-.nav-link {
-    color: #333 !important;
-    font-weight: 500;
-    margin: 0 15px;
-}
-.nav-link.active {
-    text-decoration: underline;
-    text-decoration-color: #333;
-    text-underline-offset: 5px;
 }
 
-/* Admin Profile Button */
-.btn-admin {
-    background-color: #4a6cf7;
-    color: white;
-    border-radius: 20px;
-    padding: 8px 20px;
-    font-weight: 600;
+/* Card Styles */
+.bg-white {
+    background-color: #fff !important;
 }
-.btn-admin:hover {
+
+.rounded-4 {
+    border-radius: 1rem !important;
+}
+
+.shadow-sm {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+}
+
+.border {
+    border-color: #f3f4f6 !important;
+}
+
+/* Button Styling */
+.btn-sched {
+    background-color: #4a6cf7;
+    border-color: #4a6cf7;
+}
+
+.btn-sched:hover {
     background-color: #3b5bdb;
+    border-color: #3b5bdb;
+    color: white;
+}
+
+/* Table Styling */
+.custom-table thead th {
+    background-color: var(--brand-light);
+    font-weight: 600;
+    border: none;
+    padding: 1rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+.custom-table tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+.custom-table tr:hover td {
+    background-color: #f9fafb;
+}
+
+/* Input Styling */
+.form-control:focus, .form-select:focus {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 0.25rem rgba(59, 102, 209, 0.1);
+}
+
+/* Mobile Responsiveness Tweaks */
+@media (max-width: 576px) {
+    /* Make input text smaller on mobile so 3 items fit in one row */
+    .form-select, .form-control, .input-group-text {
+        font-size: 0.85rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    /* Ensure text doesn't wrap awkwardly inside dropdowns */
+    .text-truncate {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    
+    /* Adjust table padding for mobile */
+    .custom-table tbody td, .custom-table thead th {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+/* Badge Utilities */
+.bg-brand-blue {
+    background-color: var(--brand-blue) !important;
     color: white;
 }

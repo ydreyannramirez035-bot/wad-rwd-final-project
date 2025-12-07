@@ -29,13 +29,6 @@ $highlight_count = $highlight_stmt->execute()->fetchArray()[0];
 define('COURSE_BSIS', 1);
 define('COURSE_ACT', 2);
 
-if (!isset($_SESSION["user"])) {
-    header("Location: login.php");
-    exit;
-}
-$user = $_SESSION["user"];
-$user_id = $user['id']; // Needed for notification logic
-
 // Initialize Variables
 $action = $_GET["action"] ?? "list";
 $msg    = $_GET["msg"] ?? "";
@@ -87,20 +80,22 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     
     $result = $stmt->execute();
 
-    // Render Rows
+    // Render Rows with UI Styling
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         ?>
         <tr>
-            <td><?php echo htmlspecialchars($row['student_number']); ?></td>
-            <td><?php echo htmlspecialchars($row['last_name']); ?></td>
+            <td class="fw-medium font-monospace text-primary"><?php echo htmlspecialchars($row['student_number']); ?></td>
+            <td class="fw-medium text-dark"><?php echo htmlspecialchars($row['last_name']); ?></td>
             <td><?php echo htmlspecialchars($row['first_name']); ?></td>
-            <td><?php echo htmlspecialchars($row['middle_name']); ?></td>
-            <td><?php echo (int)$row['age']; ?></td>
-            <td><?php echo htmlspecialchars($row['phone_number']); ?></td>
-            <td><?php echo getYearLevelStr($row['year_level']); ?></td>
+            <td class="text-secondary"><?php echo htmlspecialchars($row['middle_name']); ?></td>
+            <td class="text-secondary"><?php echo (int)$row['age']; ?></td>
+            <td class="text-secondary font-monospace"><?php echo htmlspecialchars($row['phone_number']); ?></td>
+            <td><span class="badge bg-brand-blue rounded-pill"><?php echo getYearLevelStr($row['year_level']); ?></span></td>
             <td>
-                <a href="?action=edit&id=<?php echo $row['id']; ?>" class="btn-link">Edit</a> </br>
-                <a href="?action=delete&id=<?php echo $row['id']; ?>" onclick="return confirm('Delete this student?');" class="text-danger">Delete</a>
+                <div class="d-flex gap-2">
+                    <a href="?action=edit&id=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i></a>
+                    <a href="?action=delete&id=<?php echo $row['id']; ?>" onclick="return confirm('Delete this student?');" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+                </div>
             </td>
         </tr>
         <?php
@@ -193,32 +188,43 @@ if ($action === "delete") {
 <head>
     <meta charset="UTF-8">
     <title>Manage Students</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../styles/admin_dashboard.css">
     <link rel="stylesheet" href="../styles/admin_student_manage.css">
+    <link rel="stylesheet" href="../styles/header.css">
     <link rel="stylesheet" href="../styles/notification.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100 position-relative">
+
     <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="admin_dashboard.php">
-                <img src="../img/logo.jpg" width="50" height="50" class="me-2">
-                <span class="fw-bold text-primary">Class</span><span class="text-primary">Sched</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <div class="container-fluid px-4">
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
-            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="admin_dashboard.php">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="admin_student_manage.php">Students</a></li>
-                    <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
+
+            <a class="navbar-brand ms-2" href="admin_dashboard.php">
+                <img src="../img/logo.png" width="60" height="60" class="me-2">
+            </a>
+
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+            <div class="offcanvas-header">
+                <img src="../img/logo.png" width="60" height="60" class="me-2">
+                <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
+                <li class="nav-item"><a class="nav-link" href="admin_dashboard.php">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link active" href="admin_student_manage.php">Students</a></li>
+                <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
                 </ul>
             </div>
-
-            <div class="d-flex align-items-center">
+            </div>
+            
+            <div class="d-flex align-items-center gap-3">
                 
                 <div class="dropdown notification-container me-4 position-relative">
                     <i class="fa-solid fa-bell dropdown-toggle" 
@@ -278,7 +284,7 @@ if ($action === "delete") {
                         <?php endif; ?>
                     </ul>
                 </div>
-
+                
                 <div class="dropdown">
                     <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         Admin • <?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
@@ -292,128 +298,170 @@ if ($action === "delete") {
             </div>
         </div>
     </nav>
-    <div class="container my-4">
+
+    <div class="container px-4 py-5">
         <?php if ($action === 'create' || $action === 'edit'): ?>
-            <?php if ($msg): ?>
-                <div class="alert alert-success"><?php echo htmlspecialchars($msg); ?></div>
-            <?php endif; ?>
-            <?php if ($error): ?>
-                <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-            <?php endif; ?>
+            <div class="bg-white rounded-4 shadow-sm border p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-user-pen text-brand-blue"></i>
+                        <?php echo ucfirst($action); ?> Student
+                    </h5>
+                    <a href="admin_student_manage.php" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa-solid fa-arrow-left me-1"></i> Back
+                    </a>
+                </div>
 
-            <?php 
-            $id = (int)($_GET["id"] ?? 0);
-            $student = ($action === 'edit') ? $db->querySingle("SELECT * FROM students WHERE id=$id", true) : [];
-            if ($action === 'edit' && !$student) {
-                echo "<div class='alert alert-warning'>Student not found.</div><a href='admin_student_manage.php' class='btn btn-secondary'>Back</a>";
-                exit;
-            }
-            ?>
+                <?php if ($msg): ?>
+                    <div class="alert alert-success"><?php echo htmlspecialchars($msg); ?></div>
+                <?php endif; ?>
+                <?php if ($error): ?>
+                    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+                <?php endif; ?>
 
-            <h3><?php echo ucfirst($action); ?> Student</h3>
-            <form method="post" action="?action=<?php echo ($action==='edit') ? 'update' : 'store'; ?>" class="mt-3">
-                <?php if ($action==='edit') echo '<input type="hidden" name="id" value="'.$student['id'].'">'; ?>
+                <?php 
+                $id = (int)($_GET["id"] ?? 0);
+                $student = ($action === 'edit') ? $db->querySingle("SELECT * FROM students WHERE id=$id", true) : [];
+                if ($action === 'edit' && !$student) {
+                    echo "<div class='alert alert-warning'>Student not found.</div><a href='admin_student_manage.php' class='btn btn-secondary'>Back</a>";
+                    exit;
+                }
+                ?>
 
-                <div class="mb-3">
-                    <label class="form-label">Student Number</label>
-                    <input type="text" class="form-control" name="student_number" value="<?php echo $student['student_number']??''; ?>" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">First Name</label>
-                    <input type="text" class="form-control" name="first_name" value="<?php echo $student['first_name']??''; ?>" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Middle Name</label>
-                    <input type="text" class="form-control" name="middle_name" value="<?php echo $student['middle_name']??''; ?>">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Last Name</label>
-                    <input type="text" class="form-control" name="last_name" value="<?php echo $student['last_name']??''; ?>" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Age</label>
-                    <input type="number" class="form-control" name="age" value="<?php echo $student['age']??''; ?>" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Phone Number</label>
-                    <input type="text" class="form-control" name="phone_number" value="<?php echo $student['phone_number']??''; ?>" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control" name="email" value="<?php echo $student['email']??''; ?>" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Year Level</label><br>
-                    <?php for($i=1; $i<=4; $i++): ?>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="year_level" value="<?php echo $i; ?>" 
-                            <?php if(($student['year_level']??0) == $i) echo 'checked'; ?> required>
-                            <label class="form-check-label"><?php echo getYearLevelStr($i); ?></label>
+                <form method="post" action="?action=<?php echo ($action==='edit') ? 'update' : 'store'; ?>">
+                    <?php if ($action==='edit') echo '<input type="hidden" name="id" value="'.$student['id'].'">'; ?>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium text-secondary small">Student Number</label>
+                            <input type="text" class="form-control" name="student_number" value="<?php echo $student['student_number']??''; ?>" required placeholder="e.g. 2023-0001">
                         </div>
-                    <?php endfor; ?>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Course</label>
-                    <select class="form-select" name="course_id" required>
-                        <option value="">-- Select Course --</option>
-                        <option value="<?php echo COURSE_BSIS; ?>" <?php if(($student['course_id']??0)==COURSE_BSIS) echo 'selected'; ?>>BS Information System</option>
-                        <option value="<?php echo COURSE_ACT; ?>" <?php if(($student['course_id']??0)==COURSE_ACT) echo 'selected'; ?>>Associate in Computer Tech</option>
-                    </select>
-                </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium text-secondary small">Course</label>
+                            <select class="form-select" name="course_id" required>
+                                <option value="">-- Select Course --</option>
+                                <option value="<?php echo COURSE_BSIS; ?>" <?php if(($student['course_id']??0)==COURSE_BSIS) echo 'selected'; ?>>BS Information System</option>
+                                <option value="<?php echo COURSE_ACT; ?>" <?php if(($student['course_id']??0)==COURSE_ACT) echo 'selected'; ?>>Associate in Computer Tech</option>
+                            </select>
+                        </div>
+                    </div>
 
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a href="admin_student_manage.php" class="btn btn-secondary ms-2">Cancel</a>
-            </form>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-medium text-secondary small">First Name</label>
+                            <input type="text" class="form-control" name="first_name" value="<?php echo $student['first_name']??''; ?>" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-medium text-secondary small">Middle Name</label>
+                            <input type="text" class="form-control" name="middle_name" value="<?php echo $student['middle_name']??''; ?>">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-medium text-secondary small">Last Name</label>
+                            <input type="text" class="form-control" name="last_name" value="<?php echo $student['last_name']??''; ?>" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label fw-medium text-secondary small">Age</label>
+                            <input type="number" class="form-control" name="age" value="<?php echo $student['age']??''; ?>" required>
+                        </div>
+                        <div class="col-md-5 mb-3">
+                            <label class="form-label fw-medium text-secondary small">Phone Number</label>
+                            <input type="text" class="form-control" name="phone_number" value="<?php echo $student['phone_number']??''; ?>" required>
+                        </div>
+                        <div class="col-md-5 mb-3">
+                            <label class="form-label fw-medium text-secondary small">Email</label>
+                            <input type="email" class="form-control" name="email" value="<?php echo $student['email']??''; ?>" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-medium text-secondary small d-block">Year Level</label>
+                        <div class="card p-3 bg-light border-0 d-inline-block w-100">
+                            <?php for($i=1; $i<=4; $i++): ?>
+                                <div class="form-check form-check-inline me-4">
+                                    <input class="form-check-input" type="radio" name="year_level" id="year_<?php echo $i; ?>" value="<?php echo $i; ?>" 
+                                    <?php if(($student['year_level']??0) == $i) echo 'checked'; ?> required>
+                                    <label class="form-check-label" for="year_<?php echo $i; ?>"><?php echo getYearLevelStr($i); ?></label>
+                                </div>
+                            <?php endfor; ?>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">Save Student</button>
+                        <a href="admin_student_manage.php" class="btn btn-light px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
 
         <?php else: ?>
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2>Manage Students</h2>
-            </div>
-
-            <div class="row mb-3 g-2">
-                <div class="col-md-3">
-                    <select id="filter_course" class="form-select" onchange="loadTable()">
-                        <option value="">All Courses</option>
-                        <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
-                        <option value="<?php echo COURSE_ACT; ?>">ACT</option>
-                    </select>
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h1 class="fw-bold text-dark mb-2">Schedule</h1>
+                    <p class="text-secondary mb-0 small d-none d-sm-block">Manage class schedules and assignments.</p>
                 </div>
-                <div class="col-md-4">
-                    <input type="text" id="search" class="form-control" placeholder="Search name or ID..." onkeyup="loadTable()">
-                </div>
-                <div class="col-md-3">
-                    <select id="sort_by" class="form-select" onchange="loadTable()">
-                        <option value="last_name">Last Name</option>
-                        <option value="first_name">First Name</option>
-                    </select>
+                <div>
+                    <a href="?action=create" class="btn btn-primary btn-sched rounded-pill px-3 px-md-4">
+                        <i class="fa-solid fa-plus me-1"></i> <span>Add Student</span>
+                    </a>
                 </div>
             </div>
 
-            <?php 
-            $count = $db->querySingle("SELECT COUNT(*) FROM students"); 
-            if ($count == 0): ?>
-                <div class="alert alert-info">No student record found. Click "+ Add Student" to get started.</div>
-                <a href="?action=create" class="btn btn-primary mt-2">+ Add Student</a>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Student Number</th>
-                                <th>Last Name</th>
-                                <th>First Name</th>
-                                <th>Middle Name</th>
-                                <th>Age</th>
-                                <th>Phone</th>
-                                <th>Year</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table_data"></tbody>
-                    </table>
-                    <a href="?action=create" class="btn btn-primary btn-sched">+ Add Student</a>
+            <div class="bg-white rounded-4 shadow-sm border p-4">
+                
+                <div class="row mb-4 g-2">
+                    <div class="col-3 col-md-3">
+                        <select id="filter_course" class="form-select bg-light border-0 text-truncate" onchange="loadTable()" style="cursor:pointer;">
+                            <option value="">All</option> <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
+                            <option value="<?php echo COURSE_ACT; ?>">ACT</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-5 col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0 ps-2 pe-1"><i class="fa-solid fa-search text-secondary small"></i></span>
+                            <input type="text" id="search" class="form-control bg-light border-0 ps-1" placeholder="Search" onkeyup="loadTable()">
+                        </div>
+                    </div>
+                    
+                    <div class="col-4 col-md-3">
+                        <select id="sort_by" class="form-select bg-light border-0 text-truncate" onchange="loadTable()" style="cursor:pointer;">
+                            <option value="last_name">Sort: Name</option> <option value="first_name">Sort: First</option>
+                        </select>
+                    </div>
                 </div>
-            <?php endif; ?>
+
+                <?php 
+                $count = $db->querySingle("SELECT COUNT(*) FROM students"); 
+                if ($count == 0): ?>
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-user-graduate fs-1 mb-3 text-secondary opacity-50"></i>
+                        <p class="mb-0">No student records found.</p>
+                        <small>Click "Add Student" to get started.</small>
+                    </div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table custom-table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Student Number</th>
+                                    <th>Last Name</th>
+                                    <th>First Name</th>
+                                    <th>Middle Name</th>
+                                    <th>Age</th>
+                                    <th>Phone</th>
+                                    <th>Year</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table_data"></tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+            
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
             <script src="../js/load.js"></script>
             <script src="../js/notification.js"></script>
