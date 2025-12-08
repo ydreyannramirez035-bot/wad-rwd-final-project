@@ -5,18 +5,19 @@
     --brand-light: #f5f7ff;
 }
 
-html {
+html, body {
+    width: 100%;
+    overflow-x: hidden;
     scroll-behavior: smooth;
+    position: relative;
 }
 
 body {
     font-family: 'Poppins', sans-serif;
     color: var(--brand-dark);
     background-color: white;
-    overflow-x: hidden;
 }
 
-/* ClassSched Logo */
 .logo-text {
     font-family: 'Poppins', sans-serif;
     font-size: 26px;
@@ -37,7 +38,6 @@ body {
 .text-brand-blue { color: var(--brand-blue) !important; }
 .bg-brand-blue { background-color: var(--brand-blue) !important; }
 
-/* --- Navbar --- */
 .navbar {
     background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -47,17 +47,16 @@ body {
     transition: all 0.3s;
 }
 
-/* --- Hero Section --- */
 .hero-section {
     padding: 160px 0 80px;
     position: relative;
+    overflow: hidden;
 }
 
-/* HERO BUTTONS */
 .btn-hero-primary {
     background-color: var(--brand-blue);
     color: white;
-    border-radius: 8px; /* Rounded Rectangle */
+    border-radius: 8px;
     padding: 14px 32px;
     font-weight: 600;
     border: none;
@@ -75,7 +74,7 @@ body {
     background-color: white;
     color: #4b5563;
     border: 1px solid #e5e7eb;
-    border-radius: 8px; /* Rounded Rectangle */
+    border-radius: 8px;
     padding: 14px 32px;
     font-weight: 600;
     transition: all 0.2s;
@@ -87,7 +86,6 @@ body {
     transform: translateY(-2px);
 }
 
-/* --- Navbar Buttons --- */
 .btn-login {
     color: #6b7280;
     border-radius: 50px;
@@ -118,7 +116,6 @@ body {
     box-shadow: 0 8px 15px rgba(59, 102, 209, 0.3);
 }
 
-/* --- Features & How it Works --- */
 .feature-card {
     background: white;
     border: 1px solid #f3f4f6;
@@ -144,7 +141,6 @@ body {
     margin-bottom: 1.5rem;
 }
 
-/* Step Number for How It Works */
 .step-number {
     width: 40px;
     height: 40px;
@@ -159,7 +155,6 @@ body {
     box-shadow: 0 4px 10px rgba(59, 102, 209, 0.3);
 }
 
-/* --- Animations --- */
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
 
@@ -179,7 +174,11 @@ body {
 .blob-1 { top: -10%; left: -5%; width: 300px; height: 300px; background: #e0e7ff; }
 .blob-2 { bottom: 10%; right: -5%; width: 400px; height: 400px; background: #f3f4f6; animation-delay: 2s; }
 
-/* --- Mobile Responsiveness --- */
+.hero-img {
+    max-width: 100%;
+    height: auto;
+}
+
 @media (max-width: 576px) {
     .navbar { padding: 0.6rem 0; }
     .logo-text { font-size: 20px; }
@@ -197,16 +196,25 @@ body {
     
     .display-3 { font-size: 2.5rem; }
     
-    /* Ensure text is readable on mobile steps */
     .col-lg-6.order-lg-1 { text-align: left; }
 
     .container {
         padding-left: 20px !important;
         padding-right: 20px !important;
     }
+
+    .blob {
+        width: 200px; 
+        height: 200px;
+        opacity: 0.3;
+    }
+
+    .hero-img {
+        width: 100%;
+        margin-top: 2rem;
+    }
 }
 
-/* Hide How-It-Works images on Mobile and Tablet */
 @media (max-width: 991px) {
     #how-it-works .bg-white.rounded-4 {
         display: none !important;
