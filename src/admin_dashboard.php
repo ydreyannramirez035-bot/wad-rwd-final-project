@@ -10,7 +10,7 @@ header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-require_once __DIR__ ."/notifcation.php";
+require_once __DIR__ ."/notification.php";
 require_once __DIR__ ."/db.php";
 $db = get_db();
 
@@ -19,12 +19,7 @@ $user_id = $user['id'];
 $notif_data = notif('admin', true); ;
 $unread_count = $notif_data['unread_count'];
 $notifications = $notif_data['notifications'];
-$highlight_stmt = $db->prepare("
-    SELECT COUNT(*) FROM notifications 
-    WHERE is_read = 0
-      AND (message LIKE '%bio%' OR message LIKE '%phone%')
-");
-$highlight_count = $highlight_stmt->execute()->fetchArray()[0];
+$highlight_count = $notif_data['highlight_count'];
 
 // Course Constants
 if (!defined('COURSE_ALL')) define('COURSE_ALL', 0);
@@ -196,7 +191,7 @@ $students_result = $stmt_students->execute();
                     <ul class="dropdown-menu dropdown-menu-end notification-list shadow" aria-labelledby="notificationDropdown">
                         <li class="dropdown-header d-flex justify-content-between align-items-center">
                             <span class="fw-bold">Notifications</span>
-                            <?php if ($unread_count > 0): ?>
+                            <?php if ($highlight_count > 0): ?>
                                 <a href="?action=clear_notifications" class="text-decoration-none small text-primary">Mark all read</a>
                             <?php endif; ?>
                         </li>
