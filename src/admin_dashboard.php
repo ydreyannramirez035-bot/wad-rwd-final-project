@@ -151,7 +151,7 @@ $students_result = $stmt_students->execute();
 
 <body class="d-flex flex-column min-vh-100 position-relative">
     <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg sticky-top">
+    <nav class="navbar navbar-expand-sm sticky-top">
         <div class="container-fluid px-4">
 
             <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">

@@ -11,41 +11,108 @@ body {
     background-color: white;
 }
 
-/* Navbar */
 .navbar {
     background-color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
     border-bottom: 1px solid #f3f4f6;
+    padding: 0.5rem 0;
 }
-.nav-link {
-    color: #333 !important;
+
+.offcanvas {
+    max-width: 80%;
+}
+
+.offcanvas-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.offcanvas-header .btn-close {
+    margin: 0;
+    margin-right: 1rem;
+    padding: 0.5rem;
+}
+
+.offcanvas-body {
+    padding: 0;
+}
+
+.offcanvas-body .nav-link {
+    display: block;
+    padding: 15px 25px;
+    color: #444;
     font-weight: 500;
-    margin: 0 15px;
+    font-size: 1rem;
+    border-bottom: 1px solid #f9f9f9;
+    margin: 0;
 }
-.nav-link.active {
-    color: var(--brand-blue) !important;
+
+.offcanvas-body .nav-link.active {
+    background-color: transparent;
+    color: var(--brand-blue) !important; 
+    text-decoration: underline; 
+    text-underline-offset: 5px;
     font-weight: 600;
-    font-size: 1.2rem;
-    text-decoration: underline;
-    text-decoration-color: #333;
-    text-underline-offset: 8px;
 }
-.nav-link:hover {
+
+.offcanvas-body .nav-link:hover:not(.active) {
+    background-color: #f8f9fa;
     color: var(--brand-blue);
 }
 
-/* Admin Profile Button */
 .btn-admin {
     background-color: #4a6cf7;
     color: white;
     border-radius: 20px;
     padding: 8px 20px;
-}
-.btn-admin:hover {
-    background-color: #3b5bdb;
-    color: white;
+    white-space: nowrap;
 }
 
-/* Branding Utilities */
-.text-brand-blue { color: var(--brand-blue) !important; }
-.bg-brand-blue { background-color: var(--brand-blue) !important; }
+@media (max-width: 576px) {
+    .navbar .container-fluid {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .navbar-left-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .navbar-brand img {
+        width: 35px;
+        height: 35px;
+    }
+    .navbar-brand {
+        margin: 0;
+    }
+
+    .btn-admin {
+        padding: 5px 10px;
+        font-size: 0.85rem;
+    }
+    
+    .admin-text {
+        display: none; 
+    }
+    
+    .notification-container i {
+        font-size: 1.1rem !important;
+    }
+    
+    .gap-3 {
+        gap: 0.8rem !important;
+    }
+
+    .offcanvas-body .nav-link.active {
+        color: var(--brand-blue) !important; 
+        text-decoration: none;
+    }
+    
+    .me-4 {
+        margin-right: 0 !important;
+    }
+}
