@@ -90,7 +90,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
             <td class="text-secondary"><?php echo htmlspecialchars($row['middle_name']); ?></td>
             <td class="text-secondary"><?php echo (int)$row['age']; ?></td>
             <td class="text-secondary font-monospace"><?php echo htmlspecialchars($row['phone_number']); ?></td>
-            <td><span class="badge bg-brand-blue rounded-pill"><?php echo getYearLevelStr($row['year_level']); ?></span></td>
+            <td class="text-secondary"><?php echo getYearLevelStr($row['year_level']); ?></td>
             <td>
                 <div class="d-flex gap-2">
                     <a href="?action=edit&id=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i></a>
@@ -211,9 +211,9 @@ if ($action === "delete") {
 
             <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
             <div class="offcanvas-header">
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 <img src="../img/logo.png" width="60" height="60" class="me-2">
                 <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
-                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body">
                 <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
@@ -428,7 +428,7 @@ if ($action === "delete") {
                     
                     <div class="col-4 col-md-3">
                         <select id="sort_by" class="form-select bg-light border-0 text-truncate" onchange="loadTable()" style="cursor:pointer;">
-                            <option value="last_name">Sort: Name</option> <option value="first_name">Sort: First</option>
+                            <option value="last_name">By Last Name</option> <option value="first_name">By First Name</option>
                         </select>
                     </div>
                 </div>

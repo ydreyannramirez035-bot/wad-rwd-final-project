@@ -227,9 +227,9 @@ if ($action === "delete") {
 
             <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
             <div class="offcanvas-header">
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 <img src="../img/logo.png" width="60" height="60" class="me-2">
                 <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
-                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body">
                 <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
@@ -475,9 +475,9 @@ if ($action === "delete") {
                     
                     <div class="col-4 col-md-3">
                         <select id="sort_by" class="form-select bg-light border-0 text-truncate" onchange="loadTable()" style="cursor: pointer;">
-                            <option value="time_start">Sort: Start</option>
-                            <option value="time_end">Sort: End</option>
-                            <option value="day">Sort: Day</option>
+                            <option value="time_start">By Time Start</option>
+                            <option value="time_end">By Time End</option>
+                            <option value="day">By Day</option>
                         </select>
                     </div>
                 </div>
