@@ -29,5 +29,15 @@ Password: Group82025!
 ydrey Account
 username: ydrey
 Email: ramirez@gmail.com
-Password: Group82025!
-   ```
+
+```
+
+# WAD RWD Final Project
+
+Repository:
+```bash
+https://github.com/ydreyannramirez035-bot/wad-rwd-final-project.git
+git clone https://github.com/ydreyannramirez035-bot/wad-rwd-final-project.git
+cd wad-rwd-final-project
+```
+
