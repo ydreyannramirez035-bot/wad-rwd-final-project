@@ -137,9 +137,9 @@ $yearLevel = $student['year_level'] ?? 1;
 
             <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
             <div class="offcanvas-header">
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 <img src="../img/logo.png" width="60" height="60" class="me-2">
                 <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
-                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body">
                 <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
@@ -255,7 +255,7 @@ $yearLevel = $student['year_level'] ?? 1;
                     </p>
 
                     <div class="bio-section mb-4 px-3 py-2 bg-light rounded-3">
-                        <p class="text-muted small mb-0 fst-italic">
+                        <p class="text-muted small mb-0 fst-italic text-break">
                             <?= !empty($student['bio']) ? nl2br(htmlspecialchars($student['bio'])) : 'No bio added yet.' ?>
                         </p>
                     </div>
@@ -366,7 +366,7 @@ $yearLevel = $student['year_level'] ?? 1;
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-dark">Bio</label>
-                                <textarea name="bio" class="form-control" rows="3" maxlength="150" style="resize: none;" placeholder="Tell us about yourself..."><?= htmlspecialchars($student['bio']) ?></textarea>
+                                <textarea name="bio" class="form-control text-break" rows="3" maxlength="150" style="resize: none;" placeholder="Tell us about yourself..."><?= htmlspecialchars($student['bio']) ?></textarea>
                                 <div class="form-text small">Max 150 characters.</div>
                             </div>
                         </div>

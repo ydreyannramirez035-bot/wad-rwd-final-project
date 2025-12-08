@@ -67,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $openLoginModal = true;
             }
         } else {
-            $loginError = "Database connection not found (db.php missing in src folder).";
+            $loginError = "Database connection not found.";
             $openLoginModal = true;
         }
     } 
@@ -92,15 +92,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             else if (strlen($password) < 8) {
                 $registerError = "Password must be at least 8 characters long.";
-            }
-            else if (!preg_match('@[A-Z]@', $password)) {
-                $registerError = "Password must include at least one uppercase letter.";
-            }
-            else if (!preg_match('@[a-z]@', $password)) {
-                $registerError = "Password must include at least one lowercase letter.";
-            }
-            else if (!preg_match('@[0-9]@', $password)) {
-                $registerError = "Password must include at least one number.";
             }
             else {
                 // 2. Check if Email is ALREADY registered
@@ -128,12 +119,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $stmt->bindValue(4, $email, SQLITE3_TEXT);
                         $stmt->execute();
                         
-                        // Redirect to self with flag
                         header("Location: " . $_SERVER['PHP_SELF'] . "?registered=true");
                         exit;
 
                     } else {
-                        // Subsequent users are Students (must exist in student table)
+                        // Subsequent users are Students
                         $checkStmt = $db->prepare("SELECT id FROM students WHERE email = ?");
                         $checkStmt->bindValue(1, $email, SQLITE3_TEXT);
                         $studentResult = $checkStmt->execute()->fetchArray(SQLITE3_ASSOC);
@@ -169,8 +159,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $registerError = "Database connection not found.";
         }
-        
-        // If we reached here, there was an error
         $openRegisterModal = true;
     }
 }
@@ -220,11 +208,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </nav>
 
-    <section class="hero-section flex-grow-1 d-flex align-items-center">
+    <section class="hero-section flex-grow-1 d-flex align-items-center text-center">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
 
-        <div class="container text-center">
+        <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
                     <h1 class="display-3 fw-bold text-dark mb-4 lh-sm animate-fade-up delay-1">
@@ -232,26 +220,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <span class="text-brand-blue">School Scheduling</span>
                     </h1>
                     <p class="lead text-secondary mb-5 mx-auto animate-fade-up delay-2" style="max-width: 600px;">
-                        Say goodbye to messy spreadsheets. Manage classes, teachers, and rooms in one place with a system that helps you avoid schedule conflicts.
+                        Say goodbye to lost paper schedules. Digitally organize classes, teachers, and rooms in one secure platform accessible by admins and students.
                     </p>
                     
                     <div class="d-flex flex-row justify-content-center gap-3 animate-fade-up delay-3 flex-wrap">
                         <button type="button" class="btn btn-hero-primary" data-bs-toggle="modal" data-bs-target="#registerModal">
                             Create Schedule
                         </button>
-                        <button class="btn btn-hero-secondary d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-play" style="font-size: 0.8rem;"></i> Watch Demo
-                        </button>
+                        <a href="#how-it-works" class="btn btn-hero-secondary d-flex align-items-center gap-2 text-decoration-none">
+                            <i class="fa-solid fa-arrow-down" style="font-size: 0.8rem;"></i> Learn More
+                        </a>
                     </div>
 
                     <div class="mt-5 d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 animate-fade-up delay-3">
                         <span class="text-secondary small fw-medium">Trusted by 500+ schools</span>
-                        
-                        <div class="avatar-group">
-                            <div class="avatar-placeholder bg-secondary bg-opacity-50"></div>
-                            <div class="avatar-placeholder bg-secondary bg-opacity-25"></div>
-                            <div class="avatar-placeholder bg-secondary bg-opacity-10"></div>
-                            <div class="plus-badge">+</div>
+                        <div class="d-flex ms-2">
+                            <div class="rounded-circle bg-secondary border border-2 border-white" style="width:32px; height:32px; margin-right: -8px;"></div>
+                            <div class="rounded-circle bg-secondary border border-2 border-white opacity-75" style="width:32px; height:32px; margin-right: -8px;"></div>
+                            <div class="rounded-circle bg-secondary border border-2 border-white opacity-50" style="width:32px; height:32px; margin-right: -8px;"></div>
+                            <div class="rounded-circle bg-brand-blue text-white d-flex align-items-center justify-content-center border border-2 border-white fw-bold" style="width:32px; height:32px; font-size: 10px;">+</div>
                         </div>
                     </div>
                 </div>
@@ -259,34 +246,111 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="row g-4 mt-5 pt-4 text-start animate-fade-up delay-3">
                 <div class="col-md-4">
-                    <div class="feature-card">
+                    <div class="feature-card h-100">
                         <div class="icon-box bg-primary bg-opacity-10 text-primary">
-                            <i class="fa-solid fa-database"></i>
+                            <i class="fa-regular fa-calendar-check"></i>
                         </div>
-                        <h5 class="fw-bold mb-2">Centralized Schedule Management</h5>
-                        <p class="text-secondary mb-0 small">Efficiently add, edit, and remove class schedules and student records in one secure dashboard.</p>
+                        <h5 class="fw-bold mb-2">Digital Organization</h5>
+                        <p class="text-secondary mb-0 small">Keep all your class schedules and student records organized in one secure database.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="feature-card">
+                    <div class="feature-card h-100">
                         <div class="icon-box bg-info bg-opacity-10 text-info">
                             <i class="fa-solid fa-chalkboard-user"></i>
                         </div>
-                        <h5 class="fw-bold mb-2">Student & Teacher Portals</h5>
-                        <p class="text-secondary mb-0 small">Dedicated dashboards for students to view schedules and admins to manage data.</p>
+                        <h5 class="fw-bold mb-2">Student & Admin Portals</h5>
+                        <p class="text-secondary mb-0 small">Dedicated dashboards for students to view their specific schedules and admins to manage data.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="feature-card">
+                    <div class="feature-card h-100">
                         <div class="icon-box bg-warning bg-opacity-10 text-warning">
-                            <i class="fa-regular fa-bell"></i>
+                            <i class="fa-solid fa-filter"></i>
                         </div>
-                        <h5 class="fw-bold mb-2">Real-Time Updates</h5>
-                        <p class="text-secondary mb-0 small">Instant notifications for schedule changes, profile updates, and announcements.</p>
+                        <h5 class="fw-bold mb-2">Easy Filtering</h5>
+                        <p class="text-secondary mb-0 small">Quickly find schedules by filtering for specific courses (BSIS/ACT) or sorting by time.</p>
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
 
+    <section id="how-it-works" class="py-5 bg-light border-top">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <span class="badge bg-brand-blue bg-opacity-10 text-brand-blue rounded-pill px-3 py-2 mb-3 fw-medium">How It Works</span>
+                <h2 class="display-5 fw-bold text-dark">Streamlined Management</h2>
+                <p class="text-secondary">Three simple steps to digitize your school's scheduling.</p>
+            </div>
+
+            <div class="row g-5 align-items-center mb-5">
+                <div class="col-lg-6 order-lg-2">
+                    <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
+                        <img src="img/admin.png" width="600" height="400"alt="admin">
+                    </div>
+                </div>
+                <div class="col-lg-6 order-lg-1">
+                    <div class="step-number">1</div>
+                    <h3 class="fw-bold mb-3">Admin Setup</h3>
+                    <p class="text-secondary mb-4">
+                        Administrators have full control. Manually register students, set up their profiles, and assign them to courses like BSIS or ACT.
+                    </p>
+                    <ul class="list-unstyled text-secondary">
+                        <li class="mb-2"><i class="fa-solid fa-check text-brand-blue me-2"></i> Register student accounts</li>
+                        <li class="mb-2"><i class="fa-solid fa-check text-brand-blue me-2"></i> Update student contact info</li>
+                        <li><i class="fa-solid fa-check text-brand-blue me-2"></i> Assign year levels and courses</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="row g-5 align-items-center mb-5">
+                <div class="col-lg-6">
+                    <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
+                        <img src="img/schedule.png" width="600" height="400"alt="admin">
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="step-number">2</div>
+                    <h3 class="fw-bold mb-3">Input the Schedule</h3>
+                    <p class="text-secondary mb-4">
+                        Admins can easily input class details including subjects, teachers, rooms, and time slots into the system's digital ledger.
+                    </p>
+                    <ul class="list-unstyled text-secondary">
+                        <li class="mb-2"><i class="fa-solid fa-check text-brand-blue me-2"></i> Add classes for specific days</li>
+                        <li class="mb-2"><i class="fa-solid fa-check text-brand-blue me-2"></i> Assign rooms and teachers</li>
+                        <li><i class="fa-solid fa-check text-brand-blue me-2"></i> Sort view by time or day</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="row g-5 align-items-center">
+                <div class="col-lg-6 order-lg-2">
+                    <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
+                        <img src="img/student.png" width="600" height="400"alt="admin">
+                    </div>
+                </div>
+                <div class="col-lg-6 order-lg-1">
+                    <div class="step-number">3</div>
+                    <h3 class="fw-bold mb-3">Student Access</h3>
+                    <p class="text-secondary mb-4">
+                        Students can log in to their own dedicated portal to view their specific class schedules and check teacher details anytime.
+                    </p>
+                    <ul class="list-unstyled text-secondary">
+                        <li class="mb-2"><i class="fa-solid fa-check text-brand-blue me-2"></i> Mobile-friendly view</li>
+                        <li class="mb-2"><i class="fa-solid fa-check text-brand-blue me-2"></i> Personalized dashboard</li>
+                        <li><i class="fa-solid fa-check text-brand-blue me-2"></i> View daily class counts</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5 bg-brand-blue text-white text-center">
+        <div class="container">
+            <h2 class="fw-bold mb-3">Ready to get started?</h2>
+            <p class="mb-4 opacity-75">Join schools streamlining their operations today.</p>
+            <button class="btn btn-light rounded-pill px-5 fw-bold text-brand-blue" data-bs-toggle="modal" data-bs-target="#registerModal">Create Free Account</button>
         </div>
     </section>
 
@@ -298,14 +362,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow-lg p-3">
+            <div class="modal-content shadow-lg p-3" style="border-radius: 1rem; border: none;">
                 <div class="modal-header border-0 pb-0">
                     <h4 class="fw-bold">Welcome Back!</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body pt-2">
                     <p class="text-muted small mb-4">Please login to access your dashboard.</p>
-
+                    
                     <?php if (!empty($registerSuccess)): ?>
                         <div class="alert alert-success small py-2"><?php echo htmlspecialchars($registerSuccess); ?></div>
                     <?php endif; ?>
@@ -315,20 +379,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <form method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
                         <input type="hidden" name="action_type" value="login">
-                        
                         <div class="mb-3">
                             <label class="form-label small fw-medium text-dark">Username or Email</label>
-                            <input type="text" name="username_or_email" class="form-control" placeholder="Enter your credentials" required>
+                            <input type="text" name="username_or_email" class="form-control" placeholder="Enter your credentials" required style="border-radius: 0.5rem; padding: 0.75rem;">
                         </div>
                         <div class="mb-4">
                             <label class="form-label small fw-medium text-dark">Password</label>
-                            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                            <input type="password" name="password" class="form-control" placeholder="••••••••" required style="border-radius: 0.5rem; padding: 0.75rem;">
                         </div>
-                        <button type="submit" class="btn btn-brand w-100">Sign In</button>
+                        <button type="submit" class="btn w-100 fw-bold text-white" style="background-color: #3b66d1; border-radius: 50px; padding: 10px;">Sign In</button>
                     </form>
-                    
                     <div class="mt-3 text-center small text-muted">
-                        New here? <a href="#" class="text-brand-blue text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#registerModal">Create an account</a>
+                        New here? <a href="#" class="text-primary text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#registerModal">Create an account</a>
                     </div>
                 </div>
             </div>
@@ -337,28 +399,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow-lg p-3">
+            <div class="modal-content shadow-lg p-3" style="border-radius: 1rem; border: none;">
                 <div class="modal-header border-0 pb-0">
                     <h4 class="fw-bold">Create Account</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body pt-2">
                     <p class="text-muted small mb-4">Register to manage or view schedules.</p>
-
+                    
                     <?php if (!empty($registerError)): ?>
                         <div class="alert alert-danger small py-2"><?php echo htmlspecialchars($registerError); ?></div>
                     <?php endif; ?>
 
                     <form method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
                         <input type="hidden" name="action_type" value="register">
-
                         <div class="mb-3">
                             <label class="form-label small fw-medium text-dark">Username</label>
-                            <input type="text" name="username" class="form-control" placeholder="Choose a username" required value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>">
+                            <input type="text" name="username" class="form-control" placeholder="Choose a username" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-medium text-dark">Email Address</label>
-                            <input type="email" name="email" class="form-control" placeholder="you@school.edu" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
+                            <input type="email" name="email" class="form-control" placeholder="you@school.edu" required>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -370,11 +431,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <input type="password" name="confirmPassword" class="form-control" placeholder="Confirm" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-brand w-100">Sign Up</button>
+                        <button type="submit" class="btn w-100 fw-bold text-white" style="background-color: #3b66d1; border-radius: 50px; padding: 10px;">Sign Up</button>
                     </form>
-                    
                     <div class="mt-3 text-center small text-muted">
-                        Already have an account? <a href="#" class="text-brand-blue text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+                        Already have an account? <a href="#" class="text-primary text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
                     </div>
                 </div>
             </div>
@@ -382,14 +442,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             <?php if ($openLoginModal): ?>
                 var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
                 loginModal.show();
             <?php endif; ?>
-
             <?php if ($openRegisterModal): ?>
                 var registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
                 registerModal.show();

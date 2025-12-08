@@ -160,9 +160,15 @@ $students_result = $stmt_students->execute();
 
             <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
             <div class="offcanvas-header">
+<<<<<<< HEAD
                 <h5 class="offcanvas-title" id="offcanvasNavbarLabel"></h5>
                 <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 <img src="../img/logo.png" width="60" height="60" class="me-2">
+=======
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                <img src="../img/logo.png" width="60" height="60" class="me-2">
+                <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+>>>>>>> 8a569c0338b7096c201c11c8bb723943d8214153
             </div>
             <div class="offcanvas-body">
                 <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
@@ -402,7 +408,7 @@ $students_result = $stmt_students->execute();
                             <td><?php echo htmlspecialchars($student['first_name'] ?? '--'); ?></td>
                             <td class="text-secondary"><?php echo htmlspecialchars($student['middle_name'] ?? '--'); ?></td>
                             <td class="text-secondary"><?php echo htmlspecialchars($student['age'] ?? '--'); ?></td>
-                            <td><span class="badge bg-brand-blue rounded-pill"><?php echo htmlspecialchars($student['year_level'] ?? '--'); ?></span></td>
+                            <td class="text-secondary"><?php echo htmlspecialchars($student['year_level'] ?? '--'); ?></td>
                         </tr>
                         <?php endwhile; ?>
                     </tbody>
