@@ -350,7 +350,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="container">
             <h2 class="fw-bold mb-3">Ready to get started?</h2>
             <p class="mb-4 opacity-75">Join schools streamlining their operations today.</p>
-            <button class="btn btn-light rounded-pill px-5 fw-bold text-brand-blue" data-bs-toggle="modal" data-bs-target="#registerModal">Create Free Account</button>
+            <button class="btn btn-light rounded-pill px-5 fw-bold text-brand-blue" data-bs-toggle="modal" data-bs-target="#registerModal">Create Account Now</button>
         </div>
     </section>
 

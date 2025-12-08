@@ -199,4 +199,16 @@ body {
     
     /* Ensure text is readable on mobile steps */
     .col-lg-6.order-lg-1 { text-align: left; }
+
+    .container {
+        padding-left: 50px !important;
+        padding-right: 50px !important;
+    }
+}
+
+/* Hide How-It-Works images on Mobile and Tablet */
+@media (max-width: 991px) {
+    #how-it-works .bg-white.rounded-4 {
+        display: none !important;
+    }
 }

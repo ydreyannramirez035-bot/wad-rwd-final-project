@@ -202,7 +202,7 @@ if ($action === "delete") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manage Schudule | ClassSched</title>
+    <title>ClassSched | Manage Schudule</title>
     <link rel="icon" href="../img/logo.png" type="image/png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
