@@ -176,15 +176,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles/index.css">
-    
-    <style>
-        @media (max-width: 375px) {
-            .navbar-brand .logo-text { font-size: 1.2rem; }
-            .navbar-brand img { width: 30px; height: 30px; margin-right: 0.25rem !important; }
-            .btn-login, .btn-brand { padding: 6px 12px; font-size: 0.8rem; }
-            /* .logo-text { font-size: 10px; } */
-        }
-    </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
 
@@ -279,7 +270,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <section id="how-it-works" class="py-5 bg-light border-top">
         <div class="container py-5">
             <div class="text-center mb-5">
-                <span class="badge bg-brand-blue bg-opacity-10 text-brand-blue rounded-pill px-3 py-2 mb-3 fw-medium text-color">How It Works</span>
+                <span class="badge bg-brand-blue bg-opacity-10 rounded-pill px-3 py-2 mb-3 fw-medium text-color">How It Works</span>
                 <h2 class="display-5 fw-bold text-dark">Streamlined Management</h2>
                 <p class="text-secondary">Three simple steps to digitize your school's scheduling.</p>
             </div>
