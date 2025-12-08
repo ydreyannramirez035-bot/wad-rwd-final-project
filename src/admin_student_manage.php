@@ -467,5 +467,11 @@ if ($action === "delete") {
             <script src="../js/notification.js"></script>
         <?php endif; ?>
     </div>
+
+    <footer class="bg-white border-top py-4 text-center mt-auto">
+        <div class="container">
+            <p class="text-muted small mb-0">ClassSched © 2025 — Designed for Efficiency.</p>
+        </div>
+    </footer>
 </body>
 </html>
