@@ -234,7 +234,7 @@ $students_result = $stmt_students->execute();
                 </div>
                 <div class="dropdown">
                     <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        Admin • <?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
+                        <span class="admin-text">Admin • </span><?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($user["username"]); ?></b></small></li>

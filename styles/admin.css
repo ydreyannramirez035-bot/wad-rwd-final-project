@@ -145,4 +145,18 @@ body {
     .me-4 {
         margin-right: 0 !important;
     }
+
+    /* --- FIX ADDED HERE --- */
+    .notification-list {
+        position: absolute;
+        width: 300px;           /* Fixed width to fit mobile */
+        right: -60px !important; /* Shift menu to the right */
+        left: auto !important;
+        transform: none !important;
+    }
+    
+    .notification-item .small {
+        white-space: normal; /* Ensure text wraps */
+        overflow: hidden;
+    }
 }
