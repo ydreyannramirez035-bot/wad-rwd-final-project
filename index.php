@@ -279,7 +279,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <section id="how-it-works" class="py-5 bg-light border-top">
         <div class="container py-5">
             <div class="text-center mb-5">
-                <span class="badge bg-brand-blue bg-opacity-10 text-brand-blue rounded-pill px-3 py-2 mb-3 fw-medium">How It Works</span>
+                <span class="badge bg-brand-blue bg-opacity-10 text-brand-blue rounded-pill px-3 py-2 mb-3 fw-medium text-color">How It Works</span>
                 <h2 class="display-5 fw-bold text-dark">Streamlined Management</h2>
                 <p class="text-secondary">Three simple steps to digitize your school's scheduling.</p>
             </div>
@@ -287,7 +287,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="row g-5 align-items-center mb-5">
                 <div class="col-lg-6 order-lg-2">
                     <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
-                        <img src="img/admin.png" width="600" height="400"alt="admin">
+                        <img class="img-fluid" src="img/admin.png" width="600" height="400"alt="admin">
                     </div>
                 </div>
                 <div class="col-lg-6 order-lg-1">
@@ -307,7 +307,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="row g-5 align-items-center mb-5">
                 <div class="col-lg-6">
                     <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
-                        <img src="img/schedule.png" width="600" height="400"alt="admin">
+                        <img class="img-fluid" src="img/schedule.png" width="600" height="400"alt="admin">
                     </div>
                 </div>
                 <div class="col-lg-6">
@@ -327,7 +327,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="row g-5 align-items-center">
                 <div class="col-lg-6 order-lg-2">
                     <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
-                        <img src="img/student.png" width="600" height="400"alt="admin">
+                        <img class="img-fluid" src="img/student.png" width="600" height="400"alt="admin">
                     </div>
                 </div>
                 <div class="col-lg-6 order-lg-1">
