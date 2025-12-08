@@ -304,7 +304,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
 
             <div class="row g-5 align-items-center mb-5">
-                <div class="col-lg-6">
+                <div class="col-lg-6 order-2 order-lg-1">
+                    <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
+                        <img class="img-fluid" src="img/schedule.png" width="600" height="400" alt="admin">
+                    </div>
+                </div>
+                <div class="col-lg-6 order-1 order-lg-2">
                     <div class="step-number">2</div>
                     <h3 class="fw-bold mb-3">Input the Schedule</h3>
                     <p class="text-secondary mb-4">
@@ -315,11 +320,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <li class="mb-2"><i class="fa-solid fa-check text-brand-blue me-2"></i> Assign rooms and teachers</li>
                         <li><i class="fa-solid fa-check text-brand-blue me-2"></i> Sort view by time or day</li>
                     </ul>
-                </div>
-                <div class="col-lg-6">
-                    <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
-                        <img class="img-fluid" src="img/schedule.png" width="600" height="400"alt="admin">
-                    </div>
                 </div>
             </div>
 
