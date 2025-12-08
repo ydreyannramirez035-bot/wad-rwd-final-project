@@ -182,415 +182,204 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ClassSched — School Scheduling</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Font -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles/index.css">
+    
     <style>
-        :root {
-            --brand-blue: #3b66d1;
-            --brand-blue-hover: #2d52b0;
-            --brand-dark: #0f1724;
-            --brand-light: #f5f7ff;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            color: var(--brand-dark);
-            background-color: white;
-        }
-
-        /* Custom Brand Utilities */
-        .text-brand-blue { color: var(--brand-blue) !important; }
-        .bg-brand-blue { background-color: var(--brand-blue) !important; }
-        
-        .btn-brand {
-            background-color: var(--brand-blue);
-            color: white;
-            border-radius: 50px;
-            padding: 10px 24px;
-            font-weight: 600;
-            border: none;
-            transition: all 0.2s;
-            box-shadow: 0 4px 6px -1px rgba(59, 102, 209, 0.3);
-        }
-        .btn-brand:hover {
-            background-color: var(--brand-blue-hover);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .btn-outline-brand {
-            border: 1px solid #e5e7eb;
-            color: #4b5563;
-            border-radius: 8px;
-            padding: 12px 32px;
-            font-weight: 600;
-            background: white;
-            transition: all 0.2s;
-        }
-        .btn-outline-brand:hover {
-            border-color: var(--brand-blue);
-            color: var(--brand-blue);
-        }
-
-        .btn-hero {
-            background-color: var(--brand-blue);
-            color: white;
-            border-radius: 8px;
-            padding: 14px 32px;
-            font-weight: 700;
-            border: none;
-            box-shadow: 0 10px 15px -3px rgba(59, 102, 209, 0.3);
-            transition: all 0.2s;
-        }
-        .btn-hero:hover {
-            background-color: var(--brand-blue-hover);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        /* Added smooth scrolling for the window */
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Decoration Blobs */
-        .blob {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: -1;
-        }
-        .blob-blue {
-            top: -5rem;
-            right: -5rem;
-            width: 24rem;
-            height: 24rem;
-            background-color: #eff6ff; /* blue-50 equivalent */
-        }
-        .blob-purple {
-            top: 10rem;
-            left: -5rem;
-            width: 18rem;
-            height: 18rem;
-            background-color: #faf5ff; /* purple-50 equivalent */
-        }
-
-        /* Mock UI Styling */
-        .mock-card {
-            border-radius: 1rem;
-            border: 1px solid #f3f4f6;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            transition: transform 0.5s;
-        }
-        .mock-card:hover {
-            transform: rotate(0deg) !important;
-        }
-        .schedule-item {
-            transition: background-color 0.2s;
-        }
-        .schedule-item:hover {
-            background-color: #f8fafc;
-        }
-
-        /* Animation */
-        .animate-bounce-slow {
-            animation: bounce 3s infinite;
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(-5%); }
-            50% { transform: translateY(0); }
+        @media (max-width: 375px) {
+            .navbar-brand .logo-text { font-size: 1.2rem; }
+            .navbar-brand img { width: 30px; height: 30px; margin-right: 0.25rem !important; }
+            .btn-login, .btn-brand { padding: 6px 12px; font-size: 0.8rem; }
         }
     </style>
 </head>
-<body class="d-flex flex-column min-vh-100 position-relative">
+<body class="d-flex flex-column min-vh-100">
 
-    <!-- HEADER -->
-    <header class="w-100 border-bottom bg-white sticky-top py-3">
-        <div class="container d-flex justify-content-between align-items-center">
+    <nav class="navbar fixed-top">
+        <div class="container d-flex justify-content-between align-items-center flex-nowrap">
+            <a class="navbar-brand d-flex align-items-center m-0 p-0" href="#">
+                <img src="img/logo.png" width="40" height="40" class="me-2 logo-img" alt="Logo">
+                <span class="logo-text lh-1">
+                    <span class="text-class">Class</span><span class="text-sched">Sched</span>
+                </span>
+            </a>
             
-            <!-- Logo -->
-            <div class="d-flex align-items-center cursor-pointer" onclick="window.scrollTo(0,0)" style="cursor: pointer;">
-                <img src="../img/logo.jpg" width="50" height="50" class="me-2">
-                <span class="fs-4 fw-bold text-dark lh-1">Class</span><span class="fs-4 text-brand-blue">Sched</span></span>
-            </div>
-
-            <!-- Nav Actions -->
-            <nav class="d-flex align-items-center gap-3">
-                <button type="button" class="btn btn-link text-decoration-none text-secondary fw-medium d-none d-sm-block" data-bs-toggle="modal" data-bs-target="#loginModal">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-login fw-medium text-nowrap" data-bs-toggle="modal" data-bs-target="#loginModal">
                     Login
                 </button>
-                <button type="button" class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#registerModal">
+                <button type="button" class="btn btn-brand text-nowrap" data-bs-toggle="modal" data-bs-target="#registerModal">
                     Get Started
                 </button>
-            </nav>
+            </div>
         </div>
-    </header>
+    </nav>
 
-    <!-- HERO SECTION -->
-    <main class="flex-grow-1 d-flex align-items-center position-relative py-5 overflow-hidden">
-        <!-- Background Blob decoration -->
-        <div class="blob blob-blue"></div>
-        <div class="blob blob-purple"></div>
+    <section class="hero-section flex-grow-1 d-flex align-items-center">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
 
-        <div class="container">
-            <div class="row align-items-center gy-5">
-                
-                <!-- Text Content -->
-                <div class="col-lg-6 text-center text-lg-start">
-                    <h1 class="display-4 fw-bolder text-dark mb-4 lh-sm">
+        <div class="container text-center">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h1 class="display-3 fw-bold text-dark mb-4 lh-sm animate-fade-up delay-1">
                         Simplify Your <br>
                         <span class="text-brand-blue">School Scheduling</span>
                     </h1>
-                    <p class="lead text-secondary mb-5 mx-auto mx-lg-0" style="max-width: 500px;">
-                        Stop wrestling with spreadsheets. Easily manage classes, teachers, and classrooms with our intelligent conflict-free engine.
+                    <p class="lead text-secondary mb-5 mx-auto animate-fade-up delay-2" style="max-width: 600px;">
+                        Say goodbye to messy spreadsheets. Manage classes, teachers, and rooms in one place with a system that helps you avoid schedule conflicts.
                     </p>
-                    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
-                        <button type="button" class="btn btn-hero" data-bs-toggle="modal" data-bs-target="#registerModal">
+                    
+                    <div class="d-flex flex-row justify-content-center gap-3 animate-fade-up delay-3 flex-wrap">
+                        <button type="button" class="btn btn-hero-primary" data-bs-toggle="modal" data-bs-target="#registerModal">
                             Create Schedule
                         </button>
-                        <button class="btn btn-outline-brand d-flex align-items-center justify-content-center gap-2">
-                            <!-- add dito siguro ng vid tut how mag manage ng sched, students, mag view ng sched and students, ect (pano gumagana yung mga features) -->
-                            <i class="fa-solid fa-play"></i> Watch Demo
+                        <button class="btn btn-hero-secondary d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-play" style="font-size: 0.8rem;"></i> Watch Demo
                         </button>
                     </div>
-                    
-                    <!-- Trust Badges -->
-                    <div class="pt-4 mt-4 d-flex flex-column flex-sm-row align-items-center justify-content-center justify-content-lg-start gap-3 text-secondary small">
-                        <span>Trusted by 500+ schools</span>
-                        <div class="d-flex ms-2">
-                            <div class="rounded-circle bg-secondary border border-2 border-white" style="width:32px; height:32px; margin-right: -8px;"></div>
-                            <div class="rounded-circle bg-secondary border border-2 border-white opacity-75" style="width:32px; height:32px; margin-right: -8px;"></div>
-                            <div class="rounded-circle bg-secondary border border-2 border-white opacity-50" style="width:32px; height:32px; margin-right: -8px;"></div>
-                            <div class="rounded-circle bg-brand-blue text-white d-flex align-items-center justify-content-center border border-2 border-white fw-bold" style="width:32px; height:32px; font-size: 10px;">+</div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Visual Content (Mock UI) -->
-                <div class="col-lg-6">
-                    <div class="position-relative mx-auto" style="max-width: 500px;">
-                        <!-- Decorative Elements -->
-                        <div class="position-absolute rounded-circle bg-warning opacity-50" style="width: 6rem; height: 6rem; top: -1.5rem; right: -1.5rem; filter: blur(20px);"></div>
+                    <div class="mt-5 d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 animate-fade-up delay-3">
+                        <span class="text-secondary small fw-medium">Trusted by 500+ schools</span>
                         
-                        <!-- Main Card -->
-                        <div class="bg-white mock-card overflow-hidden" style="transform: rotate(1deg);">
-                            <!-- Fake Browser Header -->
-                            <div class="bg-light border-bottom p-3 d-flex gap-2">
-                                <div class="rounded-circle bg-danger opacity-50" style="width: 12px; height: 12px;"></div>
-                                <div class="rounded-circle bg-warning opacity-50" style="width: 12px; height: 12px;"></div>
-                                <div class="rounded-circle bg-success opacity-50" style="width: 12px; height: 12px;"></div>
-                            </div>
-                            
-                            <!-- Dashboard Content -->
-                            <div class="p-4">
-                                <div class="d-flex justify-content-between align-items-end mb-4">
-                                    <div>
-                                        <h5 class="fw-bold text-dark mb-0">Grade 10 - Section A</h5>
-                                        <p class="small text-muted mb-0">Mathematics Dept.</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <span class="badge bg-success bg-opacity-10 text-success rounded px-2 py-1">No Conflicts</span>
-                                    </div>
-                                </div>
-
-                                <!-- Schedule Grid Mockup -->
-                                <div class="d-flex flex-column gap-3">
-                                    <!-- Item 1 -->
-                                    <div class="d-flex align-items-center gap-3 p-2 rounded schedule-item border border-white">
-                                        <div class="text-center text-muted fw-bold small" style="width: 40px;">08:00</div>
-                                        <div class="flex-grow-1 p-2 rounded border-start border-4 border-primary bg-light">
-                                            <div class="fw-bold text-primary small">Algebra II</div>
-                                            <div class="d-flex justify-content-between text-primary opacity-75" style="font-size: 0.75rem;">
-                                                <span>Rm 304</span>
-                                                <span><i class="fa-regular fa-user me-1"></i> Mr. Smith</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Item 2 -->
-                                    <div class="d-flex align-items-center gap-3 p-2 rounded schedule-item border border-white">
-                                        <div class="text-center text-muted fw-bold small" style="width: 40px;">09:30</div>
-                                        <div class="flex-grow-1 p-2 rounded border-start border-4 border-info bg-light">
-                                            <div class="fw-bold text-info small">Physics Lab</div>
-                                            <div class="d-flex justify-content-between text-info opacity-75" style="font-size: 0.75rem;">
-                                                <span>Lab 2</span>
-                                                <span><i class="fa-regular fa-user me-1"></i> Ms. Davis</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Item 3 -->
-                                    <div class="d-flex align-items-center gap-3 p-2 rounded schedule-item border border-white">
-                                        <div class="text-center text-muted fw-bold small" style="width: 40px;">11:00</div>
-                                        <div class="flex-grow-1 p-2 rounded border-start border-4 border-warning bg-light">
-                                            <div class="fw-bold text-warning small text-dark">World History</div>
-                                            <div class="d-flex justify-content-between text-warning opacity-75" style="font-size: 0.75rem;">
-                                                <span class="text-dark">Rm 102</span>
-                                                <span class="text-dark"><i class="fa-regular fa-user me-1"></i> Mr. Johnson</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="avatar-group">
+                            <div class="avatar-placeholder bg-secondary bg-opacity-50"></div>
+                            <div class="avatar-placeholder bg-secondary bg-opacity-25"></div>
+                            <div class="avatar-placeholder bg-secondary bg-opacity-10"></div>
+                            <div class="plus-badge">+</div>
                         </div>
-
-                        <!-- Floating Badge -->
-                        <!-- <div class="position-absolute bg-white p-3 rounded-3 shadow-sm border animate-bounce-slow d-flex align-items-center gap-3" style="bottom: -1.5rem; left: -1.5rem;">
-                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                <i class="fa-solid fa-check"></i>
-                            </div>
-                            <div>
-                                <div class="text-muted fw-medium" style="font-size: 0.75rem;">Export Status</div>
-                                <div class="fw-bold text-dark small">Ready to Print</div>
-                            </div>
-                        </div> -->
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
 
-    <!-- FEATURES STRIP -->
-    <section class="bg-light py-5 border-top">
-        <div class="container">
-            <div class="row g-4 text-center">
+            <div class="row g-4 mt-5 pt-4 text-start animate-fade-up delay-3">
                 <div class="col-md-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3 bg-primary bg-opacity-10 text-primary" style="width: 48px; height: 48px; font-size: 1.25rem;">
-                        <i class="fa-solid fa-database"></i>
+                    <div class="feature-card">
+                        <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                            <i class="fa-solid fa-database"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Centralized Schedule Management</h5>
+                        <p class="text-secondary mb-0 small">Efficiently add, edit, and remove class schedules and student records in one secure dashboard.</p>
                     </div>
-                    <h3 class="h5 fw-bold mb-2">Centralized Schedule Management</h3>
-                    <p class="text-muted small">Efficiently add, edit, and remove class schedules and student records in one secure dashboard.</p>
                 </div>
                 <div class="col-md-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3 bg-info bg-opacity-10 text-info" style="width: 48px; height: 48px; font-size: 1.25rem;">
-                        <i class="fa-solid fa-laptop-code"></i>
+                    <div class="feature-card">
+                        <div class="icon-box bg-info bg-opacity-10 text-info">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Student & Teacher Portals</h5>
+                        <p class="text-secondary mb-0 small">Dedicated dashboards for students to view schedules and admins to manage data.</p>
                     </div>
-                    <h3 class="h5 fw-bold mb-2">BSIS & ACT Focused</h3>
-                    <p class="text-muted small">A dedicated portal tailored specifically for Information Systems and Computer Technology departments.</p>
                 </div>
                 <div class="col-md-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3 bg-warning bg-opacity-10 text-warning" style="width: 48px; height: 48px; font-size: 1.25rem;">
-                        <i class="fa-solid fa-satellite-dish"></i>
+                    <div class="feature-card">
+                        <div class="icon-box bg-warning bg-opacity-10 text-warning">
+                            <i class="fa-regular fa-bell"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Real-Time Updates</h5>
+                        <p class="text-secondary mb-0 small">Instant notifications for schedule changes, profile updates, and announcements.</p>
                     </div>
-                    <h3 class="h5 fw-bold mb-2">Real-Time Notifications</h3>
-                    <p class="text-muted small">Students get alerts for new classes, while Admins are notified of student profile updates.</p>
                 </div>
             </div>
+
         </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer class="bg-white border-top py-4 text-center text-muted small">
+    <footer class="bg-white border-top py-4 text-center">
         <div class="container">
-            <p class="mb-2">ClassSched © 2025 — Simplifying Education.</p>
-            <div class="d-flex justify-content-center gap-3">
-                <a href="#" class="text-decoration-none text-muted hover-brand">Privacy</a>
-                <span>•</span>
-                <a href="#" class="text-decoration-none text-muted hover-brand">Terms</a>
-                <span>•</span>
-                <a href="#" class="text-decoration-none text-muted hover-brand">Support</a>
-            </div>
+            <p class="text-muted small mb-0">ClassSched © 2025 — Designed for Efficiency.</p>
         </div>
     </footer>
 
-
-    <!-- LOGIN MODAL -->
     <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 border-0 shadow-lg">
-                <div class="modal-body p-4 p-sm-5">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2 class="h3 fw-bold mb-0">Welcome Back</h2>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    
-                    <!-- PHP SUCCESS MESSAGE -->
-                    <?php if (!empty($registerSuccess)): ?>
-                        <div class="alert alert-success small"><?php echo htmlspecialchars($registerSuccess); ?></div>
-                    <?php endif; ?>
+            <div class="modal-content shadow-lg p-3">
+                <div class="modal-header border-0 pb-0">
+                    <h4 class="fw-bold">Welcome Back!</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <p class="text-muted small mb-4">Please login to access your dashboard.</p>
 
-                    <!-- PHP ERROR MESSAGE -->
+                    <?php if (!empty($registerSuccess)): ?>
+                        <div class="alert alert-success small py-2"><?php echo htmlspecialchars($registerSuccess); ?></div>
+                    <?php endif; ?>
                     <?php if (!empty($loginError)): ?>
-                        <div class="alert alert-danger small"><?php echo htmlspecialchars($loginError); ?></div>
+                        <div class="alert alert-danger small py-2"><?php echo htmlspecialchars($loginError); ?></div>
                     <?php endif; ?>
 
                     <form method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
-                        <!-- HIDDEN ACTION FIELD -->
                         <input type="hidden" name="action_type" value="login">
                         
                         <div class="mb-3">
-                            <label class="form-label fw-medium text-secondary small">Username or Email</label>
-                            <input type="text" name="username_or_email" class="form-control form-control-lg fs-6" placeholder="you@school.edu" required>
+                            <label class="form-label small fw-medium text-dark">Username or Email</label>
+                            <input type="text" name="username_or_email" class="form-control" placeholder="Enter your credentials" required>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-medium text-secondary small">Password</label>
-                            <input type="password" name="password" class="form-control form-control-lg fs-6" placeholder="••••••••" required>
+                            <label class="form-label small fw-medium text-dark">Password</label>
+                            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
                         </div>
-                        <button type="submit" class="btn btn-brand w-100 py-2">Sign In</button>
+                        <button type="submit" class="btn btn-brand w-100">Sign In</button>
                     </form>
-                    <div class="mt-4 text-center small text-muted">
-                        Don't have an account? 
-                        <!-- Switch Modals -->
-                        <a href="#" class="text-brand-blue fw-semibold text-decoration-none" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
+                    
+                    <div class="mt-3 text-center small text-muted">
+                        New here? <a href="#" class="text-brand-blue text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#registerModal">Create an account</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- REGISTER MODAL -->
     <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 border-0 shadow-lg">
-                <div class="modal-body p-4 p-sm-5">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2 class="h3 fw-bold mb-0">Create Account</h2>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
+            <div class="modal-content shadow-lg p-3">
+                <div class="modal-header border-0 pb-0">
+                    <h4 class="fw-bold">Create Account</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <p class="text-muted small mb-4">Register to manage or view schedules.</p>
 
-                    <!-- PHP ERROR MESSAGE -->
                     <?php if (!empty($registerError)): ?>
-                        <div class="alert alert-danger small"><?php echo htmlspecialchars($registerError); ?></div>
+                        <div class="alert alert-danger small py-2"><?php echo htmlspecialchars($registerError); ?></div>
                     <?php endif; ?>
 
                     <form method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
-                        <!-- HIDDEN ACTION FIELD -->
                         <input type="hidden" name="action_type" value="register">
 
                         <div class="mb-3">
-                            <label class="form-label fw-medium text-secondary small">Username</label>
-                            <input type="text" name="username" class="form-control form-control-lg fs-6" placeholder="Ex. PrincipalJohn" required value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>">
+                            <label class="form-label small fw-medium text-dark">Username</label>
+                            <input type="text" name="username" class="form-control" placeholder="Choose a username" required value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-medium text-secondary small">Email Address</label>
-                            <input type="email" name="email" class="form-control form-control-lg fs-6" placeholder="admin@school.edu" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
+                            <label class="form-label small fw-medium text-dark">Email Address</label>
+                            <input type="email" name="email" class="form-control" placeholder="you@school.edu" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-medium text-secondary small">Password</label>
-                            <input type="password" name="password" class="form-control form-control-lg fs-6" placeholder="Create a password" required>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small fw-medium text-dark">Password</label>
+                                <input type="password" name="password" class="form-control" placeholder="8+ chars" required>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label small fw-medium text-dark">Confirm</label>
+                                <input type="password" name="confirmPassword" class="form-control" placeholder="Confirm" required>
+                            </div>
                         </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-medium text-secondary small">Confirm Password</label>
-                            <input type="password" name="confirmPassword" class="form-control form-control-lg fs-6" placeholder="Confirm password" required>
-                        </div>
-                        <button type="submit" class="btn btn-brand w-100 py-2">Start Free Trial</button>
+                        <button type="submit" class="btn btn-brand w-100">Sign Up</button>
                     </form>
-                    <div class="mt-4 text-center small text-muted">
-                        Already registered? 
-                        <a href="#" class="text-brand-blue fw-semibold text-decoration-none" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+                    
+                    <div class="mt-3 text-center small text-muted">
+                        Already have an account? <a href="#" class="text-brand-blue text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap 5 Bundle JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Auto-Open Modals on Error/Success -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             <?php if ($openLoginModal): ?>

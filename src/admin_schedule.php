@@ -209,7 +209,7 @@ if ($action === "delete") {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../styles/admin_schedule.css">
-    <link rel="stylesheet" href="../styles/header.css">
+    <link rel="stylesheet" href="../styles/admin.css">
     <link rel="stylesheet" href="../styles/notification.css">
 </head>
 <body class="d-flex flex-column min-vh-100 position-relative">

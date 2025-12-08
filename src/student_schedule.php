@@ -39,8 +39,6 @@ $f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));
 $l_initial = !empty($student['last_name']) ? strtoupper(substr($student['last_name'], 0, 1)) : '';
 
 // Initials Logic
-$f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));
-$l_initial = !empty($student['last_name']) ? strtoupper(substr($student['last_name'], 0, 1)) : '';
 if ($l_initial === '') {
     $initials = strtoupper(substr($user['name'], 0, 2));
 } else {
@@ -95,34 +93,42 @@ $sched_result = $stmt->execute();
     <meta charset="UTF-8">
     <title>ClassSched | Full Schedule</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../styles/student_dashboard.css">
+    <link rel="stylesheet" href="../styles/student_schedule.css">
+    <link rel="stylesheet" href="../styles/student.css">
     <link rel="stylesheet" href="../styles/notification.css">
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100 position-relative">
 
     <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="student_dashboard.php">
-                <span style="background:#94a3b8; color:white; padding:5px 10px; border-radius:50%; font-size:14px; vertical-align:middle; margin-right:5px;">LOGO</span>
-                Class<span class="brand-blue">Sched</span>
-            </a>
+        <div class="container-fluid px-4">
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse justify-content-center" id="navContent">
-                <div class="collapse navbar-collapse justify-content-center" id="navContent">
-                <ul class="navbar-nav">
+            <a class="navbar-brand ms-2" href="student_dashboard.php">
+                <img src="../img/logo.png" width="60" height="60" class="me-2">
+            </a>
+
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+            <div class="offcanvas-header">
+                <img src="../img/logo.png" width="60" height="60" class="me-2">
+                <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
                     <li class="nav-item"><a class="nav-link" href="student_dashboard.php">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link active" href="student_schedule.php">Class Schedule</a></li>
                 </ul>
             </div>
             </div>
 
-            <div class="d-flex align-items-center">             
+            <div class="d-flex align-items-center gap-3">              
+                
                 <div class="dropdown notification-container me-4 position-relative">
                     <i class="fa-solid fa-bell dropdown-toggle" 
                        id="notificationDropdown" 
@@ -152,6 +158,7 @@ $sched_result = $stmt->execute();
                                 ?>
                                 <li>
                                     <a class="dropdown-item notification-item p-3 <?php echo $status_class; ?>" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
+                                        
                                         <div class="notif-content">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <strong class="<?php echo ($notif['is_read'] == 0) ? 'text-dark' : ''; ?>">
@@ -171,6 +178,7 @@ $sched_result = $stmt->execute();
                                                 <?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?>
                                             </div>
                                         </div>
+
                                     </a>
                                 </li>
                             <?php endforeach; ?>
@@ -181,14 +189,12 @@ $sched_result = $stmt->execute();
                 </div>
                 
                 <div class="dropdown">
-                    <div class="profile-container dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="profile-circle">
-                            <?php echo $initials; ?>
-                        </div>
-                        <i class="fa-solid fa-chevron-down profile-chevron"></i>
-                    </div>
-
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                    <button class="btn btn-student dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <span class="student-text">Student • </span><?php echo htmlspecialchars($initials); ?>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($display_name); ?></b></small></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="student_profile.php">Profile</a></li>
                         <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
                     </ul>
@@ -197,37 +203,43 @@ $sched_result = $stmt->execute();
         </div>
     </nav>
 
-    <main class="container py-5">
-        <div class="mb-5">
-            <h1 class="hero-title">Class Schedule</h1>
-            <p class="hero-sub">View your full weekly schedule.</p>
+    <div class="container px-4 py-5">
+        
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <h1 class="fw-bold text-dark mb-2">Full Schedule</h1>
+                <p class="text-secondary mb-0 small">View your complete class timetable.</p>
+            </div>
+            
+            <form method="GET" action="">
+                <select name="day" class="form-select bg-white border shadow-sm" style="width: auto; cursor: pointer; min-width: 150px;" onchange="this.form.submit()">
+                    <option value="All" <?php if($selected_day == 'All') echo 'selected'; ?>>All Days</option>
+                    <?php foreach($valid_days as $d): ?>
+                        <option value="<?php echo $d; ?>" <?php if($selected_day == $d) echo 'selected'; ?>>
+                            <?php echo $d; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </form>
         </div>
 
-        <div class="schedule-box">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="section-title">Weekly Schedule</div>
-                
-                <form method="GET" action="">
-                    <select name="day" class="form-select form-select-sm" style="width: auto; font-weight:500;" onchange="this.form.submit()">
-                        <option value="All" <?php if($selected_day == 'All') echo 'selected'; ?>>All Days</option>
-                        <?php foreach($valid_days as $d): ?>
-                            <option value="<?php echo $d; ?>" <?php if($selected_day == $d) echo 'selected'; ?>>
-                                <?php echo $d; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </form>
-            </div>
+        <div class="bg-white rounded-4 shadow-sm border p-4">
+            
+            <?php 
+            // Check if there are results
+            // Note: fetchArray moves the pointer, so we might need to query again or store in array for proper "count" checking if SQLite3Result::numColumns isn't enough.
+            // A better way with SQLite3 is to just loop.
+            ?>
 
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table custom-table table-hover mb-0">
                     <thead>
                         <tr>
                             <th width="15%">Day</th>
                             <th width="30%">Subject</th>
                             <th width="25%">Teacher</th>
                             <th width="15%">Room</th>
-                            <th width="15%">Time</th>
+                            <th width="15%" class="text-nowrap">Time</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -241,7 +253,8 @@ $sched_result = $stmt->execute();
                                 <td class="fw-semibold text-primary"><?php echo htmlspecialchars($row['subject_name']); ?></td>
                                 <td><?php echo htmlspecialchars($row['teacher_name']); ?></td>
                                 <td><?php echo htmlspecialchars($row['room'] ?? 'TBA'); ?></td>
-                                <td>
+                                
+                                <td class="text-secondary fw-medium text-nowrap">
                                     <?php 
                                         $start = $row['time_start'] ? date("h:i A", strtotime($row['time_start'])) : '--';
                                         $end = $row['time_end'] ? date("h:i A", strtotime($row['time_end'])) : '--';
@@ -253,16 +266,24 @@ $sched_result = $stmt->execute();
 
                         <?php if (!$hasRows): ?>
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-5">
-                                    No classes found for <strong><?php echo htmlspecialchars($selected_day); ?></strong>.
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fa-regular fa-calendar-xmark fs-1 mb-3 text-secondary opacity-50"></i>
+                                    <p class="mb-0">
+                                        <?php if ($selected_day === 'All'): ?>
+                                            No classes scheduled for this week.
+                                        <?php else: ?>
+                                            No classes scheduled for <?php echo htmlspecialchars($selected_day); ?>.
+                                        <?php endif; ?>
+                                    </p>
                                 </td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
             </div>
+
         </div>
-    </main>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/notification.js"></script>

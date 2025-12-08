@@ -5,12 +5,6 @@
     --brand-light: #f5f7ff;
 }
 
-body {
-    font-family: 'Poppins', sans-serif;
-    color: var(--brand-dark);
-    background-color: white;
-}
-
 /* Stats Cards Styling to Match Landing Page Cards */
 .stats-card {
     background: white;

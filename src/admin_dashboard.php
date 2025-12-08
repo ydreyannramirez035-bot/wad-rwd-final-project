@@ -145,7 +145,7 @@ $students_result = $stmt_students->execute();
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../styles/admin_dashboard.css">
-    <link rel="stylesheet" href="../styles/header.css">
+    <link rel="stylesheet" href="../styles/admin.css">
     <link rel="stylesheet" href="../styles/notification.css">
 </head>
 
@@ -170,9 +170,9 @@ $students_result = $stmt_students->execute();
             </div>
             <div class="offcanvas-body">
                 <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
-                <li class="nav-item"><a class="nav-link active" href="admin_dashboard.php">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
-                <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="admin_dashboard.php">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
+                    <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
                 </ul>
             </div>
             </div>
@@ -416,6 +416,12 @@ $students_result = $stmt_students->execute();
         </div>
 
     </div>
+
+    <footer class="bg-white border-top py-4 text-center">
+        <div class="container">
+            <p class="text-muted small mb-0">ClassSched © 2025 — Designed for Efficiency.</p>
+        </div>
+    </footer>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -9,11 +9,101 @@ body {
     font-family: 'Poppins', sans-serif;
     color: var(--brand-dark);
     background-color: white;
+    overflow-x: hidden;
 }
 
-/* Custom Brand Utilities */
+/* ClassSched Logo */
+.logo-text {
+    font-family: 'Poppins', sans-serif;
+    font-size: 26px;
+    line-height: 1;
+}
+
+.text-class {
+    color: #3b66d1;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.text-sched {
+    color: #8daae0;
+    font-weight: 400;
+}
+
 .text-brand-blue { color: var(--brand-blue) !important; }
-.bg-brand-blue { background-color: var(--brand-blue) !important; }
+
+/* --- Navbar --- */
+.navbar {
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid #f3f4f6;
+    padding: 0.8rem 0;
+    transition: all 0.3s;
+}
+
+/* --- Hero Section --- */
+.hero-section {
+    /* Increased top padding to push content down */
+    padding: 160px 0 80px; 
+    position: relative;
+}
+
+/* HERO BUTTONS (MATCHING REFERENCE IMAGE: Rectangles with ~8px radius) */
+.btn-hero-primary {
+    background-color: var(--brand-blue);
+    color: white;
+    border-radius: 8px; /* Rounded Rectangle */
+    padding: 14px 32px;
+    font-weight: 600;
+    border: none;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(59, 102, 209, 0.3);
+}
+.btn-hero-primary:hover {
+    background-color: var(--brand-blue-hover);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 102, 209, 0.4);
+}
+
+.btn-hero-secondary {
+    background-color: white;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px; /* Rounded Rectangle */
+    padding: 14px 32px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.btn-hero-secondary:hover {
+    border-color: #d1d5db;
+    background-color: #f9fafb;
+    color: #1f2937;
+    transform: translateY(-2px);
+}
+
+/* Trust Badges */
+.avatar-group img, .avatar-placeholder {
+    transition: transform 0.2s;
+}
+.avatar-group:hover img, .avatar-group:hover .avatar-placeholder {
+    transform: translateX(5px);
+}
+
+/* --- Buttons --- */
+.btn-login {
+    color: #6b7280;
+    border-radius: 50px;
+    padding: 8px 20px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+.btn-login:hover {
+    color: var(--brand-blue);
+    background-color: #f3f4f6;
+}
 
 .btn-brand {
     background-color: var(--brand-blue);
@@ -22,94 +112,124 @@ body {
     padding: 10px 24px;
     font-weight: 600;
     border: none;
-    transition: all 0.2s;
-    box-shadow: 0 4px 6px -1px rgba(59, 102, 209, 0.3);
+    transition: all 0.3s;
+    box-shadow: 0 4px 10px rgba(59, 102, 209, 0.25);
 }
 .btn-brand:hover {
     background-color: var(--brand-blue-hover);
     color: white;
     transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(59, 102, 209, 0.3);
 }
 
 .btn-outline-brand {
-    border: 1px solid #e5e7eb;
-    color: #4b5563;
-    border-radius: 8px;
-    padding: 12px 32px;
+    border: 2px solid #e5e7eb;
+    color: #6b7280;
+    border-radius: 50px;
+    padding: 10px 24px;
     font-weight: 600;
-    background: white;
+    background: transparent;
     transition: all 0.2s;
 }
 .btn-outline-brand:hover {
-    border-color: var(--brand-blue);
-    color: var(--brand-blue);
+    border-color: var(--brand-dark);
+    color: var(--brand-dark);
 }
 
-.btn-hero {
-    background-color: var(--brand-blue);
-    color: white;
-    border-radius: 8px;
-    padding: 14px 32px;
-    font-weight: 700;
-    border: none;
-    box-shadow: 0 10px 15px -3px rgba(59, 102, 209, 0.3);
-    transition: all 0.2s;
+/* --- Animations --- */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-.btn-hero:hover {
-    background-color: var(--brand-blue-hover);
-    color: white;
-    transform: translateY(-2px);
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
 }
 
-/* Added smooth scrolling for the window */
-html {
-    scroll-behavior: smooth;
-}
+.animate-fade-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; }
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
 
-/* Decoration Blobs */
 .blob {
     position: absolute;
     border-radius: 50%;
     filter: blur(80px);
     z-index: -1;
+    opacity: 0.5;
+    animation: float 6s ease-in-out infinite;
 }
-.blob-blue {
-    top: -5rem;
-    right: -5rem;
-    width: 24rem;
-    height: 24rem;
-    background-color: #eff6ff; /* blue-50 equivalent */
-}
-.blob-purple {
-    top: 10rem;
-    left: -5rem;
-    width: 18rem;
-    height: 18rem;
-    background-color: #faf5ff; /* purple-50 equivalent */
-}
+.blob-1 { top: -10%; left: -5%; width: 300px; height: 300px; background: #e0e7ff; }
+.blob-2 { bottom: 10%; right: -5%; width: 400px; height: 400px; background: #f3f4f6; animation-delay: 2s; }
 
-/* Mock UI Styling */
-.mock-card {
-    border-radius: 1rem;
+/* --- Feature Cards --- */
+.feature-card {
+    background: white;
     border: 1px solid #f3f4f6;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    transition: transform 0.5s;
+    border-radius: 1rem;
+    padding: 2rem;
+    height: 100%;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
-.mock-card:hover {
-    transform: rotate(0deg) !important;
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
+    border-color: var(--brand-blue);
 }
-.schedule-item {
-    transition: background-color 0.2s;
-}
-.schedule-item:hover {
-    background-color: #f8fafc;
+.icon-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
 }
 
-/* Animation */
-.animate-bounce-slow {
-    animation: bounce 3s infinite;
-}
-@keyframes bounce {
-    0%, 100% { transform: translateY(-5%); }
-    50% { transform: translateY(0); }
+/* --- Mobile Responsiveness --- */
+@media (max-width: 576px) {
+    .navbar {
+        padding: 0.5rem 0; /* Slimmer navbar on mobile */
+    }
+    
+    .navbar-brand img {
+        width: 35px;
+        height: 35px;
+    }
+
+    /* Adjust buttons on small screens */
+    .btn-login {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .btn-brand {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+
+    /* Hero Text Adjustments */
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    .hero-sub {
+        font-size: 1rem;
+        margin-bottom: 2rem !important;
+    }
+
+    /* Ensure horizontal button layout */
+    .btn-hero {
+        padding: 10px 15px !important;
+        font-size: 0.85rem !important;
+        white-space: nowrap; /* Prevents text wrap */
+        min-width: 140px; /* Ensures buttons are equal width */
+    }
+    
+    /* Feature Grid Spacing */
+    .feature-card {
+        padding: 1.5rem;
+    }
 }
