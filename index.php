@@ -90,8 +90,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             else if ($password !== $confirmPassword) {
                 $registerError = "Passwords do not match.";
             }
-            else if (strlen($password) < 8) {
-                $registerError = "Password must be at least 8 characters long.";
+            else if (strlen($password) < 12) {
+                $registerError = "Password must be at least 12 characters long.";
             }
             else if (!preg_match('@[A-Z]@', $password)) {
                 $registerError = "Password must include at least one uppercase letter.";
@@ -423,7 +423,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label small fw-medium text-dark">Password</label>
-                                <input type="password" name="password" class="form-control" placeholder="8+ chars" required>
+                                <input type="password" name="password" class="form-control" placeholder="e.g., T9a#Km4!Xs2@" required>
                             </div>
                             <div class="col-md-6 mb-4">
                                 <label class="form-label small fw-medium text-dark">Confirm</label>
