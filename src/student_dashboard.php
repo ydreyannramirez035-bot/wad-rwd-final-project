@@ -39,7 +39,8 @@ if (!$student) {
 
 $student_id = $student['id'];
 $course_id = (int)$student['course_id'];
-$display_name = $student['first_name'] ?: $user['name']; 
+$display_name = $student['first_name'] ?: $user['name'];
+$fullName = trim($student['first_name'] . ' ' . $student['last_name']);
 $f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));
 $l_initial = !empty($student['last_name']) ? strtoupper(substr($student['last_name'], 0, 1)) : '';
 
@@ -209,7 +210,7 @@ $subjects_count = $stmtSub->execute()->fetchArray()[0];
                         <span class="student-text">Student • </span><?php echo htmlspecialchars($initials); ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($display_name); ?></b></small></li>
+                        <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($fullName); ?></b></small></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="student_profile.php">Profile</a></li>
                         <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
