@@ -93,7 +93,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             else if (strlen($password) < 8) {
                 $registerError = "Password must be at least 8 characters long.";
             }
-            else {
+            else if (!preg_match('@[A-Z]@', $password)) {
+                $registerError = "Password must include at least one uppercase letter.";
+            }
+            else if (!preg_match('@[a-z]@', $password)) {
+                $registerError = "Password must include at least one lowercase letter.";
+            }
+            else if (!preg_match('@[0-9]@', $password)) {
+                $registerError = "Password must include at least one number.";
+            } else {
                 // 2. Check if Email is ALREADY registered
                 $stmt = $db->prepare("SELECT 1 FROM users WHERE email = ?");
                 $stmt->bindValue(1, $email, SQLITE3_TEXT);
