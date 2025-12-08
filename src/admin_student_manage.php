@@ -187,7 +187,8 @@ if ($action === "delete") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manage Students</title>
+    <title>Manage Student | ClassSched</title>
+    <link rel="icon" href="../img/logo.png" type="image/png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -211,9 +212,9 @@ if ($action === "delete") {
 
             <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
             <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasNavbarLabel"></h5>
                 <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 <img src="../img/logo.png" width="60" height="60" class="me-2">
-                <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
             </div>
             <div class="offcanvas-body">
                 <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
