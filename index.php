@@ -188,7 +188,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </span>
             </a>
             
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 ms-auto">
                 <button type="button" class="btn btn-login fw-medium text-nowrap" data-bs-toggle="modal" data-bs-target="#loginModal">
                     Login
                 </button>
