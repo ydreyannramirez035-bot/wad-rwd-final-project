@@ -13,8 +13,12 @@ header("Expires: 0");
 require_once __DIR__ ."/notification.php";
 require_once __DIR__ ."/db.php";
 
+date_default_timezone_set('Asia/Manila');
+$today = date('l'); 
+
 $user = $_SESSION['user'];
 $db = get_db();
+
 $notif_data = notif('student', true); 
 $unread_count = $notif_data['unread_count'];
 $notifications = $notif_data['notifications'];
@@ -45,24 +49,12 @@ if ($l_initial === '') {
     $initials = $f_initial . $l_initial;
 }
 
-$selected_day = $_GET['day'] ?? date('l'); 
+$selected_day = $_GET['day'] ?? $today; 
 $valid_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 if ($selected_day !== 'All' && !in_array($selected_day, $valid_days)) {
-    $selected_day = "Monday";
+    $selected_day = $today;
 }
-
-$actual_day = date('l');
-$sqlToday = "SELECT COUNT(*) FROM schedules WHERE course_id = :cid AND day = :day";
-$stmt = $db->prepare($sqlToday);
-$stmt->bindValue(':cid', $course_id, SQLITE3_INTEGER);
-$stmt->bindValue(':day', $actual_day, SQLITE3_TEXT);
-$classes_today_count = $stmt->execute()->fetchArray()[0];
-
-$sqlSubs = "SELECT COUNT(DISTINCT subject_id) FROM schedules WHERE course_id = :cid";
-$stmt = $db->prepare($sqlSubs);
-$stmt->bindValue(':cid', $course_id, SQLITE3_INTEGER);
-$subjects_count = $stmt->execute()->fetchArray()[0];
 
 $sqlSched = "
     SELECT sch.*, sub.subject_name, t.name as teacher_name
@@ -97,6 +89,18 @@ if ($selected_day !== 'All') {
 }
 
 $sched_result = $stmt->execute();
+$schedule_data = [];
+
+while ($row = $sched_result->fetchArray(SQLITE3_ASSOC)) {
+    $schedule_data[] = $row;
+}
+
+$classes_today_count = count($schedule_data); 
+
+$sqlSubs = "SELECT COUNT(DISTINCT subject_id) FROM schedules WHERE course_id = :cid";
+$stmtSub = $db->prepare($sqlSubs);
+$stmtSub->bindValue(':cid', $course_id, SQLITE3_INTEGER);
+$subjects_count = $stmtSub->execute()->fetchArray()[0];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -114,7 +118,6 @@ $sched_result = $stmt->execute();
 </head>
 
 <body class="d-flex flex-column min-vh-100 position-relative">
-    <!-- NAVBAR -->
     <nav class="navbar navbar-expand-sm sticky-top">
         <div class="container-fluid px-4">
             
@@ -235,7 +238,9 @@ $sched_result = $stmt->execute();
                 <div class="stats-card">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <div class="stats-label">Classes Today</div>
+                            <div class="stats-label">
+                                <?php echo ($selected_day === 'All') ? 'Total Classes' : 'Classes ' . $selected_day; ?>
+                            </div>
                             <div class="stats-number"><?php echo $classes_today_count; ?></div>
                             <div class="stats-sub">Scheduled</div>
                         </div>
@@ -308,7 +313,7 @@ $sched_result = $stmt->execute();
                     <tbody>
                         <?php 
                         $hasRows = false;
-                        while ($row = $sched_result->fetchArray(SQLITE3_ASSOC)): 
+                        foreach ($schedule_data as $row): 
                             $hasRows = true;
                         ?>
                             <tr>
@@ -325,7 +330,7 @@ $sched_result = $stmt->execute();
                                     ?>
                                 </td>
                             </tr>
-                        <?php endwhile; ?>
+                        <?php endforeach; ?>
 
                         <?php if (!$hasRows): ?>
                             <tr>
