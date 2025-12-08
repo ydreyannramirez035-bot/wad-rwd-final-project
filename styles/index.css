@@ -222,8 +222,3 @@ body {
     }
 }
 
-@media (max-width: 991px) {
-    #how-it-works .bg-white.rounded-4 {
-        display: none !important;
-    }
-}

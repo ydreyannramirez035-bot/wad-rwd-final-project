@@ -423,11 +423,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label small fw-medium text-dark">Password</label>
-                                <input type="password" name="password" class="form-control" placeholder="e.g., T9a#Km4!Xs2@" required>
+                                <input type="password" name="password" class="form-control" placeholder="Create a strong password" required>
                             </div>
                             <div class="col-md-6 mb-4">
                                 <label class="form-label small fw-medium text-dark">Confirm</label>
-                                <input type="password" name="confirmPassword" class="form-control" placeholder="Confirm" required>
+                                <input type="password" name="confirmPassword" class="form-control" placeholder="Confirm Password" required>
                             </div>
                         </div>
                         <button type="submit" class="btn w-100 fw-bold text-white" style="background-color: #3b66d1; border-radius: 50px; padding: 10px;">Sign Up</button>
