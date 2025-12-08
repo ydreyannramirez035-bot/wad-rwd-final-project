@@ -258,8 +258,7 @@ if ($action === "delete") {
                     <ul class="dropdown-menu dropdown-menu-end notification-list shadow" aria-labelledby="notificationDropdown">
                         <li class="dropdown-header d-flex justify-content-between align-items-center">
                             <span class="fw-bold">Notifications</span>
-                            <?php if ($unread_count > 0): ?>
-                                <a href="?action=clear_notifications" class="text-decoration-none small text-primary">Mark all read</a>
+                            <?php if ($highlight_count > 0): ?> <a href="?action=clear_notifications" class="text-decoration-none small text-primary">Mark all read</a>
                             <?php endif; ?>
                         </li>
 
