@@ -10,7 +10,7 @@ header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-require_once __DIR__ ."/notifcation.php";
+require_once __DIR__ ."/notification.php";
 require_once __DIR__ ."/db.php";
 
 $user = $_SESSION['user'];
