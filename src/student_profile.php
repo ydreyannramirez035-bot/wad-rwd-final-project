@@ -125,17 +125,18 @@ $yearLevel = $student['year_level'] ?? 1;
 
 <body class="d-flex flex-column min-vh-100 position-relative">
 
-    <nav class="navbar navbar-expand-lg sticky-top">
+    <nav class="navbar navbar-expand-sm sticky-top">
         <div class="container-fluid px-4">
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <div class="d-flex align-items-center">
+                <button class="navbar-toggler me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-            <a class="navbar-brand ms-2" href="student_dashboard.php">
-                <img src="../img/logo.png" width="60" height="60" class="me-2">
-            </a>
-
+                <a class="navbar-brand me-0" href="student_dashboard.php">
+                    <img src="../img/logo.png" width="60" height="60">
+                </a>
+            </div>
             <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
             <div class="offcanvas-header">
                 <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -215,9 +216,9 @@ $yearLevel = $student['year_level'] ?? 1;
                         <span class="student-text">Student • </span><?php echo htmlspecialchars($initials); ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($fullName); ?></b></small></li>
+                        <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($display_name); ?></b></small></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item active" href="student_profile.php">Profile</a></li>
+                        <li><a class="dropdown-item" href="student_profile.php">Profile</a></li>
                         <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
                     </ul>
                 </div>

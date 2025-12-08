@@ -103,17 +103,18 @@ $sched_result = $stmt->execute();
 </head>
 <body class="d-flex flex-column min-vh-100 position-relative">
 
-    <nav class="navbar navbar-expand-lg sticky-top">
+    <nav class="navbar navbar-expand-sm sticky-top">
         <div class="container-fluid px-4">
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <div class="d-flex align-items-center">
+                <button class="navbar-toggler me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-            <a class="navbar-brand ms-2" href="student_dashboard.php">
-                <img src="../img/logo.png" width="60" height="60" class="me-2">
-            </a>
-
+                <a class="navbar-brand me-0" href="student_dashboard.php">
+                    <img src="../img/logo.png" width="60" height="60">
+                </a>
+            </div>
             <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
             <div class="offcanvas-header">
                 <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>

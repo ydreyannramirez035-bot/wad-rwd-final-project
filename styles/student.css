@@ -8,7 +8,7 @@
 body {
     font-family: 'Poppins', sans-serif;
     color: var(--brand-dark);
-    background-color: #f3f6ff;
+    background-color: #eff3fc;
 }
 
 /* Navbar container */
@@ -134,7 +134,26 @@ body {
         gap: 0.8rem !important;
     }
 
+    .offcanvas-body .nav-link.active {
+        background-color: var(--brand-blue);
+        color: white !important; 
+        text-decoration: none;
+    }
+
     .me-4 {
         margin-right: 0 !important;
+    }
+
+    /* --- NEW FIX: Notification Dropdown --- */
+    .notification-list {
+        position: absolute;
+        width: 300px;           /* Fixed width to fit mobile */
+        right: -60px !important; /* Shift menu to the right (towards screen edge) */
+        left: auto !important;
+        transform: none !important;
+    }
+    
+    .notification-item .small {
+        white-space: normal; /* Ensure text wraps */
     }
 }

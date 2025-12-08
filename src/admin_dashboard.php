@@ -150,31 +150,31 @@ $students_result = $stmt_students->execute();
     <nav class="navbar navbar-expand-sm sticky-top">
         <div class="container-fluid px-4">
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <div class="d-flex align-items-center">
+                <button class="navbar-toggler me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-            <a class="navbar-brand ms-2" href="admin_dashboard.php">
-                <img src="../img/logo.png" width="60" height="60" class="me-2">
-            </a>
-
+                <a class="navbar-brand me-0" href="admin_dashboard.php">
+                    <img src="../img/logo.png" width="60" height="60">
+                </a>
+            </div>
             <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-            <div class="offcanvas-header">
-                <h5 class="offcanvas-title" id="offcanvasNavbarLabel"></h5>
-                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                <img src="../img/logo.png" width="60" height="60" class="me-2">
-            </div>
-            <div class="offcanvas-body">
-                <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
-                    <li class="nav-item"><a class="nav-link active" href="admin_dashboard.php">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
-                    <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
-                </ul>
-            </div>
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="offcanvasNavbarLabel"></h5>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    <img src="../img/logo.png" width="60" height="60" class="me-2">
+                </div>
+                <div class="offcanvas-body">
+                    <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
+                        <li class="nav-item"><a class="nav-link active" href="admin_dashboard.php">Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
+                        <li class="nav-item"><a class="nav-link" href="admin_schedule.php">Schedule</a></li>
+                    </ul>
+                </div>
             </div>
             
             <div class="d-flex align-items-center gap-3">
-                <!-- Notif -->
                 <div class="dropdown notification-container me-4 position-relative">
                     <i class="fa-solid fa-bell dropdown-toggle" 
                        id="notificationDropdown" 
@@ -232,7 +232,6 @@ $students_result = $stmt_students->execute();
                         <?php endif; ?>
                     </ul>
                 </div>
-                <!-- Profile -->
                 <div class="dropdown">
                     <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         Admin • <?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>

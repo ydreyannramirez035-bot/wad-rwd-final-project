@@ -46,6 +46,9 @@ body {
     padding: 0.8rem 0;
     transition: all 0.3s;
 }
+.navbar .container {
+    gap: 1rem; 
+}
 
 /* --- Hero Section --- */
 .hero-section {

@@ -8,7 +8,7 @@
 body {
     font-family: 'Poppins', sans-serif;
     color: var(--brand-dark);
-    background-color: white;
+    background-color: #eff3fc;
 }
 
 /* Navbar container */
@@ -137,7 +137,8 @@ body {
     }
 
     .offcanvas-body .nav-link.active {
-        color: var(--brand-blue) !important; 
+        background-color: var(--brand-blue);
+        color: white !important; 
         text-decoration: none;
     }
     
