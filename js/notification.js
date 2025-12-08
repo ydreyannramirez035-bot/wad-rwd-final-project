@@ -1,10 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     const bellBtn = document.querySelector('#notificationDropdown');
-    const badge = document.querySelector('.notification-container .badge');
+    const badge = document.querySelector('.notification-badge');
 
     if (bellBtn) {
         bellBtn.addEventListener('click', function() {
-            if (badge) {
+            if (badge && badge.style.display !== 'none') {
+                badge.style.display = 'none';
+
                 const formData = new FormData();
                 formData.append('action', 'clear_badge_only');
 
@@ -14,12 +16,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'success') {
-                        badge.remove();
-                    }
+                    console.log(data);
                 })
                 .catch(error => {
-                    console.error('Error clearing badge:', error);
+                    console.error(error);
                 });
             }
         });
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 window.addEventListener( "pageshow", function ( event ) {
-    var historyTraversal = event.persisted || 
+    const historyTraversal = event.persisted || 
                            ( typeof window.performance != "undefined" && 
                                 window.performance.navigation.type === 2 );
     if ( historyTraversal ) {

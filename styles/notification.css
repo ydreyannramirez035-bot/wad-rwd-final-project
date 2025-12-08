@@ -17,6 +17,10 @@
     display: none;
 }
 
+#new {
+    text-decoration: none;
+}
+
 .notification-badge {
     position: absolute;
     top: -5px;
