@@ -191,23 +191,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </nav>
 
-    <section class="hero-section flex-grow-1 d-flex align-items-center text-center">
+    <section class="hero-section flex-grow-1 d-flex align-items-center">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
 
         <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
+            <div class="row align-items-center gy-5">
+                
+                <div class="col-lg-6 text-center text-lg-start">
                     <h1 class="display-3 fw-bold text-dark mb-4 lh-sm animate-fade-up delay-1">
                         Simplify Your <br>
                         <span class="text-brand-blue">School Scheduling</span>
                     </h1>
-                    <p class="lead text-secondary mb-5 mx-auto animate-fade-up delay-2" style="max-width: 600px;">
+                    <p class="lead text-secondary mb-5 animate-fade-up delay-2 mx-auto mx-lg-0" style="max-width: 600px;">
                         Say goodbye to lost paper schedules. Digitally organize classes, teachers, and rooms in one
                         secure platform accessible by admins and students.
                     </p>
 
-                    <div class="d-flex flex-row justify-content-center gap-3 animate-fade-up delay-3 flex-wrap">
+                    <div class="d-flex flex-row justify-content-center justify-content-lg-start gap-3 animate-fade-up delay-3 flex-wrap">
                         <button type="button" class="btn btn-hero-primary" data-bs-toggle="modal"
                             data-bs-target="#registerModal">
                             Create Schedule
@@ -218,8 +219,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </a>
                     </div>
 
-                    <div
-                        class="mt-5 d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 animate-fade-up delay-3">
+                    <div class="mt-5 d-flex flex-column flex-sm-row justify-content-center justify-content-lg-start align-items-center gap-3 animate-fade-up delay-3">
                         <span class="text-secondary small fw-medium">Trusted by 500+ schools</span>
                         <div class="d-flex ms-2">
                             <div class="rounded-circle bg-secondary border border-2 border-white"
@@ -230,6 +230,61 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 style="width:32px; height:32px; margin-right: -8px;"></div>
                             <div class="rounded-circle bg-brand-blue text-white d-flex align-items-center justify-content-center border border-2 border-white fw-bold"
                                 style="width:32px; height:32px; font-size: 10px;">+</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 card-table">
+                    <div class="position-relative mx-auto" style="max-width: 500px;">
+                        <div class="position-absolute rounded-circle bg-warning opacity-50" style="width: 6rem; height: 6rem; top: -1.5rem; right: -1.5rem; filter: blur(20px);"></div>
+                        
+                        <div class="bg-white mock-card overflow-hidden shadow-lg rounded-3" style="transform: rotate(1deg);">
+                            <div class="bg-light border-bottom p-3 d-flex gap-2">
+                                <div class="rounded-circle bg-danger opacity-50" style="width: 12px; height: 12px;"></div>
+                                <div class="rounded-circle bg-warning opacity-50" style="width: 12px; height: 12px;"></div>
+                                <div class="rounded-circle bg-success opacity-50" style="width: 12px; height: 12px;"></div>
+                            </div>
+                            
+                            <div class="p-4">
+                                <div class="d-flex justify-content-between align-items-end mb-4">
+                                    <div class="text-start">
+                                        <h5 class="fw-bold text-dark mb-0">Information Sytems</h5>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex flex-column gap-3">
+                                    <div class="d-flex align-items-center gap-3 p-2 rounded schedule-item border border-white">
+                                        <div class="text-center text-muted fw-bold small" style="width: 40px;">08:00</div>
+                                        <div class="flex-grow-1 p-2 rounded border-start border-4 border-primary bg-light text-start">
+                                            <div class="fw-bold text-primary small">Web App Dev</div>
+                                            <div class="d-flex justify-content-between text-primary opacity-75" style="font-size: 0.75rem;">
+                                                <span>Rm 304</span>
+                                                <span><i class="fa-regular fa-user me-1"></i> Mr. Smith</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-3 p-2 rounded schedule-item border border-white">
+                                        <div class="text-center text-muted fw-bold small" style="width: 40px;">09:30</div>
+                                        <div class="flex-grow-1 p-2 rounded border-start border-4 border-info bg-light text-start">
+                                            <div class="fw-bold text-info small">Responsive Web Design</div>
+                                            <div class="d-flex justify-content-between text-info opacity-75" style="font-size: 0.75rem;">
+                                                <span>Lab 2</span>
+                                                <span><i class="fa-regular fa-user me-1"></i> Ms. Davis</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-3 p-2 rounded schedule-item border border-white">
+                                        <div class="text-center text-muted fw-bold small" style="width: 40px;">11:00</div>
+                                        <div class="flex-grow-1 p-2 rounded border-start border-4 border-warning bg-light text-start">
+                                            <div class="fw-bold text-warning small text-dark">Data Structures & Algo</div>
+                                            <div class="d-flex justify-content-between text-warning opacity-75" style="font-size: 0.75rem;">
+                                                <span class="text-dark">Rm 102</span>
+                                                <span class="text-dark"><i class="fa-regular fa-user me-1"></i> Mr. Johnson</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -297,7 +352,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 <div class="col-lg-6 order-lg-2">
                     <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
-                        <img class="img-fluid rounded-4" src="img/admin.png" width="600" height="400" alt="admin">
+                        <img class="img-fluid rounded-4" src="img/admin.png" width="800" height="400" alt="admin">
                     </div>
                 </div>
             </div>
@@ -305,7 +360,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="row g-5 align-items-center mb-5">
                 <div class="col-lg-6 order-2 order-lg-1">
                     <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
-                        <img class="img-fluid rounded-4" src="img/schedule.png" width="600" height="400" alt="admin">
+                        <img class="img-fluid rounded-4" src="img/schedule.png" width="800" height="400" alt="admin">
                     </div>
                 </div>
                 <div class="col-lg-6 order-1 order-lg-2">
