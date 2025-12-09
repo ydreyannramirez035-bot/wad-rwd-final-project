@@ -248,7 +248,7 @@ if (isset($_SERVER["REQUEST_METHOD"]) && $_SERVER["REQUEST_METHOD"] == "POST") {
                             <div class="p-4">
                                 <div class="d-flex justify-content-between align-items-end mb-4">
                                     <div class="text-start">
-                                        <h5 class="fw-bold text-dark mb-0">Information Sytems</h5>
+                                        <h5 class="fw-bold text-dark mb-0">BS Information Sytems</h5>
                                     </div>
                                 </div>
 
