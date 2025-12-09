@@ -12,7 +12,6 @@ $db = get_db();
 $user = $_SESSION["user"];
 $userId = $user["id"];
 
-// Notification Data
 $notif_data = notif('student', true); 
 $unread_count = $notif_data['unread_count'];
 $notifications = $notif_data['notifications'];
@@ -32,7 +31,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['
     
     $updateStudent = $stmt->execute();
 
-    // Update Bio in profiles_students table
     $checkSql = "SELECT id FROM profiles_students WHERE student_id = ?";
     $checkStmt = $db->prepare($checkSql);
     $checkStmt->bindValue(1, $studentId);
@@ -83,8 +81,7 @@ if (!$student) {
     ];
 }
 
-$fullName = trim($student['first_name'] . ' ' . $student['last_name']);
-// Initials Logic
+$fullName = trim(($student['first_name'] ?? '') . ' ' . ($student['last_name'] ?? ''));
 $f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));
 $l_initial = !empty($student['last_name']) ? strtoupper(substr($student['last_name'], 0, 1)) : '';
 if ($l_initial === '') {
@@ -194,7 +191,7 @@ $yearLevel = $student['year_level'] ?? 1;
                                             </div>
 
                                             <div class="small mt-1 <?php echo ($notif['is_read'] == 0) ? 'text-dark' : ''; ?>">
-                                                <?php echo htmlspecialchars($notif['message']); ?>
+                                                <?php echo htmlspecialchars($notif['message'] ?? ''); ?>
                                             </div>
                                             
                                             <div class="notif-time small mt-1 text-secondary">
@@ -272,13 +269,13 @@ $yearLevel = $student['year_level'] ?? 1;
                             <div class="icon-circle bg-primary bg-opacity-10 text-primary me-2">
                                 <i class="bi bi-envelope"></i>
                             </div>
-                            <span class="small text-dark"><?= htmlspecialchars($student['email']) ?></span>
+                            <span class="small text-dark"><?= htmlspecialchars($student['email'] ?? '') ?></span>
                         </div>
                         <div class="d-flex align-items-center">
                             <div class="icon-circle bg-primary bg-opacity-10 text-primary me-2">
                                 <i class="bi bi-telephone"></i>
                             </div>
-                            <span class="small text-dark"><?= htmlspecialchars($student['phone_number']) ?></span>
+                            <span class="small text-dark"><?= htmlspecialchars($student['phone_number'] ?? '') ?></span>
                         </div>
                     </div>
 
@@ -293,25 +290,25 @@ $yearLevel = $student['year_level'] ?? 1;
                         <div class="col-md-6">
                             <label class="form-label-custom">First Name</label>
                             <input type="text" class="form-control form-control-view" 
-                                   value="<?= htmlspecialchars($student['first_name']) ?>" readonly>
+                                   value="<?= htmlspecialchars($student['first_name'] ?? '') ?>" readonly>
                         </div>
                         
                         <div class="col-md-6">
                             <label class="form-label-custom">Last Name</label>
                             <input type="text" class="form-control form-control-view" 
-                                   value="<?= htmlspecialchars($student['last_name']) ?>" readonly>
+                                   value="<?= htmlspecialchars($student['last_name'] ?? '') ?>" readonly>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label-custom">Email Address</label>
                             <input type="text" class="form-control form-control-view" 
-                                   value="<?= htmlspecialchars($student['email']) ?>" readonly>
+                                   value="<?= htmlspecialchars($student['email'] ?? '') ?>" readonly>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label-custom">Phone Number</label>
                             <input type="text" class="form-control form-control-view" 
-                                   value="<?= htmlspecialchars($student['phone_number']) ?>" readonly>
+                                   value="<?= htmlspecialchars($student['phone_number'] ?? '') ?>" readonly>
                         </div>
                         
                         <div class="col-md-6">
@@ -349,26 +346,26 @@ $yearLevel = $student['year_level'] ?? 1;
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-secondary">First Name</label>
                                 <input type="text" class="form-control bg-light" 
-                                       value="<?= htmlspecialchars($student['first_name']) ?>" disabled>
+                                       value="<?= htmlspecialchars($student['first_name'] ?? '') ?>" disabled>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-secondary">Last Name</label>
                                 <input type="text" class="form-control bg-light" 
-                                       value="<?= htmlspecialchars($student['last_name']) ?>" disabled>
+                                       value="<?= htmlspecialchars($student['last_name'] ?? '') ?>" disabled>
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-secondary">Email</label>
                                 <input type="email" class="form-control bg-light" 
-                                       value="<?= htmlspecialchars($student['email']) ?>" disabled>
+                                       value="<?= htmlspecialchars($student['email'] ?? '') ?>" disabled>
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-dark">Phone Number</label>
                                 <input type="text" name="phone_number" class="form-control" 
-                                       value="<?= htmlspecialchars($student['phone_number']) ?>">
+                                       value="<?= htmlspecialchars($student['phone_number'] ?? '') ?>">
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-dark">Bio</label>
-                                <textarea name="bio" class="form-control text-break" rows="3" maxlength="150" style="resize: none;" placeholder="Tell us about yourself..."><?= htmlspecialchars($student['bio']) ?></textarea>
+                                <textarea name="bio" class="form-control text-break" rows="3" maxlength="150" style="resize: none;" placeholder="Tell us about yourself..."><?= htmlspecialchars($student['bio'] ?? '') ?></textarea>
                                 <div class="form-text small">Max 150 characters.</div>
                             </div>
                         </div>
