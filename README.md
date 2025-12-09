@@ -62,7 +62,7 @@ Example: “The Student Record System is a database-driven web application that 
 
 ## Database Structure
 
-The application uses an **SQLite** database file (e.g., `database.db`) located within the project directory.
+The application uses an **SQLite** database file (e.g., `users.db`) located within the project directory.
 
 Example structure (customize to match your actual schema):
 
