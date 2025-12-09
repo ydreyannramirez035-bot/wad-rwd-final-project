@@ -59,31 +59,6 @@ Example: “The Student Record System is a database-driven web application that 
 > Replace bracketed placeholders (e.g., `[PRIMARY ENTITY TABLE]`) with your actual table/entity names.
 
 ---
-
-## Database Structure
-
-The application uses an **SQLite** database file (e.g., `users.db`) located within the project directory.
-
-Example structure (customize to match your actual schema):
-
-- **Table 1: `users`**
-  - `id` (INTEGER, PRIMARY KEY, AUTOINCREMENT)  
-  - `username` (TEXT, UNIQUE, NOT NULL)  
-  - `email` (TEXT, UNIQUE, NOT NULL)  
-  - `password_hash` (TEXT, NOT NULL)  
-  - `created_at` (TEXT / DATETIME)
-
-- **Table 2: `[PRIMARY ENTITY TABLE, e.g., students]`**
-  - `id` (INTEGER, PRIMARY KEY, AUTOINCREMENT)  
-  - `[field1]` (e.g., `name` – TEXT, NOT NULL)  
-  - `[field2]` (e.g., `course` / `category` – TEXT)  
-  - `[field3]` (e.g., `status` / `grade` – TEXT/INTEGER)  
-  - `user_id` (INTEGER, FOREIGN KEY REFERENCES `users(id)`)  
-
-Additional related tables can be added as needed (e.g., `courses`, `transactions`, `logs`).
-
----
-
 ## Instructions to Run the Project Locally
 
 ### 1. Download or Clone the Repository
