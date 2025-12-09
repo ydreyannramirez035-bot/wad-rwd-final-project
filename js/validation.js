@@ -65,19 +65,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function checkUsername() {
         const value = usernameInput.value.trim();
+        
         if (value.length > 0) {
             usernameInput.classList.remove('is-invalid');
             usernameInput.classList.add('is-valid');
         } else {
             usernameInput.classList.remove('is-valid');
-            usernameInput.classList.add('is-invalid');
+            usernameInput.classList.remove('is-invalid');
         }
     }
 
     function checkEmail() {
         const value = emailInput.value.trim();
         const emailRules = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (emailRules.test(value)) {
+
+        if (value.length === 0) {
+            emailInput.classList.remove('is-valid');
+            emailInput.classList.remove('is-invalid');
+        } else if (emailRules.test(value)) {
             emailInput.classList.remove('is-invalid');
             emailInput.classList.add('is-valid');
         } else {
