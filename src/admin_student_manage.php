@@ -19,12 +19,7 @@ $user_id = $user['id'];
 $notif_data = notif('admin', true); ;
 $unread_count = $notif_data['unread_count'];
 $notifications = $notif_data['notifications'];
-$highlight_stmt = $db->prepare("
-    SELECT COUNT(*) FROM notifications 
-    WHERE is_read = 0
-      AND (message LIKE '%bio%' OR message LIKE '%phone%')
-");
-$highlight_count = $highlight_stmt->execute()->fetchArray()[0];
+$highlight_count = $notif_data['highlight_count'];
 
 define('COURSE_BSIS', 1);
 define('COURSE_ACT', 2);

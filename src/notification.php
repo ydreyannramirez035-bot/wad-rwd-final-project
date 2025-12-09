@@ -3,7 +3,6 @@ require_once __DIR__ ."/db.php";
 
 function notif($role = null, $handle_actions = true) {
     if (!isset($_SESSION["user"])) {
-        // Redirect or handle unauthenticated state gracefully if needed
         return ['unread_count' => 0, 'notifications' => []];
     }
 
@@ -13,7 +12,6 @@ function notif($role = null, $handle_actions = true) {
     $db = get_db();
 
     if ($role === 'admin') {
-        // 1. Check Table Columns
         $cols = $db->query("PRAGMA table_info(users)");
         $hasCol = false;
         while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
@@ -26,7 +24,6 @@ function notif($role = null, $handle_actions = true) {
             $db->exec("ALTER TABLE users ADD COLUMN last_notification_check DATETIME DEFAULT '1970-01-01 00:00:00'");
         }
 
-        // 2. Handle Badge Clear (AJAX)
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
             $db->exec("UPDATE users SET last_notification_check = datetime('now', 'localtime') WHERE id = $user_id");
             header('Content-Type: application/json');
@@ -34,14 +31,12 @@ function notif($role = null, $handle_actions = true) {
             exit;
         }
 
-        // 3. System Activity Log
         $current_db_val = $db->querySingle("SELECT last_activity FROM admin_system_log WHERE id = 1");
         $current_time = time();
         if (!is_numeric($current_db_val) || ($current_db_val > $current_time + 60)) {
             $db->exec("UPDATE admin_system_log SET last_activity = strftime('%s', 'now') WHERE id = 1");
         }
 
-        // 4. Handle Actions
         if ($handle_actions) {
             if (isset($_GET['action']) && $_GET['action'] === 'clear_notifications') {
                 $db->exec("UPDATE notifications SET is_read = 1 WHERE is_read = 0 AND (message LIKE '%bio%' OR message LIKE '%phone%')");
@@ -56,11 +51,9 @@ function notif($role = null, $handle_actions = true) {
             }
         }
 
-        // 5. Fetch Data
         $last_check_row = $db->querySingle("SELECT last_notification_check FROM users WHERE id = $user_id", true);
         $last_click = ($last_check_row && $last_check_row['last_notification_check']) ? $last_check_row['last_notification_check'] : '1970-01-01 00:00:00';
 
-        // Count unread messages created AFTER the last click (For Red Badge)
         $stmt_count = $db->prepare("
             SELECT COUNT(*) FROM notifications 
             WHERE is_read = 0 
@@ -70,8 +63,6 @@ function notif($role = null, $handle_actions = true) {
         $stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
         $unread_count = $stmt_count->execute()->fetchArray()[0];
 
-        // Highlight count: Count ALL unread messages (For 'Mark Read' button)
-        // This ensures the button stays visible even if the red badge is gone
         $stmt_highlight = $db->prepare("
             SELECT COUNT(*) FROM notifications 
             WHERE is_read = 0 
@@ -79,7 +70,6 @@ function notif($role = null, $handle_actions = true) {
         ");
         $highlight_count = $stmt_highlight->execute()->fetchArray()[0];
 
-        // Get the list of notifications
         $notif_result = $db->query("
             SELECT n.*, s.first_name, s.last_name 
             FROM notifications n 
@@ -91,12 +81,10 @@ function notif($role = null, $handle_actions = true) {
     } 
     
     elseif ($role === 'student') {
-        // 1. Get Student ID
         $student = $db->querySingle("SELECT id FROM students WHERE user_id = $user_id", true);
-        if (!$student) return ['unread_count' => 0, 'notifications' => []]; // Safety check
+        if (!$student) return ['unread_count' => 0, 'notifications' => []];
         $student_id = $student['id'];
 
-        // 2. Check Table Columns
         $cols = $db->query("PRAGMA table_info(students)");
         $hasCol = false;
         while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
@@ -109,7 +97,6 @@ function notif($role = null, $handle_actions = true) {
             $db->exec("ALTER TABLE students ADD COLUMN last_notification_check DATETIME DEFAULT '1970-01-01 00:00:00'");
         }
 
-        // 3. Handle Badge Clear (AJAX)
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
             $db->exec("UPDATE students SET last_notification_check = datetime('now', 'localtime') WHERE id = $student_id");
             header('Content-Type: application/json');
@@ -117,7 +104,6 @@ function notif($role = null, $handle_actions = true) {
             exit;
         }
 
-        // 4. Handle Actions
         if ($handle_actions) {
             if (isset($_GET['action']) && $_GET['action'] === 'clear_notifications') {
                 $db->exec("UPDATE notifications SET is_read = 1 WHERE student_id = $student_id AND is_read = 0");
@@ -132,7 +118,6 @@ function notif($role = null, $handle_actions = true) {
             }
         }
 
-        // 5. Fetch Data
         $last_check_row = $db->querySingle("SELECT last_notification_check FROM students WHERE id = $student_id", true);
         $last_click = ($last_check_row && $last_check_row['last_notification_check']) ? $last_check_row['last_notification_check'] : '1970-01-01 00:00:00';
 
@@ -147,7 +132,6 @@ function notif($role = null, $handle_actions = true) {
         $stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
         $unread_count = $stmt_count->execute()->fetchArray()[0];
 
-        // Highlight count for 'Mark Read' button logic
         $highlight_stmt = $db->prepare("
             SELECT COUNT(*) FROM notifications 
             WHERE student_id = :sid 
@@ -157,7 +141,6 @@ function notif($role = null, $handle_actions = true) {
         $highlight_stmt->bindValue(':sid', $student_id, SQLITE3_INTEGER);
         $highlight_count = $highlight_stmt->execute()->fetchArray()[0];
 
-        // Fetch the filtered list
         $notif_sql = "
             SELECT * FROM notifications 
             WHERE student_id = $student_id
