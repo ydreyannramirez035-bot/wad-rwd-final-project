@@ -425,7 +425,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
 
         <div class="bg-white rounded-4 shadow-sm border p-4">
             <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
-                <i class="fa-solid fa-user-graduate text-brand-blue"></i>
+                <i class="fa-solid fa-user-graduate text-brand-blue me-2"></i>
                 <span id="header_student_title"><?php echo $student_title; ?></span> List
             </h5>
             

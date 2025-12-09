@@ -1,5 +1,3 @@
-/* reuse your existing dashboard styles, add these new ones */
-
 :root {
     --brand-blue: #3b66d1;
     --brand-dark: #0f1724;
@@ -11,7 +9,7 @@ body {
     background-color: #f8f9fa;
 }
 
-/* Stats Cards (Existing) */
+/* Stats Cards */
 .stats-card {
     background: white;
     border-radius: 1rem;
@@ -43,7 +41,7 @@ body {
     color: #9ca3af;
 }
 
-/* --- NEW SCHEDULE CARD STYLES --- */
+/* --- SCHEDULE CARD STYLES --- */
 
 .schedule-list {
     display: flex;
@@ -51,9 +49,10 @@ body {
     gap: 1rem;
 }
 
+/* Desktop: Horizontal Layout */
 .schedule-card {
     display: flex;
-    align-items: center;
+    align-items: center; /* Vertically center items */
     background-color: #f9faff; 
     border-radius: 12px;
     padding: 1.5rem;
@@ -93,7 +92,7 @@ body {
 .subject-name {
     font-weight: 700;
     font-size: 1.1rem;
-    color: var(--brand-dark);
+    color: var(--brand-blue); /* Updated to Blue to match screenshot */
     margin-bottom: 0.2rem;
     line-height: 1.2;
 }
@@ -104,7 +103,7 @@ body {
     font-weight: 500;
 }
 
-/* Teacher Info */
+/* Teacher Info: Right aligned on Desktop */
 .teacher-col {
     display: flex;
     align-items: center;
@@ -124,40 +123,51 @@ body {
 .text-brand-blue { color: var(--brand-blue) !important; }
 .bg-brand-blue { background-color: var(--brand-blue) !important; }
 
-/* --- MOBILE OPTIMIZATION --- */
-@media (max-width: 576px) {
+/* --- MOBILE & TABLET OPTIMIZATION (Updated) --- */
+/* Trigger this layout on screens smaller than 768px (Tablets & Mobile) */
+@media (max-width: 768px) {
+    
     .schedule-card {
-        flex-wrap: wrap; 
+        flex-wrap: wrap; /* Allow items to drop to next line */
         padding: 1rem; 
-        align-items: flex-start;
+        align-items: flex-start; /* Align top */
     }
 
     .time-col {
-        min-width: 60px;
-        font-size: 1rem;
+        min-width: 50px; /* Fixed width to prevent squishing */
+        font-size: 0.98rem;
         margin-top: 2px;
     }
 
     .accent-bar {
-        height: 35px;
+        height: 35px; /* Adjusted height for mobile proportions */
         margin-right: 12px;
         margin-top: 2px;
     }
 
     .subject-name {
-        font-size: 1rem; 
+        font-size: 0.98rem; 
     }
-    
     .room-badge {
         font-size: 0.85rem;
     }
 
+    /* 6. Fix the Teacher Position */
+    /* This moves the teacher name UP, under the subject, aligned correctly */
     .teacher-col {
         width: 100%;
         justify-content: flex-start;
-        margin-top: 0.25rem;
-        /* Aligned under subject text: 60px time + 6px bar + 12px margin = 78px */
+        margin-top: 0.25rem; /* Very small gap */
+        
+        /* Calculation for alignment: 
+           60px (time width) + 6px (bar width) + 12px (bar margin) = ~78px 
+        */
         padding-left: 78px; 
+        
+        font-size: 0.85rem; /* Smaller font */
+    }
+    
+    .teacher-col i {
         font-size: 0.85rem;
     }
 }

@@ -343,7 +343,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 <div class="col-lg-6 order-lg-2">
                     <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
-                        <img class="img-fluid" src="img/student.png" width="600" height="400" alt="admin">
+                        <img class="img-fluid rounded-4" src="img/student.png" width="800" height="400" alt="admin">
                     </div>
                 </div>
             </div>
