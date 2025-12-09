@@ -34,7 +34,7 @@ The Student Schedule System is a database-driven web application that allows adm
 
 - **Database-Driven Functionality**
   - SQLite database with at least **two related tables**  
-    - Example: `users` table and `[PRIMARY ENTITY TABLE, e.g., students, products, or tasks]`  
+    - Example: `users` table and `[PRIMARY ENTITY TABLE, e.g., students, schedules, or notification]`  
     - Proper use of primary keys and foreign keys for relationships
 
 - **CRUD Operations**
