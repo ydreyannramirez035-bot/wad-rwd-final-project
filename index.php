@@ -17,7 +17,7 @@ if (isset($_GET["registered"])) {
     $openLoginModal = true;
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if (isset($_SERVER["REQUEST_METHOD"]) && $_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (isset($_POST['action_type']) && $_POST['action_type'] === 'login') {
 
