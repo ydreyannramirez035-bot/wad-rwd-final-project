@@ -1,7 +1,6 @@
-# [PROJECT NAME: e.g., Student Record System]
+# ClassSched
 
-[INSERT A 1–2 SENTENCE DESCRIPTION OF WHAT THE APP DOES.  
-Example: “The Student Record System is a database-driven web application that allows administrators to manage student profiles, course enrollments, and academic records through a secure, user-friendly interface.”]
+The Student Record System is a database-driven web application that allows administrators to manage student profiles, course enrollments, and academic records through a secure, user-friendly interface
 
 ---
 
