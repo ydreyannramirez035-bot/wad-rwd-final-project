@@ -16,12 +16,14 @@ $db = get_db();
 
 $user = $_SESSION["user"];
 $user_id = $user['id'];
-$notif_data = notif('admin', true); ;
-$unread_count = $notif_data['unread_count'];
-$notifications = $notif_data['notifications'];
-$highlight_count = $notif_data['highlight_count'];
 
-// Course Constants
+if (!isset($_GET['ajax'])) {
+    $notif_data = notif('admin', true);
+    $unread_count = $notif_data['unread_count'];
+    $notifications = $notif_data['notifications'];
+    $highlight_count = $notif_data['highlight_count'];
+}
+
 if (!defined('COURSE_ALL')) define('COURSE_ALL', 0);
 if (!defined('COURSE_BSIS')) define('COURSE_BSIS', 1);
 if (!defined('COURSE_ACT')) define('COURSE_ACT', 2);
@@ -43,7 +45,6 @@ switch ($selected_course) {
         break;
 }
 
-// Fetch Stats
 if ($selected_course === COURSE_ALL) {
     $student_enrolled = $db->querySingle("SELECT COUNT(id) FROM students");
     $classes_count = $db->querySingle("SELECT COUNT(id) FROM schedules");
@@ -56,7 +57,6 @@ if ($selected_course === COURSE_ALL) {
     $rooms_count = $db->querySingle("SELECT COUNT(DISTINCT room) FROM schedules WHERE room IS NOT NULL AND room != '' AND course_id = $selected_course");
 }
 
-// Calculate Time Diff
 $last_update_text = "Just now";
 $last_activity_row = $db->querySingle("SELECT last_activity FROM admin_system_log WHERE id = 1", true);
 
@@ -86,7 +86,6 @@ if ($last_activity_row) {
     }
 }
 
-// Fetch Schedules
 $sql_sched = "
     SELECT 
         sch.*, 
@@ -111,7 +110,6 @@ if ($selected_course !== COURSE_ALL) {
 }
 $sched_result = $stmt->execute();
 
-// Fetch Students
 $sql_students = "SELECT * FROM students";
 if ($selected_course !== COURSE_ALL) {
     $sql_students .= " WHERE course_id = :course_id";
@@ -124,6 +122,69 @@ if ($selected_course !== COURSE_ALL) {
 }
 
 $students_result = $stmt_students->execute();
+
+if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
+    
+    ob_start();
+    while ($row = $sched_result->fetchArray(SQLITE3_ASSOC)) {
+        ?>
+        <tr>
+            <td class="fw-medium text-secondary"><?php echo htmlspecialchars($row['day'] ?? '--'); ?></td>
+            <td class="fw-medium text-dark"><?php echo htmlspecialchars($row['subject_name_display'] ?? 'Unknown Subject'); ?></td>
+            <td class="text-secondary"><?php echo htmlspecialchars($row['teacher_name_display'] ?? 'Unknown Teacher'); ?></td>
+            <td><span class="badge bg-light text-dark border"><?php echo htmlspecialchars($row['room'] ?? 'TBA'); ?></span></td>
+            <td class="text-secondary">
+                <?php echo !empty($row['time_start']) ? date("h:i A", strtotime($row['time_start'])) : '--:--'; ?>
+            </td>
+            <td class="text-secondary">
+                <?php echo !empty($row['time_end']) ? date("h:i A", strtotime($row['time_end'])) : '--:--'; ?>
+            </td>
+        </tr>
+        <?php
+    }
+    $sched_html = ob_get_clean();
+    if (empty($sched_html)) {
+        $sched_html = '<tr><td colspan="6" class="text-center py-4 text-muted">No schedules found for this course.</td></tr>';
+    }
+
+    ob_start();
+    while ($student = $students_result->fetchArray(SQLITE3_ASSOC)) {
+        ?>
+        <tr>
+            <td class="fw-medium font-monospace text-primary"><?php echo htmlspecialchars($student['student_number'] ?? '--'); ?></td>
+            <td class="fw-medium text-dark"><?php echo htmlspecialchars($student['last_name'] ?? '--'); ?></td>
+            <td><?php echo htmlspecialchars($student['first_name'] ?? '--'); ?></td>
+            <td class="text-secondary"><?php echo htmlspecialchars($student['middle_name'] ?? '--'); ?></td>
+            <td class="text-secondary"><?php echo htmlspecialchars($student['age'] ?? '--'); ?></td>
+            <td class="text-secondary"><?php echo htmlspecialchars($student['year_level'] ?? '--'); ?></td>
+        </tr>
+        <?php
+    }
+    $student_html = ob_get_clean();
+    if (empty($student_html)) {
+        $student_html = '<tr><td colspan="6" class="text-center py-4 text-muted">No students found.</td></tr>';
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode([
+        'stats' => [
+            'students' => $student_enrolled,
+            'classes' => $classes_count,
+            'teachers' => $teachers_count,
+            'rooms' => $rooms_count
+        ],
+        'titles' => [
+            'course' => $course_name,
+            'student_title' => $student_title
+        ],
+        'html' => [
+            'schedule' => $sched_html,
+            'students' => $student_html
+        ],
+        'last_update' => $last_update_text
+    ]);
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -133,20 +194,15 @@ $students_result = $stmt_students->execute();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClassSched | Dashboard</title>
     <link rel="icon" href="../img/logo.png" type="image/png">
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="../styles/admin_dashboard.css">
     <link rel="stylesheet" href="../styles/admin.css">
     <link rel="stylesheet" href="../styles/notification.css">
 </head>
 
 <body class="d-flex flex-column min-vh-100 position-relative">
-    <!-- NAVBAR -->
     <nav class="navbar navbar-expand-sm sticky-top">
         <div class="container-fluid px-4">
 
@@ -246,10 +302,8 @@ $students_result = $stmt_students->execute();
         </div>
     </nav>
 
-    <!-- MAIN CONTENT -->
     <div class="container px-4 py-5">
         
-        <!-- Header Section -->
         <div class="row align-items-end mb-5">
             <div class="col-md-6">
                 <h1 class="fw-bold text-dark mb-4">Hi, <?php echo htmlspecialchars($user["username"]); ?>!</h1>
@@ -257,32 +311,28 @@ $students_result = $stmt_students->execute();
             </div>
             <div class="col-md-6 text-md-end mt-3 mt-md-0">
                 <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill fw-normal">
-                    <i class="fa-solid fa-rotate-right me-1"></i> Last update: <strong><?php echo $last_update_text; ?></strong>
+                    <i class="fa-solid fa-rotate-right me-1"></i> Last update: <strong id="last_update_display"><?php echo $last_update_text; ?></strong>
                 </span>
             </div>
         </div>
 
-        <!-- Filter -->
         <div class="row mb-4">
             <div class="col-md-4">
-                <form action="" method="GET">
-                    <select name="course_id" class="form-select bg-light border-0" style="cursor: pointer;" onchange="this.form.submit()">
-                        <option value="<?php echo COURSE_ALL; ?>" <?php if($selected_course == COURSE_ALL) echo 'selected'; ?>>All Courses</option>
-                        <option value="<?php echo COURSE_BSIS; ?>" <?php if($selected_course == COURSE_BSIS) echo 'selected'; ?>>BSIS</option>
-                        <option value="<?php echo COURSE_ACT; ?>" <?php if($selected_course == COURSE_ACT) echo 'selected'; ?>>ACT</option>
-                    </select>
-                </form>
+                <select id="course_select" class="form-select bg-light border-0" style="cursor: pointer;" onchange="fetchDashboardData(this.value)">
+                    <option value="<?php echo COURSE_ALL; ?>" <?php if($selected_course == COURSE_ALL) echo 'selected'; ?>>All Courses</option>
+                    <option value="<?php echo COURSE_BSIS; ?>" <?php if($selected_course == COURSE_BSIS) echo 'selected'; ?>>BSIS</option>
+                    <option value="<?php echo COURSE_ACT; ?>" <?php if($selected_course == COURSE_ACT) echo 'selected'; ?>>ACT</option>
+                </select>
             </div>
         </div>
 
-        <!-- Stats Cards -->
         <div class="row g-4 mb-5">
             <div class="col-md-3">
                 <div class="stats-card">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <div class="stats-label">Students</div>
-                            <div class="stats-number"><?php echo $student_enrolled; ?></div>
+                            <div class="stats-number" id="stat_students"><?php echo $student_enrolled; ?></div>
                             <div class="stats-sub">Active / Enrolled</div>
                         </div>
                         <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3">
@@ -296,7 +346,7 @@ $students_result = $stmt_students->execute();
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <div class="stats-label">Classes</div>
-                            <div class="stats-number"><?php echo $classes_count; ?></div>
+                            <div class="stats-number" id="stat_classes"><?php echo $classes_count; ?></div>
                             <div class="stats-sub">Total entries</div>
                         </div>
                         <div class="rounded-circle bg-info bg-opacity-10 text-info p-3">
@@ -310,7 +360,7 @@ $students_result = $stmt_students->execute();
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <div class="stats-label">Teachers</div>
-                            <div class="stats-number"><?php echo $teachers_count; ?></div>
+                            <div class="stats-number" id="stat_teachers"><?php echo $teachers_count; ?></div>
                             <div class="stats-sub">Assigned</div>
                         </div>
                         <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3">
@@ -324,7 +374,7 @@ $students_result = $stmt_students->execute();
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <div class="stats-label">Rooms</div>
-                            <div class="stats-number"><?php echo $rooms_count; ?></div>
+                            <div class="stats-number" id="stat_rooms"><?php echo $rooms_count; ?></div>
                             <div class="stats-sub">Currently used</div>
                         </div>
                         <div class="rounded-circle bg-success bg-opacity-10 text-success p-3">
@@ -335,11 +385,10 @@ $students_result = $stmt_students->execute();
             </div>
         </div>
 
-        <!-- Schedule Section -->
         <div class="bg-white rounded-4 shadow-sm border p-4 mb-5">
             <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
                 <i class="fa-regular fa-calendar text-brand-blue"></i>
-                <?php echo $course_name; ?> Schedule
+                <span id="header_course_name"><?php echo $course_name; ?></span> Schedule
             </h5>
             
             <div class="table-responsive">
@@ -354,7 +403,7 @@ $students_result = $stmt_students->execute();
                             <th>Time End</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="schedule_table_body">
                         <?php while ($row = $sched_result->fetchArray(SQLITE3_ASSOC)): ?>
                         <tr>
                             <td class="fw-medium text-secondary"><?php echo htmlspecialchars($row['day'] ?? '--'); ?></td>
@@ -374,11 +423,10 @@ $students_result = $stmt_students->execute();
             </div>
         </div>
 
-        <!-- Students Section -->
         <div class="bg-white rounded-4 shadow-sm border p-4">
             <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
                 <i class="fa-solid fa-user-graduate text-brand-blue"></i>
-                <?php echo $student_title; ?> List
+                <span id="header_student_title"><?php echo $student_title; ?></span> List
             </h5>
             
             <div class="table-responsive">
@@ -393,7 +441,7 @@ $students_result = $stmt_students->execute();
                             <th>Year</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="student_table_body">
                         <?php while ($student = $students_result->fetchArray(SQLITE3_ASSOC)): ?>
                         <tr>
                             <td class="fw-medium font-monospace text-primary"><?php echo htmlspecialchars($student['student_number'] ?? '--'); ?></td>
@@ -417,8 +465,8 @@ $students_result = $stmt_students->execute();
         </div>
     </footer>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/notification.js"></script>
+    <script src="../js/load.js"></script>
 </body>
 </html>
