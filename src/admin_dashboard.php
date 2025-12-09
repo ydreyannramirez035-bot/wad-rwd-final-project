@@ -468,5 +468,6 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/notification.js"></script>
     <script src="../js/load.js"></script>
+    <script src="../js/course.js"></script>
 </body>
 </html>
