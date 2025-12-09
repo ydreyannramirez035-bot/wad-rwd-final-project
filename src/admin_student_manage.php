@@ -193,7 +193,6 @@ if ($action === "delete") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body class="d-flex flex-column min-vh-100 position-relative">
-
     <nav class="navbar navbar-expand-sm sticky-top">
         <div class="container-fluid px-4">
 
@@ -281,7 +280,7 @@ if ($action === "delete") {
                 </div>
                 <div class="dropdown">
                     <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        Admin • <?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
+                        <span class="admin-text">Admin • </span><?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($user["username"]); ?></b></small></li>
@@ -292,7 +291,6 @@ if ($action === "delete") {
             </div>
         </div>
     </nav>
-
     <div class="container px-4 py-5">
         <?php if ($action === 'create' || $action === 'edit'): ?>
             <div class="bg-white rounded-4 shadow-sm border p-4">
