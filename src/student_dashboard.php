@@ -6,23 +6,20 @@ if (!isset($_SESSION["user"])) {
     exit;
 }
 
-header("Cache-Control: no-cache, no-store, must-revalidate");
-header("Pragma: no-cache");
-header("Expires: 0");
-
 require_once __DIR__ ."/notification.php";
 require_once __DIR__ ."/db.php";
 
 date_default_timezone_set('Asia/Manila');
 $today = date('l'); 
-
 $user = $_SESSION['user'];
 $db = get_db();
 
-$notif_data = notif('student', true); 
-$unread_count = $notif_data['unread_count'];
-$notifications = $notif_data['notifications'];
-$highlight_count = $notif_data['highlight_count'];
+$selected_day = $_GET['day'] ?? $today; 
+$valid_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+if ($selected_day !== 'All' && !in_array($selected_day, $valid_days)) {
+    $selected_day = $today;
+}
 
 $user_id = $user['id'];
 $student = $db->querySingle("SELECT * FROM students WHERE user_id = $user_id", true);
@@ -37,25 +34,7 @@ if (!$student) {
     ];
 }
 
-$student_id = $student['id'];
 $course_id = (int)$student['course_id'];
-$display_name = $student['first_name'] ?: $user['name'];
-$fullName = trim($student['first_name'] . ' ' . $student['last_name']);
-$f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));
-$l_initial = !empty($student['last_name']) ? strtoupper(substr($student['last_name'], 0, 1)) : '';
-
-if ($l_initial === '') {
-    $initials = strtoupper(substr($user['name'], 0, 2));
-} else {
-    $initials = $f_initial . $l_initial;
-}
-
-$selected_day = $_GET['day'] ?? $today; 
-$valid_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-if ($selected_day !== 'All' && !in_array($selected_day, $valid_days)) {
-    $selected_day = $today;
-}
 
 $sqlSched = "
     SELECT sch.*, sub.subject_name, t.name as teacher_name
@@ -97,6 +76,75 @@ while ($row = $sched_result->fetchArray(SQLITE3_ASSOC)) {
 }
 
 $classes_today_count = count($schedule_data); 
+$stats_label = ($selected_day === 'All') ? 'Total Classes' : 'Classes ' . $selected_day;
+
+if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
+    ob_start();
+    
+    $hasRows = false;
+    foreach ($schedule_data as $row): 
+        $hasRows = true;
+    ?>
+        <tr>
+            <td class="text-muted fw-semibold"><?php echo htmlspecialchars($row['day']); ?></td>
+            <td class="fw-semibold text-primary"><?php echo htmlspecialchars($row['subject_name']); ?></td>
+            <td><?php echo htmlspecialchars($row['teacher_name']); ?></td>
+            <td><?php echo htmlspecialchars($row['room'] ?? 'TBA'); ?></td>
+            <td class="text-secondary fw-medium text-nowrap">
+                <?php 
+                    $start = $row['time_start'] ? date("h:i A", strtotime($row['time_start'])) : '--';
+                    $end = $row['time_end'] ? date("h:i A", strtotime($row['time_end'])) : '--';
+                    echo "$start - $end";
+                ?>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+
+    <?php if (!$hasRows): ?>
+        <tr>
+            <td colspan="5" class="text-center py-5 text-muted">
+                <i class="fa-regular fa-calendar-xmark fs-1 mb-3 text-secondary opacity-50"></i>
+                <p class="mb-0">
+                    <?php if ($selected_day === 'All'): ?>
+                        No classes scheduled for this week.
+                    <?php else: ?>
+                        No classes scheduled for <?php echo htmlspecialchars($selected_day); ?>.
+                    <?php endif; ?>
+                </p>
+            </td>
+        </tr>
+    <?php endif;
+
+    $table_html = ob_get_clean();
+
+    header('Content-Type: application/json');
+    echo json_encode([
+        'html' => $table_html,
+        'count' => $classes_today_count,
+        'label' => $stats_label
+    ]);
+    exit; 
+}
+
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+$notif_data = notif('student', true); 
+$unread_count = $notif_data['unread_count'];
+$notifications = $notif_data['notifications'];
+$highlight_count = $notif_data['highlight_count'];
+
+$display_name = $student['first_name'] ?: $user['name'];
+$fullName = trim($student['first_name'] . ' ' . $student['last_name']);
+$f_initial = strtoupper(substr($student['first_name'] ?: $user['name'], 0, 1));
+$l_initial = !empty($student['last_name']) ? strtoupper(substr($student['last_name'], 0, 1)) : '';
+
+if ($l_initial === '') {
+    $initials = strtoupper(substr($user['name'], 0, 2));
+} else {
+    $initials = $f_initial . $l_initial;
+}
 
 $sqlSubs = "SELECT COUNT(DISTINCT subject_id) FROM schedules WHERE course_id = :cid";
 $stmtSub = $db->prepare($sqlSubs);
@@ -239,10 +287,10 @@ $subjects_count = $stmtSub->execute()->fetchArray()[0];
                 <div class="stats-card">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <div class="stats-label">
-                                <?php echo ($selected_day === 'All') ? 'Total Classes' : 'Classes ' . $selected_day; ?>
+                            <div class="stats-label" id="stats-label">
+                                <?php echo $stats_label; ?>
                             </div>
-                            <div class="stats-number"><?php echo $classes_today_count; ?></div>
+                            <div class="stats-number" id="stats-number"><?php echo $classes_today_count; ?></div>
                             <div class="stats-sub">Scheduled</div>
                         </div>
                         <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3">
@@ -288,8 +336,8 @@ $subjects_count = $stmtSub->execute()->fetchArray()[0];
                     Today's Class Schedule
                 </h5>
                 
-                <form method="GET" action="">
-                    <select name="day" class="form-select bg-light border-0" style="width: auto; cursor: pointer;" onchange="this.form.submit()">
+                <div>
+                    <select id="day-select" class="form-select bg-light border-0" style="width: auto; cursor: pointer;">
                         <option value="All" <?php if($selected_day == 'All') echo 'selected'; ?>>All Days</option>
                         <?php foreach($valid_days as $d): ?>
                             <option value="<?php echo $d; ?>" <?php if($selected_day == $d) echo 'selected'; ?>>
@@ -297,7 +345,7 @@ $subjects_count = $stmtSub->execute()->fetchArray()[0];
                             </option>
                         <?php endforeach; ?>
                     </select>
-                </form>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -311,7 +359,7 @@ $subjects_count = $stmtSub->execute()->fetchArray()[0];
                             <th width="15%" class="text-nowrap">Time</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="schedule-body">
                         <?php 
                         $hasRows = false;
                         foreach ($schedule_data as $row): 
@@ -366,5 +414,6 @@ $subjects_count = $stmtSub->execute()->fetchArray()[0];
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/notification.js"></script>
+    <script src="../js/day.js"></script>
 </body>
 </html>
