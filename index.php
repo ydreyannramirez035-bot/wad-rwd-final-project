@@ -297,7 +297,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 <div class="col-lg-6 order-lg-2">
                     <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
-                        <img class="img-fluid" src="img/admin.png" width="600" height="400" alt="admin">
+                        <img class="img-fluid rounded-4" src="img/admin.png" width="600" height="400" alt="admin">
                     </div>
                 </div>
             </div>
@@ -305,7 +305,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="row g-5 align-items-center mb-5">
                 <div class="col-lg-6 order-2 order-lg-1">
                     <div class="bg-white rounded-4 text-center shadow-sm border animate-fade-up delay-1">
-                        <img class="img-fluid" src="img/schedule.png" width="600" height="400" alt="admin">
+                        <img class="img-fluid rounded-4" src="img/schedule.png" width="600" height="400" alt="admin">
                     </div>
                 </div>
                 <div class="col-lg-6 order-1 order-lg-2">
