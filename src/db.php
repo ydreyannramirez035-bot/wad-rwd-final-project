@@ -80,7 +80,7 @@ function get_db(): SQLite3
         $db->exec("
             INSERT INTO subjects (subject_name) VALUES
             ('The Contemporary World'), ('Christian Teaching 3'), ('Responsive Web Design'), 
-            ('Data Structure and Algorithm'), ('Pagtuturo at Pagtataya sa Pagbasa at Pagsulat'),
+            ('Data Structure and Algorithm'), ('Pagbasa at Pagsulat'),
             ('IS Infra & Network Tech'), ('Path Fit 3'), ('Organization and Management Concepts'), ('Web Application Dev1'),
             ('Life & Works of Rizal');
         ");
