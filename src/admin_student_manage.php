@@ -404,24 +404,31 @@ if ($action === "delete") {
             <div class="bg-white rounded-4 shadow-sm border p-4">
                 
                 <div class="row mb-4 g-2">
-                    <div class="col-3 col-md-3">
+                    <div class="col-5 col-md-3">
                         <select id="filter_course" class="form-select bg-light border-0 text-truncate" onchange="loadTable()" style="cursor:pointer;">
-                            <option value="">All</option> <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
+                            <option value="">All</option> 
+                            <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
                             <option value="<?php echo COURSE_ACT; ?>">ACT</option>
                         </select>
                     </div>
                     
-                    <div class="col-5 col-md-6">
+                    <div class="col-7 col-md-6">
                         <div class="input-group">
-                            <span class="input-group-text bg-light border-0 ps-2 pe-1"><i class="fa-solid fa-search text-secondary small"></i></span>
-                            <input type="text" id="search" class="form-control bg-light border-0 ps-1" placeholder="Search..." onkeyup="loadTable()">
+                            <span class="input-group-text bg-light border-0 ps-2 pe-1">
+                                <i class="fa-solid fa-search text-secondary small"></i>
+                            </span>
+                            <input type="text" id="search" class="form-control bg-light border-0 ps-1" placeholder="Search student..." onkeyup="loadTable()">
                         </div>
                     </div>
                     
-                    <div class="col-4 col-md-3">
-                        <select id="sort_by" class="form-select bg-light border-0 text-truncate" onchange="loadTable()" style="cursor:pointer;">
-                            <option value="last_name">By Last Name</option> <option value="first_name">By First Name</option>
-                        </select>
+                    <div class="col-12 col-md-3">
+                        <div class="input-group">
+                            <select id="sort_by" class="form-select bg-light border-0 ps-1" onchange="loadTable()" style="cursor:pointer;">
+                                <option value="last_name">Sort by last name</option> 
+                                <option value="first_name">Sort by first name</option>
+                                <option value="student_number">Sort by student number</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 

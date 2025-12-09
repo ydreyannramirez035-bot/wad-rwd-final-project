@@ -453,7 +453,7 @@ if ($action === "delete") {
             <div class="bg-white rounded-4 shadow-sm border p-4">
                 
                 <div class="row mb-4 g-2">
-                    <div class="col-3 col-md-3">
+                    <div class="col-5 col-md-3">
                         <select id="filter_course" class="form-select bg-light border-0 text-truncate" onchange="loadTable()" style="cursor: pointer;">
                             <option value="">All</option>
                             <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
@@ -461,19 +461,21 @@ if ($action === "delete") {
                         </select>
                     </div>
                     
-                    <div class="col-5 col-md-6">
+                    <div class="col-7 col-md-6">
                         <div class="input-group">
                             <span class="input-group-text bg-light border-0 ps-2 pe-1"><i class="fa-solid fa-search text-secondary small"></i></span>
                             <input type="text" id="search" class="form-control bg-light border-0 ps-1" placeholder="Search..." onkeyup="loadTable()">
                         </div>
                     </div>
                     
-                    <div class="col-4 col-md-3">
-                        <select id="sort_by" class="form-select bg-light border-0 text-truncate" onchange="loadTable()" style="cursor: pointer;">
-                            <option value="time_start">By Time Start</option>
-                            <option value="time_end">By Time End</option>
-                            <option value="day">By Day</option>
-                        </select>
+                    <div class="col-12 col-md-3">
+                        <div class="input-group">
+                            <select id="sort_by" class="form-select bg-light border-0 ps-1" onchange="loadTable()" style="cursor: pointer;">
+                                <option value="time_start">Sort by time start</option>
+                                <option value="time_end">Sort by time end</option>
+                                <option value="day">Sort by day</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 

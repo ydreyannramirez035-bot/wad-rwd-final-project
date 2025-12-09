@@ -66,8 +66,8 @@
     /* Make input text smaller on mobile so 3 items fit in one row */
     .form-select, .form-control, .input-group-text {
         font-size: 0.85rem;
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
+        padding-left: 2px;
+        padding-right: 2px;
     }
     
     /* Ensure text doesn't wrap awkwardly inside dropdowns */
@@ -75,6 +75,16 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
+    }
+
+    /* Give the second row (Sort) a tiny bit of breathing room */
+    .col-12 {
+        margin-top: 0.5rem;
+    }
+
+    /* Better positioning for the dropdown arrow on mobile */
+    #sort_by {
+        background-position: right 0.75rem center;
     }
     
     /* Adjust table padding for mobile */

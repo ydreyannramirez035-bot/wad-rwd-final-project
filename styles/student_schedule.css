@@ -5,49 +5,94 @@
     --brand-light: #f5f7ff;
 }
 
-body {
-    font-family: 'Poppins', sans-serif;
-    color: var(--brand-dark);
-    background-color: white;
-}
-
-/* Navbar Button for Student */
-/* .btn-student {
-    background-color: #3b66d1;
-    color: white;
-    border-radius: 20px;
-    padding: 8px 20px;
-}
-.btn-student:hover {
-    background-color: #2d52b0;
-    color: white;
-} */
-
 /* Card Styling */
 .bg-white { background-color: #fff !important; }
 .rounded-4 { border-radius: 1rem !important; }
 .shadow-sm { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important; }
 .border { border-color: #f3f4f6 !important; }
 
-/* Table Styling */
-.custom-table thead th {
-    background-color: var(--brand-light);
-    font-weight: 600;
-    border: none;
-    padding: 1rem;
-    color: #6b7280;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
-    white-space: nowrap;
+/* Schedule Container */
+.schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
-.custom-table tbody td {
-    padding: 1rem;
-    border-bottom: 1px solid #f3f4f6;
-    vertical-align: middle;
+
+/* The Individual Class Card */
+.schedule-card {
+    display: flex;
+    align-items: center; /* Center vertically on Desktop */
+    background-color: #f9faff; 
+    border-radius: 12px;
+    padding: 1.5rem; /* Desktop Padding */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.custom-table tr:hover td {
-    background-color: #f9fafb;
+
+.schedule-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    background-color: #fff;
+}
+
+/* 1. Time Column */
+.time-col {
+    min-width: 80px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #4b5563;
+}
+
+/* 2. The Vertical Colored Bar */
+.accent-bar {
+    width: 6px;
+    height: 50px; /* Desktop Height */
+    border-radius: 10px;
+    margin-right: 1.5rem;
+}
+
+/* 3. Subject & Room Info */
+.subject-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.subject-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--brand-dark);
+    margin-bottom: 0.2rem;
+    line-height: 1.2;
+}
+
+.room-badge {
+    font-size: 0.9rem;
+    color: #7d8da1; 
+    font-weight: 500;
+}
+
+/* 4. Teacher Info */
+.teacher-col {
+    display: flex;
+    align-items: center;
+    color: #7d8da1;
+    font-weight: 500;
+    font-size: 0.95rem;
+    min-width: 150px; 
+    justify-content: flex-end;
+}
+
+.teacher-col i {
+    margin-right: 8px;
+    font-size: 1rem;
+}
+
+/* Empty State */
+.empty-state-icon {
+    font-size: 3rem;
+    color: #dee2e6;
+    margin-bottom: 1rem;
 }
 
 /* Form Input Styling */
@@ -60,10 +105,59 @@ body {
 .text-brand-blue { color: var(--brand-blue) !important; }
 .bg-brand-blue { background-color: var(--brand-blue) !important; }
 
-/* Mobile Tweaks */
+/* --- MOBILE TWEAKS --- */
 @media (max-width: 576px) {
-    .custom-table tbody td, .custom-table thead th {
-        padding: 0.75rem 0.5rem;
-        font-size: 0.9rem;
+    
+    /* 1. Reduce the gap between cards in the list */
+    .schedule-list {
+        gap: 1rem; 
+    }
+
+    /* 2. Make the card tighter */
+    .schedule-card {
+        flex-wrap: wrap; /* Allows teacher to drop down */
+        padding: 1rem;   /* Reduced from 1.5rem */
+        align-items: flex-start; /* Align to top */
+    }
+
+    /* 3. Shrink the Time Column */
+    .time-col {
+        min-width: 60px; /* Reduced width */
+        font-size: 1rem; /* Smaller font */
+        margin-top: 2px; /* Slight alignment fix */
+    }
+
+    /* 4. Shrink the Colored Bar */
+    .accent-bar {
+        height: 35px; /* Shorter bar */
+        margin-right: 12px; /* Closer to text */
+        margin-top: 2px; /* Visual alignment */
+    }
+
+    /* 5. Adjust Subject Font */
+    .subject-name {
+        font-size: 1rem; 
+    }
+    .room-badge {
+        font-size: 0.85rem;
+    }
+
+    /* 6. Fix the Teacher Position */
+    /* This moves the teacher name UP, under the subject, aligned correctly */
+    .teacher-col {
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 0.25rem; /* Very small gap */
+        
+        /* Calculation for alignment: 
+           60px (time width) + 6px (bar width) + 12px (bar margin) = ~78px 
+        */
+        padding-left: 78px; 
+        
+        font-size: 0.85rem; /* Smaller font */
+    }
+    
+    .teacher-col i {
+        font-size: 0.85rem;
     }
 }

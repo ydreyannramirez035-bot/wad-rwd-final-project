@@ -78,41 +78,62 @@ while ($row = $sched_result->fetchArray(SQLITE3_ASSOC)) {
 $classes_today_count = count($schedule_data); 
 $stats_label = ($selected_day === 'All') ? 'Total Classes' : 'Classes ' . $selected_day;
 
+// Define Theme Color
+$themeColor = '#3b66d1'; 
+
 if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     ob_start();
     
     $hasRows = false;
     foreach ($schedule_data as $row): 
         $hasRows = true;
+        $currentColor = $themeColor;
+        $start_time = $row['time_start'] ? date("H:i", strtotime($row['time_start'])) : '--';
+        $end_time   = $row['time_end']   ? date("H:i", strtotime($row['time_end']))   : '';
     ?>
-        <tr>
-            <td class="text-muted fw-semibold"><?php echo htmlspecialchars($row['day']); ?></td>
-            <td class="fw-semibold text-primary"><?php echo htmlspecialchars($row['subject_name']); ?></td>
-            <td><?php echo htmlspecialchars($row['teacher_name']); ?></td>
-            <td><?php echo htmlspecialchars($row['room'] ?? 'TBA'); ?></td>
-            <td class="text-secondary fw-medium text-nowrap">
-                <?php 
-                    $start = $row['time_start'] ? date("h:i A", strtotime($row['time_start'])) : '--';
-                    $end = $row['time_end'] ? date("h:i A", strtotime($row['time_end'])) : '--';
-                    echo "$start - $end";
-                ?>
-            </td>
-        </tr>
+        <div class="schedule-card mb-3 shadow-sm border-0">
+            <div class="time-col">
+                <div><?php echo $start_time; ?></div>
+                <?php if($end_time): ?>
+                    <div style="font-size: 0.8em; color: #9ca3af; font-weight: 500; margin-top: 2px;">
+                        <?php echo $end_time; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+            
+            <div class="accent-bar" style="background-color: <?php echo $currentColor; ?>;"></div>
+            
+            <div class="subject-info">
+                <div class="subject-name" style="color: <?php echo $currentColor; ?>;">
+                    <?php echo htmlspecialchars($row['subject_name']); ?>
+                </div>
+                <div class="room-badge">
+                    <?php if($selected_day === 'All'): ?>
+                        <span class="badge bg-light text-dark border me-1"><?php echo substr($row['day'], 0, 3); ?></span>
+                    <?php endif; ?>
+                    Rm <?php echo htmlspecialchars($row['room'] ?? 'TBA'); ?>
+                </div>
+            </div>
+            
+            <div class="teacher-col">
+                <i class="fa-regular fa-user"></i>
+                <?php echo htmlspecialchars($row['teacher_name']); ?>
+            </div>
+        </div>
+
     <?php endforeach; ?>
 
     <?php if (!$hasRows): ?>
-        <tr>
-            <td colspan="5" class="text-center py-5 text-muted">
-                <i class="fa-regular fa-calendar-xmark fs-1 mb-3 text-secondary opacity-50"></i>
-                <p class="mb-0">
-                    <?php if ($selected_day === 'All'): ?>
-                        No classes scheduled for this week.
-                    <?php else: ?>
-                        No classes scheduled for <?php echo htmlspecialchars($selected_day); ?>.
-                    <?php endif; ?>
-                </p>
-            </td>
-        </tr>
+        <div class="text-center py-5">
+            <i class="fa-regular fa-calendar-xmark empty-state-icon"></i>
+            <p class="text-muted mb-0">
+                <?php if ($selected_day === 'All'): ?>
+                    No classes scheduled for this week.
+                <?php else: ?>
+                    No classes scheduled for <?php echo htmlspecialchars($selected_day); ?>.
+                <?php endif; ?>
+            </p>
+        </div>
     <?php endif;
 
     $table_html = ob_get_clean();
@@ -348,56 +369,62 @@ $subjects_count = $stmtSub->execute()->fetchArray()[0];
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="table custom-table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th width="15%">Day</th>
-                            <th width="30%">Subject</th>
-                            <th width="25%">Teacher</th>
-                            <th width="15%">Room</th>
-                            <th width="15%" class="text-nowrap">Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="schedule-body">
-                        <?php 
-                        $hasRows = false;
-                        foreach ($schedule_data as $row): 
-                            $hasRows = true;
-                        ?>
-                            <tr>
-                                <td class="text-muted fw-semibold"><?php echo htmlspecialchars($row['day']); ?></td>
-                                <td class="fw-semibold text-primary"><?php echo htmlspecialchars($row['subject_name']); ?></td>
-                                <td><?php echo htmlspecialchars($row['teacher_name']); ?></td>
-                                <td><?php echo htmlspecialchars($row['room'] ?? 'TBA'); ?></td>
-                                
-                                <td class="text-secondary fw-medium text-nowrap">
-                                    <?php 
-                                        $start = $row['time_start'] ? date("h:i A", strtotime($row['time_start'])) : '--';
-                                        $end = $row['time_end'] ? date("h:i A", strtotime($row['time_end'])) : '--';
-                                        echo "$start - $end";
-                                    ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
+            <!-- CHANGED: Replaced Table with Card Layout -->
+            <div id="schedule-body" class="schedule-list">
+                <?php 
+                $hasRows = false;
+                foreach ($schedule_data as $row): 
+                    $hasRows = true;
+                    $currentColor = $themeColor;
+                    $start_time = $row['time_start'] ? date("H:i", strtotime($row['time_start'])) : '--';
+                    $end_time   = $row['time_end']   ? date("H:i", strtotime($row['time_end']))   : '';
+                ?>
+                    <div class="schedule-card mb-3 shadow-sm border-0">
+                        <div class="time-col">
+                            <div><?php echo $start_time; ?></div>
+                            <?php if($end_time): ?>
+                                <div style="font-size: 0.8em; color: #9ca3af; font-weight: 500; margin-top: 2px;">
+                                    <?php echo $end_time; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <div class="accent-bar" style="background-color: <?php echo $currentColor; ?>;"></div>
+                        
+                        <div class="subject-info">
+                            <div class="subject-name" style="color: <?php echo $currentColor; ?>;">
+                                <?php echo htmlspecialchars($row['subject_name']); ?>
+                            </div>
+                            <div class="room-badge">
+                                <?php if($selected_day === 'All'): ?>
+                                    <span class="badge bg-light text-dark border me-1"><?php echo substr($row['day'], 0, 3); ?></span>
+                                <?php endif; ?>
+                                Rm <?php echo htmlspecialchars($row['room'] ?? 'TBA'); ?>
+                            </div>
+                        </div>
+                        
+                        <div class="teacher-col">
+                            <i class="fa-regular fa-user"></i>
+                            <?php echo htmlspecialchars($row['teacher_name']); ?>
+                        </div>
+                    </div>
 
-                        <?php if (!$hasRows): ?>
-                            <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
-                                    <i class="fa-regular fa-calendar-xmark fs-1 mb-3 text-secondary opacity-50"></i>
-                                    <p class="mb-0">
-                                        <?php if ($selected_day === 'All'): ?>
-                                            No classes scheduled for this week.
-                                        <?php else: ?>
-                                            No classes scheduled for <?php echo htmlspecialchars($selected_day); ?>.
-                                        <?php endif; ?>
-                                    </p>
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                <?php endforeach; ?>
+
+                <?php if (!$hasRows): ?>
+                    <div class="text-center py-5">
+                        <i class="fa-regular fa-calendar-xmark empty-state-icon"></i>
+                        <p class="text-muted mb-0">
+                            <?php if ($selected_day === 'All'): ?>
+                                No classes scheduled for this week.
+                            <?php else: ?>
+                                No classes scheduled for <?php echo htmlspecialchars($selected_day); ?>.
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                <?php endif; ?>
             </div>
+            <!-- END CHANGED SECTION -->
 
             <div class="text-center mt-4">
                 <a href="student_schedule.php" class="btn btn-outline-primary rounded-pill px-4">View Full Schedule</a>
