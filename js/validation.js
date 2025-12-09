@@ -14,26 +14,57 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordFeedback = document.getElementById('passwordFeedback');
     const confirmFeedback = document.getElementById('confirmFeedback');
 
-    function setSeamless(input, btn) {
-        if (input && btn) {
-            input.style.borderRight = "none";
+    function updateFieldState(input, btn, borderColor) {
+        if (!input || !btn) return;
+
+        if (input.value.length === 0) {
+            btn.style.display = 'none';
             
-            btn.style.borderLeft = "none";
+            input.style.borderRadius = '0.5rem';
+            input.style.borderRight = ''; 
+            input.style.borderColor = borderColor;
+            
+        } else {
+            btn.style.display = 'block';
+            
+            input.style.borderTopRightRadius = '0';
+            input.style.borderBottomRightRadius = '0';
+            input.style.borderRight = 'none';
+            input.style.borderColor = borderColor;
+
+            btn.style.borderTopLeftRadius = '0';
+            btn.style.borderBottomLeftRadius = '0';
+            btn.style.borderLeft = 'none';
+            btn.style.borderColor = borderColor;
+            
             btn.style.backgroundColor = "white";
             btn.style.color = "#6c757d"; 
-            
-            input.style.borderColor = "#dee2e6";
-            btn.style.borderColor = "#dee2e6";
         }
     }
 
-    setSeamless(loginInput, toggleLoginBtn);
-    setSeamless(passwordInput, toggleRegisterPasswordBtn);
-    setSeamless(confirmInput, toggleRegisterConfirmBtn);
+    function setupPasswordToggle(toggleBtnId, inputId, iconId) {
+        const toggleBtn = document.getElementById(toggleBtnId);
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+
+        if (toggleBtn && input && icon) {
+            toggleBtn.addEventListener('click', function() {
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+
+                if (type === 'text') {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                } else {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
+            });
+        }
+    }
 
     function checkUsername() {
         const value = usernameInput.value.trim();
-
         if (value.length > 0) {
             usernameInput.classList.remove('is-invalid');
             usernameInput.classList.add('is-valid');
@@ -46,7 +77,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function checkEmail() {
         const value = emailInput.value.trim();
         const emailRules = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
         if (emailRules.test(value)) {
             emailInput.classList.remove('is-invalid');
             emailInput.classList.add('is-valid');
@@ -60,60 +90,26 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = passwordInput.value;
         const errors = [];
 
-        if (password.length < 12) {
-            errors.push("12+ characters");
-        }
-        if (!/[A-Z]/.test(password)) {
-            errors.push("1 uppercase letter");
-        }
-        if (!/[a-z]/.test(password)) {
-            errors.push("1 lowercase letter");
-        }
-        if (!/[0-9]/.test(password)) {
-            errors.push("1 number");
-        }
+        if (password.length < 12) errors.push("12+ characters");
+        if (!/[A-Z]/.test(password)) errors.push("1 uppercase letter");
+        if (!/[a-z]/.test(password)) errors.push("1 lowercase letter");
+        if (!/[0-9]/.test(password)) errors.push("1 number");
 
         if (password.length > 0) {
             if (errors.length === 0) {
                 passwordInput.classList.remove('is-invalid');
                 passwordInput.classList.add('is-valid');
-                
-                passwordInput.style.borderColor = "#198754";
-                passwordInput.style.borderRight = "none";
-                
-                if(toggleRegisterPasswordBtn) {
-                    toggleRegisterPasswordBtn.style.borderColor = "#198754";
-                    toggleRegisterPasswordBtn.style.borderLeft = "none";
-                    toggleRegisterPasswordBtn.style.backgroundColor = "white";
-                    toggleRegisterPasswordBtn.style.color = "#6c757d";
-                }
+                updateFieldState(passwordInput, toggleRegisterPasswordBtn, "#198754");
                 passwordFeedback.textContent = "";
             } else {
                 passwordInput.classList.remove('is-valid');
                 passwordInput.classList.add('is-invalid');
-                
-                passwordInput.style.borderColor = "#dc3545";
-                passwordInput.style.borderRight = "none";
-                
-                if(toggleRegisterPasswordBtn) {
-                    toggleRegisterPasswordBtn.style.borderColor = "#dc3545";
-                    toggleRegisterPasswordBtn.style.borderLeft = "none";
-                    toggleRegisterPasswordBtn.style.backgroundColor = "white";
-                    toggleRegisterPasswordBtn.style.color = "#6c757d";
-                }
+                updateFieldState(passwordInput, toggleRegisterPasswordBtn, "#dc3545");
                 passwordFeedback.textContent = "Must contain at least " + errors.join(", ");
             }
         } else {
             passwordInput.classList.remove('is-valid', 'is-invalid');
-            passwordInput.style.borderColor = "#dee2e6";
-            passwordInput.style.borderRight = "none"; 
-            
-            if(toggleRegisterPasswordBtn) {
-                toggleRegisterPasswordBtn.style.borderColor = "#dee2e6";
-                toggleRegisterPasswordBtn.style.borderLeft = "none";
-                toggleRegisterPasswordBtn.style.backgroundColor = "white";
-                toggleRegisterPasswordBtn.style.color = "#6c757d";
-            }
+            updateFieldState(passwordInput, toggleRegisterPasswordBtn, "#dee2e6");
             passwordFeedback.textContent = "";
         }
 
@@ -130,84 +126,37 @@ document.addEventListener('DOMContentLoaded', function() {
             if (password === confirm) {
                 confirmInput.classList.remove('is-invalid');
                 confirmInput.classList.add('is-valid');
-                
-                confirmInput.style.borderColor = "#198754";
-                confirmInput.style.borderRight = "none";
-                
-                if(toggleRegisterConfirmBtn) {
-                    toggleRegisterConfirmBtn.style.borderColor = "#198754";
-                    toggleRegisterConfirmBtn.style.borderLeft = "none";
-                    toggleRegisterConfirmBtn.style.backgroundColor = "white";
-                    toggleRegisterConfirmBtn.style.color = "#6c757d";
-                }
+                updateFieldState(confirmInput, toggleRegisterConfirmBtn, "#198754");
                 confirmFeedback.textContent = "";
             } else {
                 confirmInput.classList.remove('is-valid');
                 confirmInput.classList.add('is-invalid');
-                
-                confirmInput.style.borderColor = "#dc3545";
-                confirmInput.style.borderRight = "none";
-                
-                if(toggleRegisterConfirmBtn) {
-                    toggleRegisterConfirmBtn.style.borderColor = "#dc3545";
-                    toggleRegisterConfirmBtn.style.borderLeft = "none";
-                    toggleRegisterConfirmBtn.style.backgroundColor = "white";
-                    toggleRegisterConfirmBtn.style.color = "#6c757d";
-                }
+                updateFieldState(confirmInput, toggleRegisterConfirmBtn, "#dc3545");
                 confirmFeedback.textContent = "Passwords do not match";
             }
         } else {
             confirmInput.classList.remove('is-valid', 'is-invalid');
-            
-            confirmInput.style.borderColor = "#dee2e6";
-            confirmInput.style.borderRight = "none";
-            
-            if(toggleRegisterConfirmBtn) {
-                toggleRegisterConfirmBtn.style.borderColor = "#dee2e6";
-                toggleRegisterConfirmBtn.style.borderLeft = "none";
-                toggleRegisterConfirmBtn.style.backgroundColor = "white";
-                toggleRegisterConfirmBtn.style.color = "#6c757d";
-            }
+            updateFieldState(confirmInput, toggleRegisterConfirmBtn, "#dee2e6");
             confirmFeedback.textContent = "";
         }
     }
 
-    function setupPasswordToggle(toggleBtnId, inputId, iconId) {
-        const toggleBtn = document.getElementById(toggleBtnId);
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
+    function checkLoginPassword() {
+        updateFieldState(loginInput, toggleLoginBtn, "#dee2e6");
+    }
 
-        if (toggleBtn && input && icon) {
-            toggleBtn.addEventListener('click', function() {
-                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-                input.setAttribute('type', type);
+    if (usernameInput) usernameInput.addEventListener('input', checkUsername);
+    if (emailInput) emailInput.addEventListener('input', checkEmail);
+    if (passwordInput) passwordInput.addEventListener('input', checkPassword);
+    if (confirmInput) confirmInput.addEventListener('input', checkConfirmPassword);
+    
+    if (loginInput) {
+        loginInput.addEventListener('input', checkLoginPassword);
+        checkLoginPassword();
+    }
 
-                if (type === 'text') {
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
-                } else {
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
-                }
-            });
-        }
-    }
-    
-    if (usernameInput) {
-        usernameInput.addEventListener('input', checkUsername);
-    }
-    
-    if (emailInput) {
-        emailInput.addEventListener('input', checkEmail);
-    }
-    
-    if (passwordInput) {
-        passwordInput.addEventListener('input', checkPassword);
-    }
-    
-    if (confirmInput) {
-        confirmInput.addEventListener('input', checkConfirmPassword);
-    }
+    if (passwordInput) checkPassword();
+    if (confirmInput) checkConfirmPassword();
 
     setupPasswordToggle('toggleLoginPassword', 'loginPassword', 'iconLoginPassword');
     setupPasswordToggle('toggleRegisterPassword', 'registerPassword', 'iconRegisterPassword');

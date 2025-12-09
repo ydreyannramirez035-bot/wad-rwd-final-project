@@ -399,7 +399,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     style="border-radius: 0.5rem 0 0 0.5rem; padding: 0.75rem;">
                                 <button class="btn btn-outline-secondary" type="button" id="toggleLoginPassword"
                                     style="border-radius: 0 0.5rem 0.5rem 0; border-color: #dee2e6;">
-                                    <i class="fa-solid fa-eye" id="iconLoginPassword"></i>
+                                    <i class="fa-solid fa-eye-slash" id="iconLoginPassword"></i>
                                 </button>
                             </div>
                         </div>
@@ -451,7 +451,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                         style="border-radius: 0.5rem 0 0 0.5rem;">
                                     <button class="btn btn-outline-secondary" type="button" id="toggleRegisterPassword"
                                         style="border-radius: 0 0.5rem 0.5rem 0; border-color: #dee2e6;">
-                                        <i class="fa-solid fa-eye" id="iconRegisterPassword"></i>
+                                        <i class="fa-solid fa-eye-slash" id="iconRegisterPassword"></i>
                                     </button>
                                 </div>
                                 <div id="passwordFeedback" class="form-text text-danger small fw-bold mt-1"></div>
@@ -465,7 +465,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     <button class="btn btn-outline-secondary" type="button"
                                         id="toggleRegisterConfirmPassword"
                                         style="border-radius: 0 0.5rem 0.5rem 0; border-color: #dee2e6;">
-                                        <i class="fa-solid fa-eye" id="iconRegisterConfirmPassword"></i>
+                                        <i class="fa-solid fa-eye-slash" id="iconRegisterConfirmPassword"></i>
                                     </button>
                                 </div>
                                 <div id="confirmFeedback" class="form-text text-danger small fw-bold mt-1"></div>
