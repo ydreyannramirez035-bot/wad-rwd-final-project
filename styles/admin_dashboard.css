@@ -56,10 +56,3 @@
 .custom-table tr:hover td {
     background-color: #f9fafb;
 }
-
-/* Mobile Responsiveness Tweaks */
-@media (max-width: 576px) {
-    .text-secondary {
-        display: none;
-    }
-}
