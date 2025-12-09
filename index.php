@@ -365,6 +365,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </footer>
 
+    <!-- Login Modal -->
     <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content shadow-lg p-3" style="border-radius: 1rem; border: none;">
@@ -392,8 +393,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                         <div class="mb-4">
                             <label class="form-label small fw-medium text-dark">Password</label>
-                            <input type="password" name="password" class="form-control" placeholder="••••••••" required
-                                style="border-radius: 0.5rem; padding: 0.75rem;">
+                            <div class="input-group">
+                                <input type="password" name="password" id="loginPassword" class="form-control"
+                                    placeholder="••••••••" required
+                                    style="border-radius: 0.5rem 0 0 0.5rem; padding: 0.75rem;">
+                                <button class="btn btn-outline-secondary" type="button" id="toggleLoginPassword"
+                                    style="border-radius: 0 0.5rem 0.5rem 0; border-color: #dee2e6;">
+                                    <i class="fa-solid fa-eye-slash" id="iconLoginPassword"></i>
+                                </button>
+                            </div>
                         </div>
                         <button type="submit" class="btn w-100 fw-bold text-white"
                             style="background-color: #3b66d1; border-radius: 50px; padding: 10px;">Sign In</button>
@@ -407,6 +415,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 
+    <!-- Register Modal -->
     <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content shadow-lg p-3" style="border-radius: 1rem; border: none;">
@@ -433,18 +442,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <input type="email" name="email" id="registerEmail" class="form-control"
                                 placeholder="you@school.edu" required>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="column">
+                            <div class="mb-3">
                                 <label class="form-label small fw-medium text-dark">Password</label>
-                                <input type="password" name="password" id="registerPassword" class="form-control"
-                                    placeholder="Create a strong password" required>
-                                <div id="passwordFeedback" class="form-text text-danger small fw-bold"></div>
+                                <div class="input-group">
+                                    <input type="password" name="password" id="registerPassword" class="form-control"
+                                        placeholder="Create a strong password" required
+                                        style="border-radius: 0.5rem 0 0 0.5rem;">
+                                    <button class="btn btn-outline-secondary" type="button" id="toggleRegisterPassword"
+                                        style="border-radius: 0 0.5rem 0.5rem 0; border-color: #dee2e6;">
+                                        <i class="fa-solid fa-eye-slash" id="iconRegisterPassword"></i>
+                                    </button>
+                                </div>
+                                <div id="passwordFeedback" class="form-text text-danger small fw-bold mt-1"></div>
                             </div>
-                            <div class="col-md-6 mb-4">
+                            <div class="mb-3">
                                 <label class="form-label small fw-medium text-dark">Confirm</label>
-                                <input type="password" name="confirmPassword" id="registerConfirmPassword"
-                                    class="form-control" placeholder="Confirm Password" required>
-                                <div id="confirmFeedback" class="form-text text-danger small fw-bold"></div>
+                                <div class="input-group">
+                                    <input type="password" name="confirmPassword" id="registerConfirmPassword"
+                                        class="form-control" placeholder="Confirm Password" required
+                                        style="border-radius: 0.5rem 0 0 0.5rem;">
+                                    <button class="btn btn-outline-secondary" type="button"
+                                        id="toggleRegisterConfirmPassword"
+                                        style="border-radius: 0 0.5rem 0.5rem 0; border-color: #dee2e6;">
+                                        <i class="fa-solid fa-eye-slash" id="iconRegisterConfirmPassword"></i>
+                                    </button>
+                                </div>
+                                <div id="confirmFeedback" class="form-text text-danger small fw-bold mt-1"></div>
                             </div>
                         </div>
                         <button type="submit" class="btn w-100 fw-bold text-white"
