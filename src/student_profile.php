@@ -228,7 +228,6 @@ $yearLevel = $student['year_level'] ?? 1;
         <?php if($msg): ?>
             <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
                 <?= htmlspecialchars($msg) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
 
