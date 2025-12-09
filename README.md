@@ -1,6 +1,6 @@
 # ClassSched
 
-The Student Record System is a database-driven web application that allows administrators to manage student profiles, course enrollments, and academic records through a secure, user-friendly interface
+The Student Schedule System is a database-driven web application that allows administrators to manage student profiles, Schedules records through a secure, user-friendly interface
 
 ---
 
