@@ -14,8 +14,6 @@ The Student Schedule System is a database-driven web application that allows adm
 | Janice V. Agnote | Documentation, Code Review, Additional Feature Development |
 | Anthony Daniel Bautista | Test Case Design, Edge Case Handling, QA Tester        |
 
-> Edit the table above to match your actual group members and their specific responsibilities.
-
 ---
 
 ## Features and Technologies Used
@@ -54,8 +52,6 @@ The Student Schedule System is a database-driven web application that allows adm
   - Responsive layout using **CSS Flexbox and Grid**  
   - Clear navigation between pages (e.g., Dashboard, List View, Add/Edit Forms)  
   - Simple, clean interface suitable for academic demonstration
-
-> Replace bracketed placeholders (e.g., `[PRIMARY ENTITY TABLE]`) with your actual table/entity names.
 
 ---
 ## Instructions to Run the Project Locally
