@@ -148,13 +148,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "update") {
     } else {
         $oldRow = $db->querySingle("SELECT * FROM schedules WHERE id=$id", true);
 
-        if ($oldRow) {
-            $stmtDel = $db->prepare("DELETE FROM schedules WHERE day=:d AND room=:r AND time_start=:ts AND teacher_id=:t");
-            $stmtDel->bindValue(':d', $oldRow['day']);
-            $stmtDel->bindValue(':r', $oldRow['room']);
-            $stmtDel->bindValue(':ts', $oldRow['time_start']);
-            $stmtDel->bindValue(':t', $oldRow['teacher_id']);
-            $stmtDel->execute();
+        if ($oldRow) 
+            $stmtFind = $db->prepare("SELECT id FROM schedules WHERE day=:d AND room=:r AND time_start=:ts AND teacher_id=:t");
+            $stmtFind->bindValue(':d', $oldRow['day']);
+            $stmtFind->bindValue(':r', $oldRow['room']);
+            $stmtFind->bindValue(':ts', $oldRow['time_start']);
+            $stmtFind->bindValue(':t', $oldRow['teacher_id']);
+            
+            $res = $stmtFind->execute();
+            $idsToDelete = [];
+            while ($r = $res->fetchArray(SQLITE3_ASSOC)) {
+                $idsToDelete[] = $r['id'];
+            }
+
+            if (!empty($idsToDelete)) {
+                $idList = implode(',', array_map('intval', $idsToDelete));
+                $db->exec("DELETE FROM schedules WHERE id IN ($idList)");
+            }
         }
         $stmtInsert = $db->prepare("INSERT INTO schedules (day, subject_id, teacher_id, room, time_start, time_end, course_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
         
@@ -173,7 +183,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "update") {
         header("Location: admin_schedule.php?msg=Schedule+updated");
         exit;
     }
-}
+
 
 // --- HANDLE DELETE ---
 if ($action === "delete") {
@@ -209,105 +219,7 @@ if ($action === "delete") {
     <link rel="stylesheet" href="../styles/notification.css">
 </head>
 <body class="d-flex flex-column min-vh-100 position-relative">
-    <nav class="navbar navbar-expand-sm sticky-top">
-        <div class="container-fluid px-4">
-
-            <div class="d-flex align-items-center">
-                <button class="navbar-toggler me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <a class="navbar-brand me-0" href="admin_dashboard.php">
-                    <img src="../img/logo.png" width="60" height="60">
-                </a>
-            </div>
-            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-                <div class="offcanvas-header">
-                    <h5 class="offcanvas-title" id="offcanvasNavbarLabel"></h5>
-                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                    <img src="../img/logo.png" width="60" height="60" class="me-2">
-                </div>
-                <div class="offcanvas-body">
-                    <ul class="navbar-nav justify-content-start flex-grow-1 pe-3">
-                        <li class="nav-item"><a class="nav-link" href="admin_dashboard.php">Dashboard</a></li>
-                        <li class="nav-item"><a class="nav-link" href="admin_student_manage.php">Students</a></li>
-                        <li class="nav-item"><a class="nav-link active" href="admin_schedule.php">Schedule</a></li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="d-flex align-items-center gap-3">
-                <div class="dropdown notification-container me-4 position-relative">
-                    <i class="fa-solid fa-bell dropdown-toggle" 
-                       id="notificationDropdown" 
-                       data-bs-toggle="dropdown" 
-                       aria-expanded="false" 
-                       style="font-size: 1.2rem;">
-                    </i>
-                    
-                    <?php if ($unread_count > 0): ?>
-                        <span class="notification-badge">
-                            <?php echo ($unread_count > 9) ? '9+' : $unread_count; ?>
-                        </span>
-                    <?php endif; ?>
-
-                    <ul class="dropdown-menu dropdown-menu-end notification-list shadow" aria-labelledby="notificationDropdown">
-                        <li class="dropdown-header d-flex justify-content-between align-items-center">
-                            <span class="fw-bold">Notifications</span>
-                            <?php if ($highlight_count > 0): ?> <a href="?action=clear_notifications" class="text-decoration-none small text-primary">Mark all read</a>
-                            <?php endif; ?>
-                        </li>
-
-                        <?php if (count($notifications) > 0): ?>
-                            <?php foreach ($notifications as $notif): ?>
-                                <?php 
-                                    $status_class = ($notif['is_read'] == 0) ? 'fw-bold bg-light border-start border-3 border-primary' : 'text-muted';
-                                ?>
-                                <li>
-                                    <a class="dropdown-item notification-item p-3 <?php echo $status_class; ?>" href="?action=read_notif&id=<?php echo $notif['id']; ?>">
-                                        
-                                        <div class="notif-content">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <strong class="<?php echo ($notif['is_read'] == 0) ? 'text-dark' : ''; ?>">
-                                                    <?php echo htmlspecialchars($notif['first_name'] . ' ' . $notif['last_name']); ?>
-                                                </strong>
-                                                
-                                                <?php if ($notif['is_read'] == 0): ?>
-                                                    <span class="badge bg-primary rounded-pill" style="font-size: 0.5rem;">NEW</span>
-                                                <?php endif; ?>
-                                            </div>
-
-                                            <div class="small mt-1 <?php echo ($notif['is_read'] == 0) ? 'text-dark' : ''; ?>">
-                                                <?php echo htmlspecialchars($notif['message']); ?>
-                                            </div>
-                                            
-                                            <div class="notif-time small mt-1 text-secondary">
-                                                <?php echo date('M d, h:i A', strtotime($notif['created_at'])); ?>
-                                            </div>
-                                        </div>
-
-                                    </a>
-                                </li>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <li class="text-center py-4 text-muted small">No notifications yet</li>
-                        <?php endif; ?>
-                    </ul>
-                </div>
-                <div class="dropdown">
-                    <button class="btn btn-admin dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <span class="admin-text">Admin • </span><?php echo htmlspecialchars(substr($user["username"], 0, 2)); ?>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li class="px-3 py-1"><small>Signed in as<br><b><?php echo htmlspecialchars($user["username"]); ?></b></small></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </nav>
-
+    <?php require_once __DIR__ . "/admin_nav.php"; ?>
     <div class="container px-4 py-5">
         <?php if ($action === 'create' || $action === 'edit'): ?>
             <div class="bg-white rounded-4 shadow-sm border p-4">

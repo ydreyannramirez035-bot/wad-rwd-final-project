@@ -3,13 +3,15 @@ require_once __DIR__ ."/db.php";
 
 function notif($role = null, $handle_actions = true) {
     if (!isset($_SESSION["user"])) {
-        return ['unread_count' => 0, 'notifications' => []];
+        return ['unread_count' => 0, 'notifications' => [], 'highlight_count' => 0];
     }
 
     $current_page = basename($_SERVER['PHP_SELF']);
     $user = $_SESSION["user"];
     $user_id = $user['id'];
     $db = get_db();
+
+    $now_str = date('Y-m-d H:i:s');
 
     if ($role === 'admin') {
         $cols = $db->query("PRAGMA table_info(users)");
@@ -25,7 +27,11 @@ function notif($role = null, $handle_actions = true) {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
-            $db->exec("UPDATE users SET last_notification_check = datetime('now', 'localtime') WHERE id = $user_id");
+            $stmt = $db->prepare("UPDATE users SET last_notification_check = :now WHERE id = :uid");
+            $stmt->bindValue(':now', $now_str, SQLITE3_TEXT);
+            $stmt->bindValue(':uid', $user_id, SQLITE3_INTEGER);
+            $stmt->execute();
+            
             header('Content-Type: application/json');
             echo json_encode(['status' => 'success']);
             exit;
@@ -57,7 +63,7 @@ function notif($role = null, $handle_actions = true) {
         $stmt_count = $db->prepare("
             SELECT COUNT(*) FROM notifications 
             WHERE is_read = 0 
-            AND created_at > :last_click 
+            AND created_at > :last_click
             AND (message LIKE '%bio%' OR message LIKE '%phone%')
         ");
         $stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
@@ -82,7 +88,7 @@ function notif($role = null, $handle_actions = true) {
     
     elseif ($role === 'student') {
         $student = $db->querySingle("SELECT id FROM students WHERE user_id = $user_id", true);
-        if (!$student) return ['unread_count' => 0, 'notifications' => []];
+        if (!$student) return ['unread_count' => 0, 'notifications' => [], 'highlight_count' => 0];
         $student_id = $student['id'];
 
         $cols = $db->query("PRAGMA table_info(students)");
@@ -98,7 +104,11 @@ function notif($role = null, $handle_actions = true) {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
-            $db->exec("UPDATE students SET last_notification_check = datetime('now', 'localtime') WHERE id = $student_id");
+            $stmt = $db->prepare("UPDATE students SET last_notification_check = :now WHERE id = :sid");
+            $stmt->bindValue(':now', $now_str, SQLITE3_TEXT);
+            $stmt->bindValue(':sid', $student_id, SQLITE3_INTEGER);
+            $stmt->execute();
+            
             header('Content-Type: application/json');
             echo json_encode(['status' => 'success']);
             exit;
