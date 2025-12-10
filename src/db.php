@@ -90,7 +90,7 @@ function get_db(): SQLite3
     $db->exec('CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER UNIQUE,
-        student_number TEXT(50) NOT NULL,
+        student_number TEXT(50) NOT NULL UNIQUE,
         last_name TEXT(50) NOT NULL,
         first_name TEXT(50),
         middle_name TEXT(50),
