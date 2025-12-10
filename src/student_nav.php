@@ -54,9 +54,6 @@ $initials = null;
 
 if (isset($_SESSION['user']['id']) && isset($db)) {
     $userId = $_SESSION['user']['id'];
-
-    // CHECK ACTUAL ROLE FROM DATABASE
-    // This fixes the issue on pages like notif_view.php
     $stmtRole = $db->prepare("SELECT r.name FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = :uid");
     $stmtRole->bindValue(':uid', $userId, SQLITE3_INTEGER);
     $resRole = $stmtRole->execute();
@@ -66,7 +63,6 @@ if (isset($_SESSION['user']['id']) && isset($db)) {
         $is_admin = true;
     }
 
-    // Get Student Name
     $stmt = $db->prepare("SELECT first_name, last_name FROM students WHERE user_id = :uid");
     $stmt->bindValue(':uid', $userId, SQLITE3_INTEGER);
     $result = $stmt->execute();
@@ -75,7 +71,6 @@ if (isset($_SESSION['user']['id']) && isset($db)) {
     if ($student) {
         $fullName = $student['first_name'] . ' ' . $student['last_name'];
     } else {
-        // Fallback to Users table (likely Admin)
         $stmt = $db->prepare("SELECT username FROM users WHERE id = :uid");
         $stmt->bindValue(':uid', $userId, SQLITE3_INTEGER);
         $result = $stmt->execute();
@@ -109,8 +104,6 @@ if ($fullName) {
     }
 }
 
-// --- 4. Set Navigation Links ---
-// This is now based on the database role check, not just the filename
 $home_link = $is_admin ? 'admin_dashboard.php' : 'student_dashboard.php';
 ?>
 
@@ -123,6 +116,9 @@ $home_link = $is_admin ? 'admin_dashboard.php' : 'student_dashboard.php';
 
             <a class="navbar-brand me-0" href="<?php echo $home_link; ?>">
                 <img src="../img/logo.png" width="45" height="45" alt="Logo" onerror="this.style.display='none'">
+                <span class="logo-text lh-1">
+                    <span class="text-class">Class</span><span class="text-sched">Sched</span>
+                </span>
             </a>
 
             <div class="collapse navbar-collapse ms-4 d-none d-md-block" id="desktopNav">

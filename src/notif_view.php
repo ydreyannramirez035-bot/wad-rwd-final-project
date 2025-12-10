@@ -199,7 +199,6 @@ if ($user_role === 'admin') {
     <link rel="stylesheet" href="../styles/student.css">
     <link rel="stylesheet" href="../styles/notification.css">
     <link rel="stylesheet" href="../styles/notif_view.css">
-    
 </head>
 <body>
 
@@ -265,7 +264,7 @@ if ($user_role === 'admin') {
                                 <div class="notif-title">
                                     <?php echo htmlspecialchars(!empty($notif['first_name']) ? $notif['first_name'] : 'ClassSched Notification'); ?>
                                     <?php if ($is_unread): ?>
-                                        <span class="badge bg-danger rounded-pill ms-2" style="font-size: 0.6rem;">New</span>
+                                        <span class="status-dot"></span>
                                     <?php endif; ?>
                                 </div>
                                 <div class="notif-time ms-3">
