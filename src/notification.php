@@ -1,7 +1,11 @@
 <?php
-require_once __DIR__ ."/db.php";
+require_once __DIR__ . "/db.php";
 
 function notif($role = null, $handle_actions = true) {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
     if (!isset($_SESSION["user"])) {
         return ['unread_count' => 0, 'notifications' => [], 'highlight_count' => 0];
     }
@@ -10,6 +14,10 @@ function notif($role = null, $handle_actions = true) {
     $user = $_SESSION["user"];
     $user_id = $user['id'];
     $db = get_db();
+    
+    $unread_count = 0;
+    $highlight_count = 0;
+    $notif_result = null;
 
     $now_str = date('Y-m-d H:i:s');
 
@@ -26,15 +34,14 @@ function notif($role = null, $handle_actions = true) {
             $db->exec("ALTER TABLE users ADD COLUMN last_notification_check DATETIME DEFAULT '1970-01-01 00:00:00'");
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
-            $stmt = $db->prepare("UPDATE users SET last_notification_check = :now WHERE id = :uid");
-            $stmt->bindValue(':now', $now_str, SQLITE3_TEXT);
+        if ($handle_actions && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
+            $stmt = $db->prepare("UPDATE users SET last_notification_check = datetime('now', 'localtime') WHERE id = :uid");
             $stmt->bindValue(':uid', $user_id, SQLITE3_INTEGER);
             $stmt->execute();
-            
+
             header('Content-Type: application/json');
             echo json_encode(['status' => 'success']);
-            exit;
+            exit; 
         }
 
         $current_db_val = $db->querySingle("SELECT last_activity FROM admin_system_log WHERE id = 1");
@@ -83,82 +90,81 @@ function notif($role = null, $handle_actions = true) {
             WHERE (n.message LIKE '%bio%' OR n.message LIKE '%phone%') 
             ORDER BY n.created_at DESC LIMIT 10
         ");
-        
-    } 
-    
+    }
+
     elseif ($role === 'student') {
         $student = $db->querySingle("SELECT id FROM students WHERE user_id = $user_id", true);
-        if (!$student) return ['unread_count' => 0, 'notifications' => [], 'highlight_count' => 0];
-        $student_id = $student['id'];
-
-        $cols = $db->query("PRAGMA table_info(students)");
-        $hasCol = false;
-        while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
-            if ($col['name'] === 'last_notification_check') {
-                $hasCol = true;
-                break;
-            }
-        }
-        if (!$hasCol) {
-            $db->exec("ALTER TABLE students ADD COLUMN last_notification_check DATETIME DEFAULT '1970-01-01 00:00:00'");
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
-            $stmt = $db->prepare("UPDATE students SET last_notification_check = :now WHERE id = :sid");
-            $stmt->bindValue(':now', $now_str, SQLITE3_TEXT);
-            $stmt->bindValue(':sid', $student_id, SQLITE3_INTEGER);
-            $stmt->execute();
-            
-            header('Content-Type: application/json');
-            echo json_encode(['status' => 'success']);
-            exit;
-        }
-
-        if ($handle_actions) {
-            if (isset($_GET['action']) && $_GET['action'] === 'clear_notifications') {
-                $db->exec("UPDATE notifications SET is_read = 1 WHERE student_id = $student_id AND is_read = 0");
-                header("Location: " . $current_page);
-                exit;
-            }
-            if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
-                $notif_id = (int)$_GET['id'];
-                $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
-                header("Location: student_schedule.php");
-                exit;
-            }
-        }
-
-        $last_check_row = $db->querySingle("SELECT last_notification_check FROM students WHERE id = $student_id", true);
-        $last_click = ($last_check_row && $last_check_row['last_notification_check']) ? $last_check_row['last_notification_check'] : '1970-01-01 00:00:00';
-
-        $stmt_count = $db->prepare("
-            SELECT COUNT(*) FROM notifications 
-            WHERE student_id = :sid 
-            AND is_read = 0 
-            AND created_at > :last_click
-            AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
-        ");
-        $stmt_count->bindValue(':sid', $student_id, SQLITE3_INTEGER);
-        $stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
-        $unread_count = $stmt_count->execute()->fetchArray()[0];
-
-        $highlight_stmt = $db->prepare("
-            SELECT COUNT(*) FROM notifications 
-            WHERE student_id = :sid 
-            AND is_read = 0
-            AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
-        ");
-        $highlight_stmt->bindValue(':sid', $student_id, SQLITE3_INTEGER);
-        $highlight_count = $highlight_stmt->execute()->fetchArray()[0];
-
-        $notif_sql = "
-            SELECT * FROM notifications 
-            WHERE student_id = $student_id
-            AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
-            ORDER BY created_at DESC LIMIT 10
-        ";
-        $notif_result = $db->query($notif_sql);
         
+        if ($student) {
+            $student_id = $student['id'];
+
+            $cols = $db->query("PRAGMA table_info(students)");
+            $hasCol = false;
+            while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
+                if ($col['name'] === 'last_notification_check') {
+                    $hasCol = true;
+                    break;
+                }
+            }
+            if (!$hasCol) {
+                $db->exec("ALTER TABLE students ADD COLUMN last_notification_check DATETIME DEFAULT '1970-01-01 00:00:00'");
+            }
+
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_badge_only') {
+                $stmt = $db->prepare("UPDATE students SET last_notification_check = datetime('now', 'localtime') WHERE id = :sid");
+                $stmt->bindValue(':sid', $student_id, SQLITE3_INTEGER);
+                $stmt->execute();
+                
+                header('Content-Type: application/json');
+                echo json_encode(['status' => 'success']);
+                exit;
+            }
+
+            if ($handle_actions) {
+                if (isset($_GET['action']) && $_GET['action'] === 'clear_notifications') {
+                    $db->exec("UPDATE notifications SET is_read = 1 WHERE student_id = $student_id AND is_read = 0");
+                    header("Location: " . $current_page);
+                    exit;
+                }
+                if (isset($_GET['action']) && $_GET['action'] === 'read_notif' && isset($_GET['id'])) {
+                    $notif_id = (int)$_GET['id'];
+                    $db->exec("UPDATE notifications SET is_read = 1 WHERE id = $notif_id");
+                    header("Location: student_schedule.php");
+                    exit;
+                }
+            }
+
+            $last_check_row = $db->querySingle("SELECT last_notification_check FROM students WHERE id = $student_id", true);
+            $last_click = ($last_check_row && $last_check_row['last_notification_check']) ? $last_check_row['last_notification_check'] : '1970-01-01 00:00:00';
+
+            $stmt_count = $db->prepare("
+                SELECT COUNT(*) FROM notifications 
+                WHERE student_id = :sid 
+                AND is_read = 0 
+                AND created_at > :last_click
+                AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+            ");
+            $stmt_count->bindValue(':sid', $student_id, SQLITE3_INTEGER);
+            $stmt_count->bindValue(':last_click', $last_click, SQLITE3_TEXT);
+            $unread_count = $stmt_count->execute()->fetchArray()[0];
+
+            $highlight_stmt = $db->prepare("
+                SELECT COUNT(*) FROM notifications 
+                WHERE student_id = :sid 
+                AND is_read = 0
+                AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+            ");
+            $highlight_stmt->bindValue(':sid', $student_id, SQLITE3_INTEGER);
+            $highlight_count = $highlight_stmt->execute()->fetchArray()[0];
+
+            $notif_sql = "
+                SELECT * FROM notifications 
+                WHERE student_id = $student_id
+                AND (message LIKE 'New Class:%' OR message LIKE 'Schedule Update:%')
+                ORDER BY created_at DESC LIMIT 10
+            ";
+            $notif_result = $db->query($notif_sql);
+        }
     }
 
     $notifications = [];
@@ -167,10 +173,11 @@ function notif($role = null, $handle_actions = true) {
             $notifications[] = $row;
         }
     }
-    
+
     return [
-        'unread_count' => $unread_count ?? 0,
-        'notifications' => $notifications,
-        'highlight_count' => $highlight_count ?? 0
+        'unread_count' => $unread_count, 
+        'notifications' => $notifications, 
+        'highlight_count' => $highlight_count
     ];
 }
+?>

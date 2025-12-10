@@ -1,0 +1,6 @@
+.active-bell-icon {
+    font-size: 1.3rem;
+    color: #0d6efd !important; /* Force the blue color */
+    pointer-events: none;      /* Disables clicking */
+    cursor: default;           /* Keeps cursor as arrow */
+}

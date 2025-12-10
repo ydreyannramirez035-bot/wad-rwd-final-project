@@ -240,7 +240,7 @@ if ($action === "delete") {
     <link rel="stylesheet" href="../styles/notification.css">
 </head>
 <body class="d-flex flex-column min-vh-100 position-relative">
-    <?php require_once __DIR__ . "/admin_nav.php"; ?>
+    <?php require_once __DIR__ . "/student_nav.php"; ?>
     <div class="container px-4 py-5">
         <?php if ($action === 'create' || $action === 'edit'): ?>
             <div class="bg-white rounded-4 shadow-sm border p-4">

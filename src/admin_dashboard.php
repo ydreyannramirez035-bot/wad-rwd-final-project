@@ -6,10 +6,6 @@ if (!isset($_SESSION["user"])) {
     exit;
 }
 
-header("Cache-Control: no-cache, no-store, must-revalidate");
-header("Pragma: no-cache");
-header("Expires: 0");
-
 require_once __DIR__ ."/notification.php";
 require_once __DIR__ ."/db.php";
 $db = get_db();
@@ -17,12 +13,15 @@ $db = get_db();
 $user = $_SESSION["user"];
 $user_id = $user['id'];
 
-if (!isset($_GET['ajax'])) {
-    $notif_data = notif('admin', true);
-    $unread_count = $notif_data['unread_count'];
-    $notifications = $notif_data['notifications'];
-    $highlight_count = $notif_data['highlight_count'];
-}
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+$notif_data = notif('admin', true); 
+$unread_count = $notif_data['unread_count'];
+$notifications = $notif_data['notifications'];
+$highlight_count = $notif_data['highlight_count'];
+
 
 if (!defined('COURSE_ALL')) define('COURSE_ALL', 0);
 if (!defined('COURSE_BSIS')) define('COURSE_BSIS', 1);
@@ -211,7 +210,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
 </head>
 
 <body class="d-flex flex-column min-vh-100 position-relative">
-    <?php require_once __DIR__ . "/admin_nav.php"; ?>
+    <?php require_once __DIR__ . "/student_nav.php"; ?>
 
     <div class="container px-4 py-5">
         

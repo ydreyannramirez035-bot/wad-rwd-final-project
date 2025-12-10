@@ -3,20 +3,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (bellBtn) {
         bellBtn.addEventListener('click', function(e) {
-            // Find the badge container relative to the button
             const container = bellBtn.closest('.notification-container');
             const badge = container.querySelector('.notification-badge');
 
             if (badge) {
-                // 1. Visually hide it immediately for instant feedback
                 badge.style.display = 'none';
                 badge.remove(); 
-
-                // 2. Prepare data
                 const formData = new FormData();
                 formData.append('action', 'clear_badge_only');
-
-                // 3. Send to current page (which includes student_nav.php)
                 fetch(window.location.href, {
                     method: 'POST',
                     body: formData
@@ -32,3 +26,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
