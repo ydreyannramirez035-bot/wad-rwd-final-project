@@ -54,12 +54,12 @@ switch ($selected_course) {
 
 if ($selected_course === COURSE_ALL) {
     $student_enrolled = $db->querySingle("SELECT COUNT(id) FROM students");
-    $classes_count = $db->querySingle("SELECT COUNT(id) FROM schedules");
+    $classes_count = $db->querySingle("SELECT COUNT(*) FROM (SELECT 1 FROM schedules GROUP BY subject_id, teacher_id, room, time_start, time_end, day)");
     $assigned_teachers = $db->querySingle("SELECT COUNT(DISTINCT teacher_id) FROM schedules");
-    $rooms_count = $db->querySingle("SELECT COUNT(room) FROM schedules WHERE room IS NOT NULL AND room != ''");
+    $rooms_count = $db->querySingle("SELECT COUNT(DISTINCT room) FROM schedules WHERE room IS NOT NULL AND room != ''");
 } else {
     $student_enrolled = $db->querySingle("SELECT COUNT(id) FROM students WHERE course_id = $selected_course");
-    $classes_count = $db->querySingle("SELECT COUNT(id) FROM schedules WHERE course_id = $selected_course");
+    $classes_count = $db->querySingle("SELECT COUNT(DISTINCT id) FROM schedules WHERE course_id = $selected_course");
     $assigned_teachers = $db->querySingle("SELECT COUNT(DISTINCT teacher_id) FROM schedules WHERE course_id = $selected_course");
     $rooms_count = $db->querySingle("SELECT COUNT(DISTINCT room) FROM schedules WHERE room IS NOT NULL AND room != '' AND course_id = $selected_course");
 }
