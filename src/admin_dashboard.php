@@ -340,18 +340,20 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 </a>
             </div>
             <div class="col-md-3">
-                <div class="stats-card">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="stats-label">Classes</div>
-                            <div class="stats-number" id="stat_classes"><?php echo $classes_count; ?></div>
-                            <div class="stats-sub">Total entries</div>
-                        </div>
-                        <div class="rounded-circle bg-info bg-opacity-10 text-info p-3">
-                            <i class="fa-regular fa-calendar-check fs-4"></i>
+                <a href="#sched-overview" class="text-decoration-none">
+                    <div class="stats-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="stats-label">Classes</div>
+                                <div class="stats-number" id="stat_classes"><?php echo $classes_count; ?></div>
+                                <div class="stats-sub">Total entries</div>
+                            </div>
+                            <div class="rounded-circle bg-info bg-opacity-10 text-info p-3">
+                                <i class="fa-regular fa-calendar-check fs-4"></i>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-md-3">
                 <div class="stats-card">
@@ -383,7 +385,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
             </div>
         </div>
 
-        <div class="bg-white rounded-4 shadow-sm border p-4 mb-5">
+        <div id="sched-overview" class="bg-white rounded-4 shadow-sm border p-4 mb-5">
             <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
                 <i class="fa-regular fa-calendar text-brand-blue"></i>
                 <span id="header_course_name"><?php echo $course_name; ?></span> Schedule
