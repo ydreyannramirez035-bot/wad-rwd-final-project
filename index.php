@@ -98,7 +98,11 @@ if (isset($_SERVER["REQUEST_METHOD"]) && $_SERVER["REQUEST_METHOD"] == "POST") {
                     $userCount = $countRow['count'];
 
                     if ($userCount == 0) {
-                        $roleId = $db->querySingle("SELECT id FROM roles WHERE name='admin'");
+                        $stmtAdmin = $db->prepare('SELECT id FROM roles WHERE name = :name');
+                        $stmtAdmin->bindValue(':name', 'admin', SQLITE3_TEXT);
+                        $resultAdmin = $stmtAdmin->execute();
+                        $rowAdmin = $resultAdmin->fetchArray(SQLITE3_ASSOC);
+                        $roleId = $rowAdmin ? $rowAdmin['id'] : null;
                         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
                         $stmt = $db->prepare("INSERT INTO users (role_id, username, password_hash, email) VALUES (?, ?, ?, ?)");
@@ -119,7 +123,11 @@ if (isset($_SERVER["REQUEST_METHOD"]) && $_SERVER["REQUEST_METHOD"] == "POST") {
                         if (!$studentResult) {
                             $registerError = "This email is not found in our student records.";
                         } else {
-                            $roleId = $db->querySingle("SELECT id FROM roles WHERE name='student'");
+                            $stmtStudent = $db->prepare('SELECT id FROM roles WHERE name = :name');
+                            $stmtStudent->bindValue(':name', 'student', SQLITE3_TEXT);
+                            $resultStudent = $stmtStudent->execute();
+                            $rowStudent = $resultStudent->fetchArray(SQLITE3_ASSOC);
+                            $roleId = $rowStudent ? $rowStudent['id'] : null;
                             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
                             $stmt = $db->prepare("INSERT INTO users (role_id, username, password_hash, email) VALUES (?, ?, ?, ?)");
