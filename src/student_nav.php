@@ -66,10 +66,10 @@ if (isset($_SESSION['user']['id']) && isset($db)) {
     $stmt = $db->prepare("SELECT first_name, last_name FROM students WHERE user_id = :uid");
     $stmt->bindValue(':uid', $userId, SQLITE3_INTEGER);
     $result = $stmt->execute();
-    $student = $result->fetchArray(SQLITE3_ASSOC);
+    $navStudent = $result->fetchArray(SQLITE3_ASSOC);
     
-    if ($student) {
-        $fullName = $student['first_name'] . ' ' . $student['last_name'];
+    if ($navStudent) {
+        $fullName = $navStudent['first_name'] . ' ' . $navStudent['last_name'];
     } else {
         $stmt = $db->prepare("SELECT username FROM users WHERE id = :uid");
         $stmt->bindValue(':uid', $userId, SQLITE3_INTEGER);
@@ -223,7 +223,7 @@ $home_link = $is_admin ? 'admin_dashboard.php' : 'student_dashboard.php';
                         <li class="text-center py-4 text-muted small">No notifications yet</li>
                     <?php endif; ?>
                 </ul>
-                <?php endif; ?> <!-- THIS WAS MISSING -->
+                <?php endif; ?>
             </div>
             
             <div class="dropdown">

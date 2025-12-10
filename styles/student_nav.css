@@ -66,10 +66,12 @@
 
 .bottom-nav-item.active {
     color: #3b66d1;
+    font-weight: 700 !important;
 }
 
 .bottom-nav-item.active i {
     transform: translateY(-2px);
+    font-weight: 1000;
 }
 
 .bottom-nav-item.active::after {
@@ -80,7 +82,8 @@
     transform: translateX(-50%); 
     width: 40px;
     height: 3px;
-    background-color: #3b66d1;
+    background-color: #3b66d1 !important;
+    border: none !important;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
 }
@@ -131,8 +134,8 @@
 
 @media (min-width: 992px) {
     .navbar .container-fluid {
-        padding-left: 130px !important; 
-        padding-right: 150px !important;
+        padding-left: 120px !important; 
+        padding-right: 130px !important;
     }
 }
 
