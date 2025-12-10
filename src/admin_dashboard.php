@@ -328,18 +328,20 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
 
         <div class="row g-4 mb-5">
             <div class="col-md-3">
-                <div class="stats-card">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="stats-label">Students</div>
-                            <div class="stats-number" id="stat_students"><?php echo $student_enrolled; ?></div>
-                            <div class="stats-sub">Active / Enrolled</div>
-                        </div>
-                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3">
-                            <i class="fa-solid fa-users fs-4"></i>
+                <a href="#stds-overview" class="text-decoration-none">
+                    <div class="stats-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="stats-label">Students</div>
+                                    <div class="stats-number" id="stat_students"><?php echo $student_enrolled; ?></div>
+                                    <div class="stats-sub">Active / Enrolled</div>
+                                </div>
+                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3">
+                                <i class="fa-solid fa-users fs-4"></i>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-md-3">
                 <div class="stats-card">
@@ -429,7 +431,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 <span id="header_student_title"><?php echo $student_title; ?></span> List
             </h5>
             
-            <div class="table-responsive">
+            <div id="stds-overview" class="table-responsive">
                 <table class="table custom-table table-hover mb-0">
                     <thead>
                         <tr>
