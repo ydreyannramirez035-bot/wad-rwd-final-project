@@ -127,7 +127,7 @@ function get_db(): SQLite3
         FOREIGN KEY (course_id) REFERENCES courses(id),
         FOREIGN KEY (subject_id) REFERENCES subjects(id)
     );');
-
+    // $db->exec('DROP TABLE IF EXISTS schedules');
     // NEW: Notifications Table
     $db->exec('CREATE TABLE IF NOT EXISTS notifications (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

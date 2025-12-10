@@ -141,49 +141,70 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "store") {
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "update") {
     $id = (int)$_POST["id"];
     $selectedCourses = $_POST["course_ids"] ?? [];
-    
-    if (empty($selectedCourses)) {
-        $error = "Please select at least one course.";
-        $action = "edit";
-    } else {
-        $oldRow = $db->querySingle("SELECT * FROM schedules WHERE id=$id", true);
+    $oldRow = $db->querySingle("SELECT * FROM schedules WHERE id=$id", true);
 
-        if ($oldRow) 
-            $stmtFind = $db->prepare("SELECT id FROM schedules WHERE day=:d AND room=:r AND time_start=:ts AND teacher_id=:t");
-            $stmtFind->bindValue(':d', $oldRow['day']);
-            $stmtFind->bindValue(':r', $oldRow['room']);
-            $stmtFind->bindValue(':ts', $oldRow['time_start']);
-            $stmtFind->bindValue(':t', $oldRow['teacher_id']);
-            
-            $res = $stmtFind->execute();
-            $idsToDelete = [];
-            while ($r = $res->fetchArray(SQLITE3_ASSOC)) {
-                $idsToDelete[] = $r['id'];
-            }
+    if ($oldRow) {
+        $sqlSiblings = "SELECT id, course_id FROM schedules 
+                        WHERE day = :day 
+                        AND room = :room 
+                        AND time_start = :ts 
+                        AND teacher_id = :tid";
+        
+        $stmtSib = $db->prepare($sqlSiblings);
+        $stmtSib->bindValue(':day', $oldRow['day']);
+        $stmtSib->bindValue(':room', $oldRow['room']);
+        $stmtSib->bindValue(':ts', $oldRow['time_start']);
+        $stmtSib->bindValue(':tid', $oldRow['teacher_id']);
+        $resSib = $stmtSib->execute();
 
-            if (!empty($idsToDelete)) {
-                $idList = implode(',', array_map('intval', $idsToDelete));
-                $db->exec("DELETE FROM schedules WHERE id IN ($idList)");
-            }
+        $existingMap = []; 
+        while($sib = $resSib->fetchArray(SQLITE3_ASSOC)){
+            $existingMap[$sib['course_id']] = $sib['id'];
         }
+
+        $stmtUpdate = $db->prepare("UPDATE schedules SET day=?, subject_id=?, teacher_id=?, room=?, time_start=?, time_end=? WHERE id=?");
         $stmtInsert = $db->prepare("INSERT INTO schedules (day, subject_id, teacher_id, room, time_start, time_end, course_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        
+        $stmtDelete = $db->prepare("DELETE FROM schedules WHERE id=?");
+
         foreach ($selectedCourses as $courseId) {
-            $stmtInsert->reset();
-            $stmtInsert->bindValue(1, $_POST["day"]);
-            $stmtInsert->bindValue(2, $_POST["subject_id"]);
-            $stmtInsert->bindValue(3, $_POST["teacher_id"]);
-            $stmtInsert->bindValue(4, $_POST["room"]);
-            $stmtInsert->bindValue(5, $_POST["time_start"]);
-            $stmtInsert->bindValue(6, $_POST["time_end"]);
-            $stmtInsert->bindValue(7, (int)$courseId);
-            $stmtInsert->execute();
+            $courseId = (int)$courseId;
+
+            if (isset($existingMap[$courseId])) {
+                $schedIdToUpdate = $existingMap[$courseId];
+                
+                $stmtUpdate->reset();
+                $stmtUpdate->bindValue(1, $_POST["day"]);
+                $stmtUpdate->bindValue(2, $_POST["subject_id"]);
+                $stmtUpdate->bindValue(3, $_POST["teacher_id"]);
+                $stmtUpdate->bindValue(4, $_POST["room"]);
+                $stmtUpdate->bindValue(5, $_POST["time_start"]);
+                $stmtUpdate->bindValue(6, $_POST["time_end"]);
+                $stmtUpdate->bindValue(7, $schedIdToUpdate);
+                $stmtUpdate->execute();
+                unset($existingMap[$courseId]);
+
+            } else {
+                $stmtInsert->reset();
+                $stmtInsert->bindValue(1, $_POST["day"]);
+                $stmtInsert->bindValue(2, $_POST["subject_id"]);
+                $stmtInsert->bindValue(3, $_POST["teacher_id"]);
+                $stmtInsert->bindValue(4, $_POST["room"]);
+                $stmtInsert->bindValue(5, $_POST["time_start"]);
+                $stmtInsert->bindValue(6, $_POST["time_end"]);
+                $stmtInsert->bindValue(7, $courseId);
+                $stmtInsert->execute();
+            }
         }
-        
-        header("Location: admin_schedule.php?msg=Schedule+updated");
-        exit;
+        foreach ($existingMap as $cId => $schedIdToDelete) {
+            $stmtDelete->reset();
+            $stmtDelete->bindValue(1, $schedIdToDelete);
+            $stmtDelete->execute();
+        }
     }
 
+    header("Location: admin_schedule.php?msg=Schedule+updated");
+    exit;
+}   
 
 // --- HANDLE DELETE ---
 if ($action === "delete") {
