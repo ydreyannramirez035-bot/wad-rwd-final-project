@@ -93,9 +93,7 @@ if (isset($_GET['action']) && $student_id > 0) {
         exit();
     }
 
-    // --- NEW ACTION: Clear History (Delete Read Notifications) ---
     elseif ($_GET['action'] == 'clear_history') {
-        // Only delete notifications that are already read
         $delete = $db->prepare("DELETE FROM notifications WHERE student_id = :sid AND is_read = 1");
         $delete->bindValue(':sid', $student_id, SQLITE3_INTEGER);
         $delete->execute();
@@ -110,9 +108,6 @@ $unread_count = $notif_data['highlight_count'];
 $total_count = $unread_count;
 $unread_count = $notif_data['unread_count'];
 $notifications = $notif_data['notifications'];
-
-
-// Check if we have any read notifications to enable the "Clear History" button
 $has_read_notifications = false;
 if (!empty($notifications)) {
     foreach ($notifications as $n) {
@@ -156,7 +151,6 @@ if (!empty($notifications)) {
             </div>
             
             <div class="d-flex gap-2">
-                <!-- Clear History Button (Only shows if there are read notifications) -->
                 <?php if ($has_read_notifications): ?>
                     <a href="?action=clear_history" 
                        class="btn btn-outline-danger rounded-pill px-3 py-2"
@@ -164,8 +158,6 @@ if (!empty($notifications)) {
                         <i class="fa-solid fa-trash me-1"></i> Clear History
                     </a>
                 <?php endif; ?>
-
-                <!-- Mark All Read Button (Only shows if there are unread notifications) -->
                 <?php if ($total_count > 0): ?>
                     <a href="?action=clear_notifications" class="btn mark-all-btn rounded-pill px-3 py-2">
                         <i class="fa-solid fa-check-double me-1"></i> Mark all read
