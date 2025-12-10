@@ -85,6 +85,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
             <td class="text-secondary"><?php echo htmlspecialchars($row['middle_name']); ?></td>
             <td class="text-secondary"><?php echo (int)$row['age']; ?></td>
             <td class="text-secondary font-monospace"><?php echo htmlspecialchars($row['phone_number']); ?></td>
+            <td class="text-secondary"><?php echo getCourseName($row['course_id']); ?></td>
             <td class="text-secondary"><?php echo getYearLevelStr($row['year_level']); ?></td>
             <td>
                 <div class="d-flex gap-2">
@@ -451,6 +452,7 @@ if ($action === "delete") {
                                     <th>Middle Name</th>
                                     <th>Age</th>
                                     <th>Phone</th>
+                                    <th>Course</th>
                                     <th>Year</th>
                                     <th>Actions</th>
                                 </tr>

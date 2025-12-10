@@ -28,6 +28,12 @@ if (!defined('COURSE_ALL')) define('COURSE_ALL', 0);
 if (!defined('COURSE_BSIS')) define('COURSE_BSIS', 1);
 if (!defined('COURSE_ACT')) define('COURSE_ACT', 2);
 
+function getCourseName($id) {
+    if ($id == COURSE_BSIS) return "BSIS";
+    if ($id == COURSE_ACT) return "ACT";
+    return "Unknown";
+}
+
 $selected_course = isset($_GET['course_id']) ? (int)$_GET['course_id'] : COURSE_ALL;
 
 switch ($selected_course) {
@@ -152,6 +158,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
             <td><?php echo htmlspecialchars($student['first_name'] ?? '--'); ?></td>
             <td class="text-secondary"><?php echo htmlspecialchars($student['middle_name'] ?? '--'); ?></td>
             <td class="text-secondary"><?php echo htmlspecialchars($student['age'] ?? '--'); ?></td>
+            <td class="text-secondary"><?php echo getCourseName($student['course_id'] ?? 0); ?></td>
             <td class="text-secondary"><?php echo htmlspecialchars($student['year_level'] ?? '--'); ?></td>
         </tr>
         <?php
@@ -421,6 +428,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                     </tbody>
                 </table>
             </div>
+            <div class="text-center mt-4">
+                <a href="admin_schedule.php" class="btn btn-outline-primary rounded-pill px-4">View Full Schedule</a>
+            </div>
         </div>
 
         <div class="bg-white rounded-4 shadow-sm border p-4">
@@ -438,6 +448,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                             <th>First Name</th>
                             <th>Middle Name</th>
                             <th>Age</th>
+                            <th>Course</th>
                             <th>Year</th>
                         </tr>
                     </thead>
@@ -449,14 +460,17 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                             <td><?php echo htmlspecialchars($student['first_name'] ?? '--'); ?></td>
                             <td class="text-secondary"><?php echo htmlspecialchars($student['middle_name'] ?? '--'); ?></td>
                             <td class="text-secondary"><?php echo htmlspecialchars($student['age'] ?? '--'); ?></td>
+                            <td class="text-secondary"><?php echo getCourseName($student['course_id'] ?? 0); ?></td>
                             <td class="text-secondary"><?php echo htmlspecialchars($student['year_level'] ?? '--'); ?></td>
                         </tr>
                         <?php endwhile; ?>
                     </tbody>
                 </table>
             </div>
+            <div class="text-center mt-4">
+                <a href="admin_student_manage.php" class="btn btn-outline-primary rounded-pill px-4">View Full Schedule</a>
+            </div>
         </div>
-
     </div>
 
     <footer class="bg-white border-top py-4 text-center">
