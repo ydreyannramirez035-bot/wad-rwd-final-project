@@ -56,7 +56,7 @@ if ($selected_course === COURSE_ALL) {
     $student_enrolled = $db->querySingle("SELECT COUNT(id) FROM students");
     $classes_count = $db->querySingle("SELECT COUNT(id) FROM schedules");
     $assigned_teachers = $db->querySingle("SELECT COUNT(DISTINCT teacher_id) FROM schedules");
-    $rooms_count = $db->querySingle("SELECT COUNT(DISTINCT room) FROM schedules WHERE room IS NOT NULL AND room != ''");
+    $rooms_count = $db->querySingle("SELECT COUNT(room) FROM schedules WHERE room IS NOT NULL AND room != ''");
 } else {
     $student_enrolled = $db->querySingle("SELECT COUNT(id) FROM students WHERE course_id = $selected_course");
     $classes_count = $db->querySingle("SELECT COUNT(id) FROM schedules WHERE course_id = $selected_course");
@@ -123,6 +123,11 @@ if ($selected_course !== COURSE_ALL) {
 }
 $sql_students .= " ORDER BY last_name ASC";
 $stmt_students = $db->prepare($sql_students);
+
+if ($selected_course !== COURSE_ALL) {
+    $stmt_students->bindValue(':course_id', $selected_course, SQLITE3_INTEGER);
+}
+
 $students_result = $stmt_students->execute();
 
 if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {

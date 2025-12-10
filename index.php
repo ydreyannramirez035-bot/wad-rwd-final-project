@@ -115,9 +115,14 @@ if (isset($_SERVER["REQUEST_METHOD"]) && $_SERVER["REQUEST_METHOD"] == "POST") {
                         $checkStmt = $db->prepare("SELECT id FROM students WHERE email = ?");
                         $checkStmt->bindValue(1, $email, SQLITE3_TEXT);
                         $studentResult = $checkStmt->execute()->fetchArray(SQLITE3_ASSOC);
+                        $checkUsername = $db->prepare("SELECT id FROM users WHERE username = ?");
+                        $checkUsername->bindValue(1, $username, SQLITE3_TEXT);
+                        $usernameResult = $checkUsername->execute()->fetchArray(SQLITE3_ASSOC);
 
                         if (!$studentResult) {
                             $registerError = "This email is not found in our student records.";
+                        } elseif ($usernameResult) {
+                            $registerError = "Username already taken.";
                         } else {
                             $roleId = $db->querySingle("SELECT id FROM roles WHERE name='student'");
                             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
