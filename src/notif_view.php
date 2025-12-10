@@ -199,16 +199,7 @@ if ($user_role === 'admin') {
     <link rel="stylesheet" href="../styles/student.css">
     <link rel="stylesheet" href="../styles/notification.css">
     <link rel="stylesheet" href="../styles/notif_view.css">
-    <link rel="stylesheet" href="../styles/bell.css">
-    <style>
-        /* Active Bell Icon Style */
-        .active-bell-icon {
-            font-size: 1.2rem;
-            color: #0d6efd;      /* Bootstrap Primary Blue */
-            pointer-events: none; /* Not clickable */
-            cursor: default;      /* Default cursor (arrow) */
-        }
-    </style>
+    
 </head>
 <body>
 
