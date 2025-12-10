@@ -1,7 +1,6 @@
-# [PROJECT NAME: e.g., Student Record System]
+# ClassSched
 
-[INSERT A 1–2 SENTENCE DESCRIPTION OF WHAT THE APP DOES.  
-Example: “The Student Record System is a database-driven web application that allows administrators to manage student profiles, course enrollments, and academic records through a secure, user-friendly interface.”]
+The Student Schedule System is a database-driven web application that allows administrators to manage student profiles, Schedules records through a secure, user-friendly interface
 
 ---
 
@@ -14,8 +13,6 @@ Example: “The Student Record System is a database-driven web application that 
 | JR Cachuela Balmaceda | Form Handling & Validation (JavaScript) |
 | Janice V. Agnote | Documentation, Code Review, Additional Feature Development |
 | Anthony Daniel Bautista | Test Case Design, Edge Case Handling, QA Tester        |
-
-> Edit the table above to match your actual group members and their specific responsibilities.
 
 ---
 
@@ -37,11 +34,11 @@ Example: “The Student Record System is a database-driven web application that 
 
 - **Database-Driven Functionality**
   - SQLite database with at least **two related tables**  
-    - Example: `users` table and `[PRIMARY ENTITY TABLE, e.g., students, products, or tasks]`  
+    - Example: `users` table and `students, schedules, or notification`  
     - Proper use of primary keys and foreign keys for relationships
 
 - **CRUD Operations**
-  - **Create:** Add new records to `[PRIMARY ENTITY TABLE]`  
+  - **Create:** Add new records to `users, students, schedules`  
   - **Read:** Display lists and detailed views of records  
   - **Update:** Edit existing records with validation  
   - **Delete:** Safely remove records (with confirmation prompts)
@@ -56,34 +53,7 @@ Example: “The Student Record System is a database-driven web application that 
   - Clear navigation between pages (e.g., Dashboard, List View, Add/Edit Forms)  
   - Simple, clean interface suitable for academic demonstration
 
-> Replace bracketed placeholders (e.g., `[PRIMARY ENTITY TABLE]`) with your actual table/entity names.
-
 ---
-
-## Database Structure
-
-The application uses an **SQLite** database file (e.g., `database.db`) located within the project directory.
-
-Example structure (customize to match your actual schema):
-
-- **Table 1: `users`**
-  - `id` (INTEGER, PRIMARY KEY, AUTOINCREMENT)  
-  - `username` (TEXT, UNIQUE, NOT NULL)  
-  - `email` (TEXT, UNIQUE, NOT NULL)  
-  - `password_hash` (TEXT, NOT NULL)  
-  - `created_at` (TEXT / DATETIME)
-
-- **Table 2: `[PRIMARY ENTITY TABLE, e.g., students]`**
-  - `id` (INTEGER, PRIMARY KEY, AUTOINCREMENT)  
-  - `[field1]` (e.g., `name` – TEXT, NOT NULL)  
-  - `[field2]` (e.g., `course` / `category` – TEXT)  
-  - `[field3]` (e.g., `status` / `grade` – TEXT/INTEGER)  
-  - `user_id` (INTEGER, FOREIGN KEY REFERENCES `users(id)`)  
-
-Additional related tables can be added as needed (e.g., `courses`, `transactions`, `logs`).
-
----
-
 ## Instructions to Run the Project Locally
 
 ### 1. Download or Clone the Repository
