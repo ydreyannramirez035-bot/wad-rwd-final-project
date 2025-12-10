@@ -45,15 +45,16 @@ switch ($selected_course) {
         break;
 }
 
+
 if ($selected_course === COURSE_ALL) {
     $student_enrolled = $db->querySingle("SELECT COUNT(id) FROM students");
     $classes_count = $db->querySingle("SELECT COUNT(id) FROM schedules");
-    $teachers_count = $db->querySingle("SELECT COUNT(id) FROM teachers");
+    $assigned_teachers = $db->querySingle("SELECT COUNT(DISTINCT teacher_id) FROM schedules");
     $rooms_count = $db->querySingle("SELECT COUNT(DISTINCT room) FROM schedules WHERE room IS NOT NULL AND room != ''");
 } else {
     $student_enrolled = $db->querySingle("SELECT COUNT(id) FROM students WHERE course_id = $selected_course");
     $classes_count = $db->querySingle("SELECT COUNT(id) FROM schedules WHERE course_id = $selected_course");
-    $teachers_count = $db->querySingle("SELECT COUNT(DISTINCT teacher_id) FROM schedules WHERE course_id = $selected_course");
+    $assigned_teachers = $db->querySingle("SELECT COUNT(DISTINCT teacher_id) FROM schedules WHERE course_id = $selected_course");
     $rooms_count = $db->querySingle("SELECT COUNT(DISTINCT room) FROM schedules WHERE room IS NOT NULL AND room != '' AND course_id = $selected_course");
 }
 
@@ -116,11 +117,6 @@ if ($selected_course !== COURSE_ALL) {
 }
 $sql_students .= " ORDER BY last_name ASC";
 $stmt_students = $db->prepare($sql_students);
-
-if ($selected_course !== COURSE_ALL) {
-    $stmt_students->bindValue(':course_id', $selected_course, SQLITE3_INTEGER);
-}
-
 $students_result = $stmt_students->execute();
 
 if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
@@ -170,7 +166,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
         'stats' => [
             'students' => $student_enrolled,
             'classes' => $classes_count,
-            'teachers' => $teachers_count,
+            'teachers' => $assigned_teachers,
             'rooms' => $rooms_count
         ],
         'titles' => [
@@ -362,7 +358,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <div class="stats-label">Teachers</div>
-                            <div class="stats-number" id="stat_teachers"><?php echo $teachers_count; ?></div>
+                                <div class="stats-number" id="stat_teachers"><?php echo $assigned_teachers; ?></div>
                             <div class="stats-sub">Assigned</div>
                         </div>
                         <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3">
