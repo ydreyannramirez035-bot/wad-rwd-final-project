@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const passwordFeedback = document.getElementById('passwordFeedback');
     const confirmFeedback = document.getElementById('confirmFeedback');
+  
+    const emailFeedback = document.getElementById('emailFeedback');
 
     function updateFieldState(input, btn, borderColor) {
         if (!input || !btn) return;
@@ -75,19 +77,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+   
     function checkEmail() {
         const value = emailInput.value.trim();
         const emailRules = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (value.length === 0) {
-            emailInput.classList.remove('is-valid');
-            emailInput.classList.remove('is-invalid');
+            
+            emailInput.classList.remove('is-valid', 'is-invalid');
+            if (emailFeedback) emailFeedback.textContent = "";
         } else if (emailRules.test(value)) {
+           
             emailInput.classList.remove('is-invalid');
             emailInput.classList.add('is-valid');
+            if (emailFeedback) emailFeedback.textContent = "";
         } else {
+           
             emailInput.classList.remove('is-valid');
             emailInput.classList.add('is-invalid');
+            
+            if (emailFeedback) {
+                if (!value.includes('@')) {
+                    emailFeedback.textContent = "Email address is missing an '@' symbol.";
+                } else {
+                    emailFeedback.textContent = "Please enter a complete email address.";
+                }
+            }
         }
     }
 

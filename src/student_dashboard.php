@@ -304,7 +304,7 @@ $subjects_count = $stmtSub->execute()->fetchArray()[0];
         </div>
 
         <div class="row g-4 mb-5">
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="stats-card">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -320,7 +320,7 @@ $subjects_count = $stmtSub->execute()->fetchArray()[0];
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="stats-card">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -330,20 +330,6 @@ $subjects_count = $stmtSub->execute()->fetchArray()[0];
                         </div>
                         <div class="rounded-circle bg-info bg-opacity-10 text-info p-3">
                             <i class="fa-solid fa-book-open fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stats-card">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="stats-label">Events</div>
-                            <div class="stats-number">0</div>
-                            <div class="stats-sub">Upcoming</div>
-                        </div>
-                        <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3">
-                            <i class="fa-regular fa-calendar-check fs-4"></i>
                         </div>
                     </div>
                 </div>

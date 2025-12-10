@@ -501,6 +501,7 @@ if (isset($_SERVER["REQUEST_METHOD"]) && $_SERVER["REQUEST_METHOD"] == "POST") {
                             <label class="form-label small fw-medium text-dark">Email Address</label>
                             <input type="email" name="email" id="registerEmail" class="form-control"
                                 placeholder="you@school.edu" required>
+                            <div id="emailFeedback" class="form-text text-danger small fw-bold mt-1"></div>
                         </div>
                         <div class="column">
                             <div class="mb-3">
