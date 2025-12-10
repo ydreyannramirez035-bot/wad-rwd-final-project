@@ -17,6 +17,22 @@ body {
     border-bottom: 1px solid #f3f4f6;
     padding: 0.5rem 0;
 }
+.nav-link {
+    color: #333 !important;
+    font-weight: 500;
+    margin: 0 15px;
+    transition: color 0.2s;
+}
+.nav-link.active {
+    color: var(--brand-blue) !important;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: #333;
+    text-underline-offset: 8px;
+}
+.nav-link:hover {
+    color: var(--brand-blue) !important;
+}
 
 /* Mobile Menu Offcanvas */
 .offcanvas {
@@ -75,26 +91,6 @@ body {
     color: white;
 }
 
-/* Desktop Nav Link Styles */
-@media (min-width: 992px) {
-    .nav-link {
-        color: #333 !important;
-        font-weight: 500;
-        margin: 0 15px;
-        transition: color 0.2s;
-    }
-    .nav-link.active {
-        color: var(--brand-blue) !important;
-        font-weight: 600;
-        text-decoration: underline;
-        text-decoration-color: #333;
-        text-underline-offset: 8px;
-    }
-    .nav-link:hover {
-        color: var(--brand-blue) !important;
-    }
-}
-
 /* Mobile Responsiveness */
 @media (max-width: 576px) {
     .navbar .container-fluid {
@@ -104,8 +100,6 @@ body {
         padding-left: 15px;
         padding-right: 15px;
     }
-
-    /* Logo adjustment */
     .navbar-brand img {
         width: 60px;
         height: 60px;
@@ -113,47 +107,23 @@ body {
     .navbar-brand {
         margin: 0;
     }
-
-    /* Profile Button Mobile Adjustment */
     .btn-student {
         padding: 5px 10px;
         font-size: 0.85rem;
     }
-    
     /* Hide the "Student •" text on very small screens to save space */
     .student-text {
         display: none; 
     }
-    
-    /* Icon adjustments */
-    .notification-container i {
-        font-size: 1.1rem !important;
-    }
-    
     .gap-3 {
         gap: 0.8rem !important;
     }
-
     .offcanvas-body .nav-link.active {
         background-color: var(--brand-blue);
         color: white !important; 
         text-decoration: none;
     }
-
     .me-4 {
         margin-right: 0 !important;
-    }
-
-    /* --- NEW FIX: Notification Dropdown --- */
-    .notification-list {
-        position: absolute;
-        width: 300px;           /* Fixed width to fit mobile */
-        right: -60px !important; /* Shift menu to the right (towards screen edge) */
-        left: auto !important;
-        transform: none !important;
-    }
-    
-    .notification-item .small {
-        white-space: normal; /* Ensure text wraps */
     }
 }

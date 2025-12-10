@@ -48,11 +48,9 @@ body {
     flex-direction: column;
     gap: 1rem;
 }
-
-/* Desktop: Horizontal Layout */
 .schedule-card {
     display: flex;
-    align-items: center; /* Vertically center items */
+    align-items: center;
     background-color: #f9faff; 
     border-radius: 12px;
     padding: 1.5rem;
@@ -64,46 +62,36 @@ body {
     box-shadow: 0 10px 20px rgba(0,0,0,0.05);
     background-color: #fff;
 }
-
-/* Time Column */
 .time-col {
     min-width: 80px;
     font-weight: 800;
     font-size: 1.1rem;
     color: #4b5563;
 }
-
-/* Accent Bar */
 .accent-bar {
     width: 6px;
     height: 50px;
     border-radius: 10px;
     margin-right: 1.5rem;
 }
-
-/* Subject Info */
 .subject-info {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
-
 .subject-name {
     font-weight: 700;
     font-size: 1.1rem;
-    color: var(--brand-blue); /* Updated to Blue to match screenshot */
+    color: var(--brand-blue);
     margin-bottom: 0.2rem;
     line-height: 1.2;
 }
-
 .room-badge {
     font-size: 0.9rem;
     color: #7d8da1; 
     font-weight: 500;
 }
-
-/* Teacher Info: Right aligned on Desktop */
 .teacher-col {
     display: flex;
     align-items: center;
@@ -113,7 +101,6 @@ body {
     min-width: 150px; 
     justify-content: flex-end;
 }
-
 .teacher-col i {
     margin-right: 8px;
     font-size: 1rem;
@@ -123,50 +110,36 @@ body {
 .text-brand-blue { color: var(--brand-blue) !important; }
 .bg-brand-blue { background-color: var(--brand-blue) !important; }
 
-/* --- MOBILE & TABLET OPTIMIZATION (Updated) --- */
-/* Trigger this layout on screens smaller than 768px (Tablets & Mobile) */
-@media (max-width: 768px) {
-    
+/* --- MOBILE --- */
+@media (max-width: 576px) { 
     .schedule-card {
-        flex-wrap: wrap; /* Allow items to drop to next line */
+        flex-wrap: wrap;
         padding: 1rem; 
-        align-items: flex-start; /* Align top */
+        align-items: flex-start;
     }
-
     .time-col {
-        min-width: 50px; /* Fixed width to prevent squishing */
+        min-width: 50px;
         font-size: 0.85rem;
         margin-top: 2px;
     }
-
     .accent-bar {
-        height: 35px; /* Adjusted height for mobile proportions */
+        height: 35px;
         margin-right: 12px;
         margin-top: 2px;
     }
-
     .subject-name {
         font-size: 0.85rem; 
     }
     .room-badge {
         font-size: 0.85rem;
     }
-
-    /* 6. Fix the Teacher Position */
-    /* This moves the teacher name UP, under the subject, aligned correctly */
     .teacher-col {
         width: 100%;
         justify-content: flex-start;
-        margin-top: 0.25rem; /* Very small gap */
-        
-        /* Calculation for alignment: 
-           60px (time width) + 6px (bar width) + 12px (bar margin) = ~78px 
-        */
+        margin-top: 0.25rem;
         padding-left: 78px; 
-        
-        font-size: 0.85rem; /* Smaller font */
+        font-size: 0.85rem;
     }
-    
     .teacher-col i {
         font-size: 0.85rem;
     }

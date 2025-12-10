@@ -17,27 +17,39 @@ body {
     border-bottom: 1px solid #f3f4f6;
     padding: 0.5rem 0;
 }
+.nav-link {
+    color: #333 !important;
+    font-weight: 500;
+    margin: 0 15px;
+    transition: color 0.2s;
+}
+.nav-link.active {
+    color: var(--brand-blue) !important;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: #333;
+    text-underline-offset: 8px;
+}
+.nav-link:hover {
+    color: var(--brand-blue) !important;
+}
 
 /* Mobile Menu Offcanvas */
 .offcanvas {
     max-width: 80%;
 }
-
 .offcanvas-header {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid #eee;
 }
-
 .offcanvas-header .btn-close {
     margin: 0;
     margin-right: 1rem;
     padding: 0.5rem;
 }
-
 .offcanvas-body {
     padding: 0;
 }
-
 .offcanvas-body .nav-link {
     display: block;
     padding: 15px 25px;
@@ -47,7 +59,6 @@ body {
     border-bottom: 1px solid #f9f9f9;
     margin: 0;
 }
-
 .offcanvas-body .nav-link.active {
     background-color: transparent;
     color: var(--brand-blue) !important; 
@@ -55,7 +66,6 @@ body {
     text-underline-offset: 5px;
     font-weight: 600;
 }
-
 .offcanvas-body .nav-link:hover:not(.active) {
     background-color: #f8f9fa;
     color: var(--brand-blue);
@@ -69,30 +79,9 @@ body {
     padding: 8px 20px;
     white-space: nowrap;
 }
-
 .btn-admin:hover {
     background-color: #3b5bdb;
     color: white;
-}
-
-/* Desktop Nav Link Styles for Admin */
-@media (min-width: 992px) {
-    .nav-link {
-        color: #333 !important;
-        font-weight: 500;
-        margin: 0 15px;
-        transition: color 0.2s;
-    }
-    .nav-link.active {
-        color: var(--brand-blue) !important;
-        font-weight: 600;
-        text-decoration: underline;
-        text-decoration-color: #333;
-        text-underline-offset: 8px;
-    }
-    .nav-link:hover {
-        color: var(--brand-blue) !important;
-    }
 }
 
 /* Mobile Responsiveness */
@@ -104,13 +93,11 @@ body {
         padding-left: 15px;
         padding-right: 15px;
     }
-
     .navbar-left-group {
         display: flex;
         align-items: center;
         gap: 10px;
     }
-    
     .navbar-brand img {
         width: 60px;
         height: 60px;
@@ -118,45 +105,26 @@ body {
     .navbar-brand {
         margin: 0;
     }
-
     .btn-admin {
         padding: 5px 10px;
         font-size: 0.85rem;
     }
-    
+    /* hides Admin text in profile */
     .admin-text {
         display: none; 
     }
-    
     .notification-container i {
         font-size: 1.1rem !important;
     }
-    
     .gap-3 {
         gap: 0.8rem !important;
     }
-
     .offcanvas-body .nav-link.active {
         background-color: var(--brand-blue);
         color: white !important; 
         text-decoration: none;
     }
-    
     .me-4 {
         margin-right: 0 !important;
-    }
-
-    /* --- FIX ADDED HERE --- */
-    .notification-list {
-        position: absolute;
-        width: 300px;           /* Fixed width to fit mobile */
-        right: -60px !important; /* Shift menu to the right */
-        left: auto !important;
-        transform: none !important;
-    }
-    
-    .notification-item .small {
-        white-space: normal; /* Ensure text wraps */
-        overflow: hidden;
     }
 }

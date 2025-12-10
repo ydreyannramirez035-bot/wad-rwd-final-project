@@ -66,3 +66,17 @@
 .notif-content {
     width: 100%;
 }
+
+@media (max-width: 576px) {
+    .notification-list {
+        position: absolute;
+        width: 300px;
+        right: -60px !important;
+        left: auto !important;
+        transform: none !important;
+    }
+    .notification-item .small {
+        white-space: normal;
+        overflow: hidden;
+    }
+}

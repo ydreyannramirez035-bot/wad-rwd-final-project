@@ -468,7 +468,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 </table>
             </div>
             <div class="text-center mt-4">
-                <a href="admin_student_manage.php" class="btn btn-outline-primary rounded-pill px-4">View Full Schedule</a>
+                <a href="admin_student_manage.php" class="btn btn-outline-primary rounded-pill px-4">View Full Students List</a>
             </div>
         </div>
     </div>

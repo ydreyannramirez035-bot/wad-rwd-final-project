@@ -9,15 +9,12 @@
 .bg-white {
     background-color: #fff !important;
 }
-
 .rounded-4 {
     border-radius: 1rem !important;
 }
-
 .shadow-sm {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
 }
-
 .border {
     border-color: #f3f4f6 !important;
 }
@@ -27,7 +24,6 @@
     background-color: #4a6cf7;
     border-color: #4a6cf7;
 }
-
 .btn-sched:hover {
     background-color: #3b5bdb;
     border-color: #3b5bdb;
@@ -61,41 +57,25 @@
     box-shadow: 0 0 0 0.25rem rgba(59, 102, 209, 0.1);
 }
 
-/* Mobile Responsiveness Tweaks */
+/* MOBILE */
 @media (max-width: 576px) {
-    /* Make input text smaller on mobile so 3 items fit in one row */
     .form-select, .form-control, .input-group-text {
         font-size: 0.85rem;
         padding-left: 2px;
         padding-right: 2px;
     }
-    
-    /* Ensure text doesn't wrap awkwardly inside dropdowns */
     .text-truncate {
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
     }
-
-    /* Ensures the second row has a tiny bit of breathing room if needed, 
-       though the g-2 class usually handles this. */
     .col-12 {
         margin-top: 0.5rem;
     }
-    
-    /* Center text in the sort dropdown for better mobile aesthetics */
     #sort_by {
         background-position: right 1rem center;
     }
-    
-    /* Adjust table padding for mobile */
     .custom-table tbody td, .custom-table thead th {
         padding: 0.5rem 0.5rem;
     }
-}
-
-/* Badge Utilities */
-.bg-brand-blue {
-    background-color: var(--brand-blue) !important;
-    color: white;
 }
