@@ -24,6 +24,7 @@ if (isset($_SESSION['user']['id'])) {
     exit();
 }
 
+// Fetch User Role
 $stmt_role = $db->prepare("SELECT r.name FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = :uid");
 $stmt_role->bindValue(':uid', $user_id, SQLITE3_INTEGER);
 $res_role = $stmt_role->execute();
@@ -37,19 +38,46 @@ $total_count = 0;
 $has_read_notifications = false;
 $initials = 'AD'; 
 
+// ================= ADMIN LOGIC =================
 if ($user_role === 'admin') {
 
-    if (isset($_GET['action']) && $_GET['action'] == 'read_notif' && isset($_GET['id'])) {
-        $notif_id = (int)$_GET['id'];
+    // --- ADMIN ACTION HANDLERS ---
+    if (isset($_GET['action'])) {
         
-        $update = $db->prepare("UPDATE notifications SET is_read = 1 WHERE id = :id");
-        $update->bindValue(':id', $notif_id, SQLITE3_INTEGER);
-        $update->execute();
+        // 1. Read Single Notification
+        if ($_GET['action'] == 'read_notif' && isset($_GET['id'])) {
+            $notif_id = (int)$_GET['id'];
+            $update = $db->prepare("UPDATE notifications SET is_read = 1 WHERE id = :id");
+            $update->bindValue(':id', $notif_id, SQLITE3_INTEGER);
+            $update->execute();
+            header("Location: notif_view.php");
+            exit();
+        }
         
-        header("Location: notif_view.php");
-        exit();
+        // 2. Clear All Notifications (Mark All Read) - ADDED THIS
+        elseif ($_GET['action'] == 'clear_notifications') {
+            // Update only the notifications visible to Admin (bio/phone updates)
+            $query = "UPDATE notifications 
+                      SET is_read = 1 
+                      WHERE (message LIKE '%bio description%' OR message LIKE '%phone number%') 
+                      AND is_read = 0";
+            $db->exec($query);
+            header("Location: notif_view.php");
+            exit();
+        }
+
+        // 3. Clear History (Delete Read) - ADDED THIS
+        elseif ($_GET['action'] == 'clear_history') {
+            $query = "DELETE FROM notifications 
+                      WHERE (message LIKE '%bio description%' OR message LIKE '%phone number%') 
+                      AND is_read = 1";
+            $db->exec($query);
+            header("Location: notif_view.php");
+            exit();
+        }
     }
 
+    // --- FETCH ADMIN NOTIFICATIONS ---
     $query = "SELECT n.*, s.first_name, s.last_name, s.student_number 
               FROM notifications n 
               LEFT JOIN students s ON n.student_id = s.id 
@@ -73,7 +101,9 @@ if ($user_role === 'admin') {
     }
     $total_count = $unread_count;
 
-} else {
+} 
+// ================= STUDENT LOGIC =================
+else {
 
     $student = [
         'id' => 0,
@@ -102,6 +132,7 @@ if ($user_role === 'admin') {
         }
     }
 
+    // --- STUDENT ACTION HANDLERS ---
     if (isset($_GET['action']) && $student_id > 0) {
         
         if ($_GET['action'] == 'read_notif' && isset($_GET['id'])) {
@@ -146,44 +177,28 @@ if ($user_role === 'admin') {
         }
     }
 
-    if ($user_role === 'admin') {
-        $notif_data = notif('admin', true);
-        $unread_count = $notif_data['unread_count']; 
-        $total_count = $unread_count; 
-        $notifications = $notif_data['notifications'];
-        
-        if (!empty($notifications)) {
-            foreach ($notifications as &$n) {
-                $n['display_name'] = $n['first_name'] ?? 'System Notification';
-                if ($n['is_read'] == 1) {
-                    $has_read_notifications = true;
-                }
-            }
-        }
-    } else {
-        $notif_data = notif('student', true); 
-        $notifications = $notif_data['notifications'];
-        $unread_count = 0;
-        if (!empty($notifications)) {
-            foreach ($notifications as &$n) {
-                $n['display_name'] = $n['first_name'] ?? 'System Notification';
-                
-                // Manually count unread items
-                if ($n['is_read'] == 0) {
-                    $unread_count++;
-                }
-                
-                if ($n['is_read'] == 1) {
-                    $has_read_notifications = true;
-                }
-            }
-            $total_count = $unread_count;
-        }
-        
-    }
+    // --- FETCH STUDENT NOTIFICATIONS ---
+    // (Logic simplified: Removed redundant inner Admin check)
+    $notif_data = notif('student', true); 
+    $notifications = $notif_data['notifications'];
+    $unread_count = 0;
     
+    if (!empty($notifications)) {
+        foreach ($notifications as &$n) {
+            $n['display_name'] = $n['first_name'] ?? 'System Notification';
+            
+            // Manually count unread items
+            if ($n['is_read'] == 0) {
+                $unread_count++;
+            }
+            
+            if ($n['is_read'] == 1) {
+                $has_read_notifications = true;
+            }
+        }
+        $total_count = $unread_count;
+    }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -207,28 +222,16 @@ if ($user_role === 'admin') {
     <div class="container mt-4 mb-5">
         
         <div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <?php if($user_role === 'admin'): ?>
-                <div>
-                    <h4 class="mb-1 fw-bold text-dark">
-                        Notifications
-                    </h4>
-                    <p class="mb-0 text-muted small">
-                        You have <?php echo $total_count; ?> unread notification<?php echo $total_count !== 1 ? 's' : ''; ?>
-                    </p>
-                </div>
-            <?php elseif ($user_role === 'student'): ?>
-                <div>
-                    <h4 class="mb-1 fw-bold text-dark">
-                        Notifications
-                    </h4>
-                    <p class="mb-0 text-muted small">
-                        You have <?php echo $total_count; ?> unread notification<?php echo $total_count !== 1 ? 's' : ''; ?>
-                    </p>
-                </div>
-            <?php endif; ?>
+            <div>
+                <h4 class="mb-1 fw-bold text-dark">
+                    Notifications
+                </h4>
+                <p class="mb-0 text-muted small">
+                    You have <?php echo $total_count; ?> unread notification<?php echo $total_count !== 1 ? 's' : ''; ?>
+                </p>
+            </div>
             
             <div class="d-flex gap-2">
-                <!-- Removed the Admin role check so students can see these buttons too -->
                 <?php if ($has_read_notifications): ?>
                     <a href="?action=clear_history" 
                        class="btn btn-outline-danger rounded-pill px-3 py-2"

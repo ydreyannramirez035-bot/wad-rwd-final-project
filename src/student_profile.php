@@ -259,7 +259,7 @@ $yearLevel = $student['year_level'] ?? 1;
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-dark">Phone Number</label>
-                                <input type="text" name="phone_number" class="form-control" 
+                                <input type="text" name="phone_number" maxlength="11" class="form-control" 
                                        value="<?= htmlspecialchars($student['phone_number'] ?? '') ?>">
                             </div>
                             <div class="col-12">
