@@ -22,7 +22,7 @@ The Student Schedule System is a database-driven web application that allows adm
 
 - **Server-side Language:** PHP  
 - **Database:** SQLite  
-- **Frontend:** HTML5, CSS (Flexbox/Grid), JavaScript  
+- **Frontend:** HTML5, CSS (Flexbox), JavaScript  
 - **Other:** PHP built-in server or XAMPP/Apache for local hosting
 
 ### Core Features
