@@ -108,7 +108,7 @@ if ($selected_course !== COURSE_ALL) {
     $sql_sched .= " GROUP BY sch.subject_id, sch.teacher_id, sch.room, sch.time_start, sch.time_end, sch.day";
 }
 
-$sql_sched .= " ORDER BY sch.time_start ASC";
+$sql_sched .= " ORDER BY sch.time_start ASC LIMIT 5";
 
 $stmt = $db->prepare($sql_sched);
 if ($selected_course !== COURSE_ALL) {
@@ -120,7 +120,7 @@ $sql_students = "SELECT * FROM students";
 if ($selected_course !== COURSE_ALL) {
     $sql_students .= " WHERE course_id = :course_id";
 }
-$sql_students .= " ORDER BY last_name ASC";
+$sql_students .= " ORDER BY last_name ASC LIMIT 5";
 $stmt_students = $db->prepare($sql_students);
 
 if ($selected_course !== COURSE_ALL) {
