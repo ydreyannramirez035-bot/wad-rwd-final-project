@@ -360,30 +360,7 @@ if ($action === "delete") {
     <link rel="stylesheet" href="../styles/admin_schedule.css">
     <link rel="stylesheet" href="../styles/admin.css">
     <link rel="stylesheet" href="../styles/notification.css">
-    <style>
-        /* Custom Pagination Styles */
-        .pagination {
-            justify-content: center;
-        }
-        .page-link {
-            color: #333;
-            border: 1px solid #dee2e6;
-            margin: 0 2px;
-            border-radius: 4px;
-        }
-        .page-link:hover {
-            color: #007bff;
-            background-color: #e9ecef;
-        }
-        .page-item.active .page-link {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-            color: white;
-        }
-        .page-item.disabled .page-link {
-            color: #6c757d;
-        }
-    </style>
+    <link rel="stylesheet" href="../styles/pagination.css">
 </head>
 <body class="d-flex flex-column min-vh-100 position-relative">
     <?php if(file_exists(__DIR__ . "/student_nav.php")) require_once __DIR__ . "/student_nav.php"; ?>
