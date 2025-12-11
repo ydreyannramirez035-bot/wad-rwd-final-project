@@ -59,7 +59,7 @@ $sqlSched .= " ORDER BY
         WHEN sch.day = 'Sunday' THEN 7
         ELSE 8
     END,
-    sch.time_start ASC";
+    sch.time_start ASC LIMIT 5";
 
 $stmt = $db->prepare($sqlSched);
 $stmt->bindValue(':cid', $course_id, SQLITE3_INTEGER);
