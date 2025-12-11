@@ -379,11 +379,12 @@ if ($action === "delete") {
                     <div class="row">
                         <div class="col-md-2 mb-3">
                             <label class="form-label fw-medium text-secondary small">Age</label>
-                            <input type="number" class="form-control" name="age" value="<?php echo $student['age']??''; ?>" required>
+                            <input type="number" class="form-control" name="age" value="<?php echo $student['age']??''; ?>" required 
+                                    oninput="if(this.value.length > 2) this.value = this.value.slice(0, 2);">
                         </div>
                         <div class="col-md-5 mb-3">
                             <label class="form-label fw-medium text-secondary small">Phone Number</label>
-                            <input type="text" class="form-control" name="phone_number" value="<?php echo $student['phone_number']??''; ?>" required>
+                            <input type="text" class="form-control" name="phone_number" value="<?php echo $student['phone_number']??''; ?>" required maxlength="12">
                         </div>
                         <div class="col-md-5 mb-3">
                             <label class="form-label fw-medium text-secondary small">Email</label>
