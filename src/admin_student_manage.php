@@ -182,11 +182,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 </li>
             </ul>
         </nav>
-<<<<<<< HEAD
         <span class="mobile-hidden">
-=======
-        <div class="text-end text-muted small" style="font-size: 0.85rem;">
->>>>>>> 5a2f5b6357b23ef4f417fe7f675233a444b8ef57
             Showing Page <?php echo $page; ?> of <?php echo $totalPages; ?>
         </span>
         <?php
