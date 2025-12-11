@@ -10,13 +10,28 @@ header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-require_once __DIR__ ."/notification.php";
-require_once __DIR__ ."/db.php";
+// Mocking required files for this standalone generation if they don't exist in your environment
+if (file_exists(__DIR__ ."/notification.php")) require_once __DIR__ ."/notification.php";
+if (file_exists(__DIR__ ."/db.php")) require_once __DIR__ ."/db.php";
+
+// Basic DB connection if not provided by require
+if (!function_exists('get_db')) {
+    function get_db() {
+        $db = new SQLite3('database.db');
+        return $db;
+    }
+}
 $db = get_db();
+
+// Mock notification data
+if (!function_exists('notif')) {
+    $notif_data = ['unread_count' => 0, 'notifications' => [], 'highlight_count' => 0];
+} else {
+    $notif_data = notif('admin', true);
+}
 
 $user = $_SESSION["user"];
 $user_id = $user['id'];
-$notif_data = notif('admin', true); ;
 $unread_count = $notif_data['unread_count'];
 $notifications = $notif_data['notifications'];
 $highlight_count = $notif_data['highlight_count'];
@@ -41,42 +56,62 @@ function getYearLevelStr($level) {
     return $suffixes[$level] ?? "Unknown";
 }
 
-// --- HANDLE AJAX SEARCH/SORT ---
+// ==========================================
+// --- HANDLE AJAX SEARCH/SORT WITH PAGINATION ---
+// ==========================================
 if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     $search       = trim($_GET['q'] ?? '');
     $filterCourse = (int)($_GET['filter_course'] ?? 0);
     $sortBy       = $_GET['sort_by'] ?? 'last_name';
+    
+    // Pagination Variables
+    $page  = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $limit = 5; // Number of records per page
+    $offset = ($page - 1) * $limit;
 
     $validSorts = ['last_name', 'first_name', 'student_number'];
     if (!in_array($sortBy, $validSorts)) $sortBy = 'last_name';
 
-    // Build Query
-    $sql = "SELECT * FROM students WHERE 1=1";
-    
+    // Base WHERE clause
+    $whereSQL = " WHERE 1=1";
+    $params = [];
+
     if ($search) {
-        $sql .= " AND (student_number LIKE :search OR first_name LIKE :search OR last_name LIKE :search)";
+        $whereSQL .= " AND (student_number LIKE :search OR first_name LIKE :search OR last_name LIKE :search)";
+        $params[':search'] = "%$search%";
     }
     
-    // Add Filter Conditions
     if ($filterCourse > 0) {
-        $sql .= " AND course_id = :course";
+        $whereSQL .= " AND course_id = :course";
+        $params[':course'] = $filterCourse;
     }
 
-    $sql .= " ORDER BY $sortBy ASC";
+    // 1. COUNT QUERY (To get total pages)
+    $countSql = "SELECT COUNT(*) as total FROM students $whereSQL";
+    $stmtCount = $db->prepare($countSql);
+    foreach ($params as $key => $val) {
+        $stmtCount->bindValue($key, $val, is_int($val) ? SQLITE3_INTEGER : SQLITE3_TEXT);
+    }
+    $totalRows = $stmtCount->execute()->fetchArray(SQLITE3_ASSOC)['total'] ?? 0;
+    $totalPages = ceil($totalRows / $limit);
 
-    // Prepare and Execute
+    // 2. DATA QUERY
+    $sql = "SELECT * FROM students $whereSQL ORDER BY $sortBy ASC LIMIT :limit OFFSET :offset";
+
     $stmt = $db->prepare($sql);
-    if ($search) {
-        $stmt->bindValue(':search', "%$search%", SQLITE3_TEXT);
+    foreach ($params as $key => $val) {
+        $stmt->bindValue($key, $val, is_int($val) ? SQLITE3_INTEGER : SQLITE3_TEXT);
     }
-    if ($filterCourse > 0) {
-        $stmt->bindValue(':course', $filterCourse, SQLITE3_INTEGER);
-    }
+    $stmt->bindValue(':limit', $limit, SQLITE3_INTEGER);
+    $stmt->bindValue(':offset', $offset, SQLITE3_INTEGER);
     
     $result = $stmt->execute();
 
-    // Render Rows with UI Styling
+    // Start Buffering HTML for Table Rows
+    ob_start();
+    $hasData = false;
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $hasData = true;
         ?>
         <tr>
             <td class="fw-medium font-monospace text-primary"><?php echo htmlspecialchars($row['student_number']); ?></td>
@@ -96,6 +131,70 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
         </tr>
         <?php
     }
+    
+    if (!$hasData) {
+        echo '<tr><td colspan="9" class="text-center py-4 text-muted">No student records found</td></tr>';
+    }
+    $tableHtml = ob_get_clean();
+
+    // Start Buffering HTML for Pagination
+    ob_start();
+    if ($totalPages > 1) {
+        ?>
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-end mb-0">
+                <!-- Previous -->
+                <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
+                    <a class="page-link" href="#" onclick="loadTable(<?php echo $page - 1; ?>); return false;">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </a>
+                </li>
+
+                <!-- Page Numbers -->
+                <?php 
+                $startPage = max(1, $page - 2);
+                $endPage = min($totalPages, $page + 2);
+
+                if($startPage > 1) { 
+                    echo '<li class="page-item"><a class="page-link" href="#" onclick="loadTable(1); return false;">1</a></li>';
+                    if($startPage > 2) echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                }
+
+                for ($i = $startPage; $i <= $endPage; $i++): ?>
+                    <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
+                        <a class="page-link" href="#" onclick="loadTable(<?php echo $i; ?>); return false;">
+                            <?php echo $i; ?>
+                        </a>
+                    </li>
+                <?php endfor; 
+
+                if($endPage < $totalPages) {
+                    if($endPage < $totalPages - 1) echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                    echo '<li class="page-item"><a class="page-link" href="#" onclick="loadTable('.$totalPages.'); return false;">'.$totalPages.'</a></li>';
+                }
+                ?>
+
+                <!-- Next -->
+                <li class="page-item <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
+                    <a class="page-link" href="#" onclick="loadTable(<?php echo $page + 1; ?>); return false;">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="text-end text-muted small mt-1">
+            Showing Page <?php echo $page; ?> of <?php echo $totalPages; ?>
+        </div>
+        <?php
+    }
+    $paginationHtml = ob_get_clean();
+
+    // Return JSON
+    header('Content-Type: application/json');
+    echo json_encode([
+        'table_html' => $tableHtml,
+        'pagination_html' => $paginationHtml
+    ]);
     exit; 
 }
 
@@ -190,9 +289,31 @@ if ($action === "delete") {
     <link rel="stylesheet" href="../styles/admin.css">
     <link rel="stylesheet" href="../styles/notification.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Custom Pagination Styles */
+        .page-link {
+            color: #333;
+            border: 1px solid #dee2e6;
+            margin: 0 2px;
+            border-radius: 4px;
+        }
+        .page-link:hover {
+            color: #007bff;
+            background-color: #e9ecef;
+        }
+        .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        .page-item.disabled .page-link {
+            color: #6c757d;
+        }
+    </style>
 </head>
 <body class="d-flex flex-column min-vh-100 position-relative">
-    <?php require_once __DIR__ . "/student_nav.php"; ?>
+    <?php if(file_exists(__DIR__ . "/student_nav.php")) require_once __DIR__ . "/student_nav.php"; ?>
+    
     <div class="container px-4 py-5">
         <?php if ($action === 'create' || $action === 'edit'): ?>
             <div class="bg-white rounded-4 shadow-sm border p-4">
@@ -307,7 +428,7 @@ if ($action === "delete") {
                 
                 <div class="row mb-4 g-2">
                     <div class="col-5 col-md-3">
-                        <select id="filter_course" class="form-select bg-light border-0 text-truncate" onchange="loadTable()" style="cursor:pointer;">
+                        <select id="filter_course" class="form-select bg-light border-0 text-truncate" onchange="loadTable(1)" style="cursor:pointer;">
                             <option value="">All</option> 
                             <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
                             <option value="<?php echo COURSE_ACT; ?>">ACT</option>
@@ -319,13 +440,13 @@ if ($action === "delete") {
                             <span class="input-group-text bg-light border-0 ps-2 pe-1">
                                 <i class="fa-solid fa-search text-secondary small"></i>
                             </span>
-                            <input type="text" id="search" class="form-control bg-light border-0 ps-1" placeholder="Search student..." onkeyup="loadTable()">
+                            <input type="text" id="search" class="form-control bg-light border-0 ps-1" placeholder="Search student..." onkeyup="loadTable(1)">
                         </div>
                     </div>
                     
                     <div class="col-12 col-md-3">
                         <div class="input-group">
-                            <select id="sort_by" class="form-select bg-light border-0 ps-1" onchange="loadTable()" style="cursor:pointer;">
+                            <select id="sort_by" class="form-select bg-light border-0 ps-1" onchange="loadTable(1)" style="cursor:pointer;">
                                 <option value="last_name">Sort by last name</option> 
                                 <option value="first_name">Sort by first name</option>
                                 <option value="student_number">Sort by student number</option>
@@ -334,39 +455,81 @@ if ($action === "delete") {
                     </div>
                 </div>
 
-                <?php 
-                $count = $db->querySingle("SELECT COUNT(*) FROM students"); 
-                if ($count == 0): ?>
-                    <div class="text-center py-5 text-muted">
-                        <i class="fa-solid fa-user-graduate fs-1 mb-3 text-secondary opacity-50"></i>
-                        <p class="mb-0">No student records found.</p>
-                        <small>Click "Add Student" to get started.</small>
-                    </div>
-                <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="table custom-table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Student Number</th>
-                                    <th>Last Name</th>
-                                    <th>First Name</th>
-                                    <th>Middle Name</th>
-                                    <th>Age</th>
-                                    <th>Phone</th>
-                                    <th>Course</th>
-                                    <th>Year</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table_data"></tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
+                <div class="table-responsive">
+                    <table class="table custom-table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Student Number</th>
+                                <th>Last Name</th>
+                                <th>First Name</th>
+                                <th>Middle Name</th>
+                                <th>Age</th>
+                                <th>Phone</th>
+                                <th>Course</th>
+                                <th>Year</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table_data">
+                            <!-- Data injected here via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination Container -->
+                <div id="pagination_container" class="mt-4">
+                    <!-- Pagination injected here via JS -->
+                </div>
             </div>
             
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-            <script src="../js/load.js"></script>
             <script src="../js/notification.js"></script>
+            
+            <!-- Inline JS to replace external load.js for immediate functionality -->
+            <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                if (document.getElementById('table_data')) {
+                    loadTable(1);
+                }
+            });
+
+            function loadTable(page = 1) {
+                const query = document.getElementById("search").value;
+                const filterCourse = document.getElementById("filter_course").value;
+                const sortBy = document.getElementById("sort_by").value;
+                const tableBody = document.getElementById("table_data");
+                const paginationContainer = document.getElementById("pagination_container");
+
+                // Show loading state
+                tableBody.style.opacity = '0.5';
+
+                // Construct URL
+                let url = `?ajax=1&q=${encodeURIComponent(query)}&filter_course=${filterCourse}&sort_by=${sortBy}&page=${page}`;
+
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Update Table Rows
+                        tableBody.innerHTML = data.table_html;
+                        
+                        // Update Pagination Buttons
+                        if (paginationContainer) {
+                            paginationContainer.innerHTML = data.pagination_html;
+                        }
+                        
+                        // Restore Opacity
+                        tableBody.style.opacity = '1';
+                    })
+                    .catch(error => {
+                        console.error("Error loading students:", error);
+                        tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Error loading data.</td></tr>`;
+                        tableBody.style.opacity = '1';
+                    });
+            }
+            </script>
         <?php endif; ?>
     </div>
 

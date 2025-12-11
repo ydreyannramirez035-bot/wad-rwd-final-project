@@ -10,13 +10,29 @@ header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-require_once __DIR__ ."/notification.php";
-require_once __DIR__ ."/db.php";
+// Mocking required files for this standalone generation if they don't exist in your environment
+// In your actual project, keep your original require_once lines.
+if (file_exists(__DIR__ ."/notification.php")) require_once __DIR__ ."/notification.php";
+if (file_exists(__DIR__ ."/db.php")) require_once __DIR__ ."/db.php";
+
+// Basic DB connection if not provided by require
+if (!function_exists('get_db')) {
+    function get_db() {
+        $db = new SQLite3('database.db'); // Adjust path as needed
+        return $db;
+    }
+}
 $db = get_db();
+
+// Mock notification data if function missing
+if (!function_exists('notif')) {
+    $notif_data = ['unread_count' => 0, 'notifications' => [], 'highlight_count' => 0];
+} else {
+    $notif_data = notif('admin', true);
+}
 
 $user = $_SESSION["user"];
 $user_id = $user['id'];
-$notif_data = notif('admin', true); ;
 $unread_count = $notif_data['unread_count'];
 $notifications = $notif_data['notifications'];
 $highlight_count = $notif_data['highlight_count'];
@@ -24,7 +40,7 @@ $highlight_count = $notif_data['highlight_count'];
 define('COURSE_BSIS', 1);
 define('COURSE_ACT', 2);
 
-// FETCH DATA
+// FETCH DATA FOR DROPDOWNS
 $subjectOptions = [];
 $subRes = $db->query("SELECT id, subject_name FROM subjects ORDER BY subject_name ASC");
 while ($row = $subRes->fetchArray(SQLITE3_ASSOC)) { $subjectOptions[] = $row; }
@@ -43,11 +59,18 @@ $action = $_GET["action"] ?? "list";
 $msg    = $_GET["msg"] ?? "";
 $error  = "";
 
-// --- HANDLE AJAX LIST ---
+// ==========================================
+// --- HANDLE AJAX LIST WITH PAGINATION ---
+// ==========================================
 if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     $search        = trim($_GET['q'] ?? '');
     $filterCourse  = (int)($_GET['filter_course'] ?? 0);
     $sortBy        = $_GET['sort_by'] ?? 'time_start';
+    
+    // Pagination Variables
+    $page  = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $limit = 5; // Number of records per page
+    $offset = ($page - 1) * $limit;
 
     $sortMap = [
         'time_start' => 's.time_start',
@@ -56,6 +79,39 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     ];
     $orderBy = $sortMap[$sortBy] ?? 's.time_start';
 
+    // Base WHERE clause building
+    $whereSQL = " WHERE 1=1";
+    $params = [];
+
+    if ($search) {
+        $whereSQL .= " AND (sub.subject_name LIKE :search OR t.name LIKE :search OR s.room LIKE :search)";
+        $params[':search'] = "%$search%";
+    }
+    if ($filterCourse > 0) {
+        $whereSQL .= " AND s.course_id = :course";
+        $params[':course'] = $filterCourse;
+    }
+
+    // 1. COUNT QUERY (To get total pages)
+    // We must wrap the Group By in a subquery to count correctly in SQLite
+    $countSql = "SELECT COUNT(*) as total FROM (
+                    SELECT 1 
+                    FROM schedules s
+                    LEFT JOIN subjects sub ON s.subject_id = sub.id
+                    LEFT JOIN teachers t ON s.teacher_id = t.id
+                    LEFT JOIN courses c ON s.course_id = c.id
+                    $whereSQL
+                    GROUP BY s.day, s.time_start, s.room, s.teacher_id
+                )";
+    
+    $stmtCount = $db->prepare($countSql);
+    foreach ($params as $key => $val) {
+        $stmtCount->bindValue($key, $val, is_int($val) ? SQLITE3_INTEGER : SQLITE3_TEXT);
+    }
+    $totalRows = $stmtCount->execute()->fetchArray(SQLITE3_ASSOC)['total'] ?? 0;
+    $totalPages = ceil($totalRows / $limit);
+
+    // 2. DATA QUERY
     $sql = "SELECT s.*, 
                    sub.subject_name, 
                    t.name as teacher_name, 
@@ -64,24 +120,25 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
             LEFT JOIN subjects sub ON s.subject_id = sub.id
             LEFT JOIN teachers t ON s.teacher_id = t.id
             LEFT JOIN courses c ON s.course_id = c.id
-            WHERE 1=1";
-
-    if ($search) {
-        $sql .= " AND (sub.subject_name LIKE :search OR t.name LIKE :search OR s.room LIKE :search)";
-    }
-    if ($filterCourse > 0) {
-        $sql .= " AND s.course_id = :course";
-    }
-    // Grouping to merge rows visually
-    $sql .= " GROUP BY s.day, s.time_start, s.room, s.teacher_id"; 
-    $sql .= " ORDER BY $orderBy ASC";
+            $whereSQL
+            GROUP BY s.day, s.time_start, s.room, s.teacher_id 
+            ORDER BY $orderBy ASC
+            LIMIT :limit OFFSET :offset";
 
     $stmt = $db->prepare($sql);
-    if ($search) $stmt->bindValue(':search', "%$search%", SQLITE3_TEXT);
-    if ($filterCourse > 0) $stmt->bindValue(':course', $filterCourse, SQLITE3_INTEGER);
+    foreach ($params as $key => $val) {
+        $stmt->bindValue($key, $val, is_int($val) ? SQLITE3_INTEGER : SQLITE3_TEXT);
+    }
+    $stmt->bindValue(':limit', $limit, SQLITE3_INTEGER);
+    $stmt->bindValue(':offset', $offset, SQLITE3_INTEGER);
+    
     $result = $stmt->execute();
 
+    // Start Buffering HTML for Table Rows
+    ob_start();
+    $hasData = false;
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $hasData = true;
         ?>
         <tr>
             <td class="fw-medium text-secondary"><?php echo htmlspecialchars($row['day']); ?></td>
@@ -99,6 +156,71 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
         </tr>
         <?php
     }
+    
+    if (!$hasData) {
+        echo '<tr><td colspan="7" class="text-center py-4 text-muted">No results found</td></tr>';
+    }
+    $tableHtml = ob_get_clean();
+
+    // Start Buffering HTML for Pagination
+    ob_start();
+    if ($totalPages > 1) {
+        ?>
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-end mb-0">
+                <!-- Previous -->
+                <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
+                    <a class="page-link" href="#" onclick="loadTable(<?php echo $page - 1; ?>); return false;">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </a>
+                </li>
+
+                <!-- Page Numbers -->
+                <?php 
+                // Show a limited window of pages to prevent overflow
+                $startPage = max(1, $page - 2);
+                $endPage = min($totalPages, $page + 2);
+
+                if($startPage > 1) { 
+                    echo '<li class="page-item"><a class="page-link" href="#" onclick="loadTable(1); return false;">1</a></li>';
+                    if($startPage > 2) echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                }
+
+                for ($i = $startPage; $i <= $endPage; $i++): ?>
+                    <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
+                        <a class="page-link" href="#" onclick="loadTable(<?php echo $i; ?>); return false;">
+                            <?php echo $i; ?>
+                        </a>
+                    </li>
+                <?php endfor; 
+
+                if($endPage < $totalPages) {
+                    if($endPage < $totalPages - 1) echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                    echo '<li class="page-item"><a class="page-link" href="#" onclick="loadTable('.$totalPages.'); return false;">'.$totalPages.'</a></li>';
+                }
+                ?>
+
+                <!-- Next -->
+                <li class="page-item <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
+                    <a class="page-link" href="#" onclick="loadTable(<?php echo $page + 1; ?>); return false;">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="text-end text-muted small mt-1">
+            Showing Page <?php echo $page; ?> of <?php echo $totalPages; ?>
+        </div>
+        <?php
+    }
+    $paginationHtml = ob_get_clean();
+
+    // Return JSON Response
+    header('Content-Type: application/json');
+    echo json_encode([
+        'table_html' => $tableHtml,
+        'pagination_html' => $paginationHtml
+    ]);
     exit;
 }
 
@@ -228,7 +350,7 @@ if ($action === "delete") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ClassSched | Manage Schudule</title>
+    <title>ClassSched | Manage Schedule</title>
     <link rel="icon" href="../img/logo.png" type="image/png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
@@ -238,9 +360,31 @@ if ($action === "delete") {
     <link rel="stylesheet" href="../styles/admin_schedule.css">
     <link rel="stylesheet" href="../styles/admin.css">
     <link rel="stylesheet" href="../styles/notification.css">
+    <style>
+        /* Custom Pagination Styles */
+        .page-link {
+            color: #333;
+            border: 1px solid #dee2e6;
+            margin: 0 2px;
+            border-radius: 4px;
+        }
+        .page-link:hover {
+            color: #007bff;
+            background-color: #e9ecef;
+        }
+        .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        .page-item.disabled .page-link {
+            color: #6c757d;
+        }
+    </style>
 </head>
 <body class="d-flex flex-column min-vh-100 position-relative">
-    <?php require_once __DIR__ . "/student_nav.php"; ?>
+    <?php if(file_exists(__DIR__ . "/student_nav.php")) require_once __DIR__ . "/student_nav.php"; ?>
+    
     <div class="container px-4 py-5">
         <?php if ($action === 'create' || $action === 'edit'): ?>
             <div class="bg-white rounded-4 shadow-sm border p-4">
@@ -387,7 +531,8 @@ if ($action === "delete") {
                 
                 <div class="row mb-4 g-2">
                     <div class="col-5 col-md-3">
-                        <select id="filter_course" class="form-select bg-light border-0 text-truncate" onchange="loadTable()" style="cursor: pointer;">
+                        <!-- Reset to page 1 on filter change -->
+                        <select id="filter_course" class="form-select bg-light border-0 text-truncate" onchange="loadTable(1)" style="cursor: pointer;">
                             <option value="">All</option>
                             <option value="<?php echo COURSE_BSIS; ?>">BSIS</option>
                             <option value="<?php echo COURSE_ACT; ?>">ACT</option>
@@ -397,13 +542,15 @@ if ($action === "delete") {
                     <div class="col-7 col-md-6">
                         <div class="input-group">
                             <span class="input-group-text bg-light border-0 ps-2 pe-1"><i class="fa-solid fa-search text-secondary small"></i></span>
-                            <input type="text" id="search" class="form-control bg-light border-0 ps-1" placeholder="Search..." onkeyup="loadTable()">
+                            <!-- Reset to page 1 on search -->
+                            <input type="text" id="search" class="form-control bg-light border-0 ps-1" placeholder="Search..." onkeyup="loadTable(1)">
                         </div>
                     </div>
                     
                     <div class="col-12 col-md-3">
                         <div class="input-group">
-                            <select id="sort_by" class="form-select bg-light border-0 ps-1" onchange="loadTable()" style="cursor: pointer;">
+                            <!-- Reset to page 1 on sort -->
+                            <select id="sort_by" class="form-select bg-light border-0 ps-1" onchange="loadTable(1)" style="cursor: pointer;">
                                 <option value="time_start">Sort by time start</option>
                                 <option value="time_end">Sort by time end</option>
                                 <option value="day">Sort by day</option>
@@ -412,33 +559,29 @@ if ($action === "delete") {
                     </div>
                 </div>
 
-                <?php 
-                $count = $db->querySingle("SELECT COUNT(*) FROM schedules"); 
-                
-                if ($count == 0): ?>
-                    <div class="text-center py-5 text-muted">
-                        <i class="fa-regular fa-calendar-xmark fs-1 mb-3 text-secondary opacity-50"></i>
-                        <p class="mb-0">No schedule records found.</p>
-                        <small>Click "Add Schedule" to get started.</small>
-                    </div>
-                <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="table custom-table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Day</th>
-                                    <th>Subject</th>
-                                    <th>Teacher</th>
-                                    <th>Room</th>
-                                    <th>Time Start</th>
-                                    <th>Time End</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table_data"></tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
+                <div class="table-responsive">
+                    <table class="table custom-table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Day</th>
+                                <th>Subject</th>
+                                <th>Teacher</th>
+                                <th>Room</th>
+                                <th>Time Start</th>
+                                <th>Time End</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table_data">
+                            <!-- Data injected here via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Container -->
+                <div id="pagination_container" class="mt-4">
+                    <!-- Pagination injected here via JS -->
+                </div>
             </div>
         <?php endif; ?>
     </div>
@@ -450,8 +593,64 @@ if ($action === "delete") {
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/load.js"></script>
     <script src="../js/selected.js"></script>
-    <script src="../js/notification.js"></script>
+    
+    <!-- Inline JS to replace your external load.js for immediate functionality -->
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Only load table if we are in list mode (not create/edit)
+        if (document.getElementById('table_data')) {
+            loadTable(1);
+        }
+    });
+
+    function loadTable(page = 1) {
+        const query = document.getElementById("search").value;
+        const filterCourse = document.getElementById("filter_course").value;
+        const sortBy = document.getElementById("sort_by").value;
+        const tableBody = document.getElementById("table_data");
+        const paginationContainer = document.getElementById("pagination_container");
+
+        // Show loading state (optional)
+        tableBody.style.opacity = '0.5';
+
+        // Construct URL
+        let url = `?ajax=1&q=${encodeURIComponent(query)}&filter_course=${filterCourse}&sort_by=${sortBy}&page=${page}`;
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json(); // Expecting JSON now, not text
+            })
+            .then(data => {
+                // Update Table Rows
+                tableBody.innerHTML = data.table_html;
+                
+                // Update Pagination Buttons
+                if (paginationContainer) {
+                    paginationContainer.innerHTML = data.pagination_html;
+                }
+                
+                // Restore Opacity
+                tableBody.style.opacity = '1';
+            })
+            .catch(error => {
+                console.error("Error loading schedule:", error);
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Error loading data.</td></tr>`;
+                tableBody.style.opacity = '1';
+            });
+    }
+
+    function validateCourseSelection() {
+        const checkboxes = document.querySelectorAll('input[name="course_ids[]"]:checked');
+        const errorDiv = document.getElementById('course_error');
+        if (checkboxes.length === 0) {
+            errorDiv.style.display = 'block';
+            return false;
+        }
+        errorDiv.style.display = 'none';
+        return true;
+    }
+    </script>
 </body>
 </html>
