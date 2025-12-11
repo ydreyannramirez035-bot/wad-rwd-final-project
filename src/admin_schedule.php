@@ -208,9 +208,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 </li>
             </ul>
         </nav>
-        <div class="text-end text-muted small mt-1">
+        <span class="mobile-hidden">
             Showing Page <?php echo $page; ?> of <?php echo $totalPages; ?>
-        </div>
+        </span>
         <?php
     }
     $paginationHtml = ob_get_clean();
@@ -597,63 +597,6 @@ if ($action === "delete") {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/selected.js"></script>
-    
-    <!-- Inline JS to replace your external load.js for immediate functionality -->
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        // Only load table if we are in list mode (not create/edit)
-        if (document.getElementById('table_data')) {
-            loadTable(1);
-        }
-    });
-
-    function loadTable(page = 1) {
-        const query = document.getElementById("search").value;
-        const filterCourse = document.getElementById("filter_course").value;
-        const sortBy = document.getElementById("sort_by").value;
-        const tableBody = document.getElementById("table_data");
-        const paginationContainer = document.getElementById("pagination_container");
-
-        // Show loading state (optional)
-        tableBody.style.opacity = '0.5';
-
-        // Construct URL
-        let url = `?ajax=1&q=${encodeURIComponent(query)}&filter_course=${filterCourse}&sort_by=${sortBy}&page=${page}`;
-
-        fetch(url)
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json(); // Expecting JSON now, not text
-            })
-            .then(data => {
-                // Update Table Rows
-                tableBody.innerHTML = data.table_html;
-                
-                // Update Pagination Buttons
-                if (paginationContainer) {
-                    paginationContainer.innerHTML = data.pagination_html;
-                }
-                
-                // Restore Opacity
-                tableBody.style.opacity = '1';
-            })
-            .catch(error => {
-                console.error("Error loading schedule:", error);
-                tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Error loading data.</td></tr>`;
-                tableBody.style.opacity = '1';
-            });
-    }
-
-    function validateCourseSelection() {
-        const checkboxes = document.querySelectorAll('input[name="course_ids[]"]:checked');
-        const errorDiv = document.getElementById('course_error');
-        if (checkboxes.length === 0) {
-            errorDiv.style.display = 'block';
-            return false;
-        }
-        errorDiv.style.display = 'none';
-        return true;
-    }
-    </script>
+    <<script src="../js/pagination.js"></script>
 </body>
 </html>

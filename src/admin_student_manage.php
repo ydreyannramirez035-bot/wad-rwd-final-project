@@ -182,9 +182,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 </li>
             </ul>
         </nav>
-        <div class="text-end text-muted small">
+        <span class="mobile-hidden">
             Showing Page <?php echo $page; ?> of <?php echo $totalPages; ?>
-        </div>
+        </span>
         <?php
     }
     $paginationHtml = ob_get_clean();
@@ -487,52 +487,7 @@ if ($action === "delete") {
             
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
             <script src="../js/notification.js"></script>
-            
-            <!-- Inline JS to replace external load.js for immediate functionality -->
-            <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                if (document.getElementById('table_data')) {
-                    loadTable(1);
-                }
-            });
-
-            function loadTable(page = 1) {
-                const query = document.getElementById("search").value;
-                const filterCourse = document.getElementById("filter_course").value;
-                const sortBy = document.getElementById("sort_by").value;
-                const tableBody = document.getElementById("table_data");
-                const paginationContainer = document.getElementById("pagination_container");
-
-                // Show loading state
-                tableBody.style.opacity = '0.5';
-
-                // Construct URL
-                let url = `?ajax=1&q=${encodeURIComponent(query)}&filter_course=${filterCourse}&sort_by=${sortBy}&page=${page}`;
-
-                fetch(url)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        return response.json();
-                    })
-                    .then(data => {
-                        // Update Table Rows
-                        tableBody.innerHTML = data.table_html;
-                        
-                        // Update Pagination Buttons
-                        if (paginationContainer) {
-                            paginationContainer.innerHTML = data.pagination_html;
-                        }
-                        
-                        // Restore Opacity
-                        tableBody.style.opacity = '1';
-                    })
-                    .catch(error => {
-                        console.error("Error loading students:", error);
-                        tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Error loading data.</td></tr>`;
-                        tableBody.style.opacity = '1';
-                    });
-            }
-            </script>
+            <script src="../js/pagination.js"></script>
         <?php endif; ?>
     </div>
 

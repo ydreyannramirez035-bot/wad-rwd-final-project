@@ -75,4 +75,12 @@
     .custom-table tbody td, .custom-table thead th {
         padding: 0.75rem 0.5rem;
     }
+
+    .mobile-hidden {
+        display: none !important;
+    }
+    
+    .pagination, .d-flex {
+        justify-content: center !important; 
+    }
 }
