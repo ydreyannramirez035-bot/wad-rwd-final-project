@@ -1,0 +1,28 @@
+:root {
+    --brand-blue: #3b66d1;
+    --brand-blue-hover: #2d52b0;
+    --brand-dark: #0f1724;
+    --brand-light: #f5f7ff;
+}
+
+.pagination {
+    justify-content: center;
+}
+.page-link {
+    color: #333;
+    border: 1px solid #dee2e6;
+    margin: 0 2px;
+    border-radius: 4px;
+}
+.page-link:hover {
+    color: var(--brand-blue-hover);
+    background-color: #e9ecef;
+}
+.page-item.active .page-link {
+    background-color: var(--brand-blue);
+    border-color: var(--brand-blue);
+    color: var(--brand-light);
+}
+.page-item.disabled .page-link {
+    color: #6c757d;
+}
