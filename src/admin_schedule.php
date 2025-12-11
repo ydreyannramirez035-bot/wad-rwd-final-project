@@ -166,52 +166,56 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     ob_start();
     if ($totalPages > 1) {
         ?>
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center mb-0">
-                <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
-                    <a class="page-link" href="#" onclick="loadTable(<?php echo $page - 1; ?>); return false;">
-                        <i class="fa-solid fa-chevron-left"></i>
-                    </a>
-                </li>
-
-                <?php 
-                $startPage = max(1, $page - 2);
-                $endPage = min($totalPages, $page + 2);
-
-                if($startPage > 1) { 
-                    echo '<li class="page-item"><a class="page-link" href="#" onclick="loadTable(1); return false;">1</a></li>';
-                    if($startPage > 2) echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
-                }
-
-                for ($i = $startPage; $i <= $endPage; $i++): ?>
-                    <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
-                        <a class="page-link" href="#" onclick="loadTable(<?php echo $i; ?>); return false;">
-                            <?php echo $i; ?>
+        <div class="d-flex flex-column align-items-center mt-3">
+            
+            <nav aria-label="Page navigation">
+                <ul class="pagination mb-1">
+                    <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="#" onclick="loadTable(<?php echo $page - 1; ?>); return false;">
+                            <i class="fa-solid fa-chevron-left"></i>
                         </a>
                     </li>
-                <?php endfor; 
 
-                if($endPage < $totalPages) {
-                    if($endPage < $totalPages - 1) echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
-                    echo '<li class="page-item"><a class="page-link" href="#" onclick="loadTable('.$totalPages.'); return false;">'.$totalPages.'</a></li>';
-                }
-                ?>
+                    <?php 
+                    $startPage = max(1, $page - 2);
+                    $endPage = min($totalPages, $page + 2);
 
-                <li class="page-item <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
-                    <a class="page-link" href="#" onclick="loadTable(<?php echo $page + 1; ?>); return false;">
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        
-        <div class="text-center text-secondary small mt-2 mobile-hidden">
-            Showing Page <?php echo $page; ?> of <?php echo $totalPages; ?>
+                    if($startPage > 1) { 
+                        echo '<li class="page-item"><a class="page-link" href="#" onclick="loadTable(1); return false;">1</a></li>';
+                        if($startPage > 2) echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                    }
+
+                    for ($i = $startPage; $i <= $endPage; $i++): ?>
+                        <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
+                            <a class="page-link" href="#" onclick="loadTable(<?php echo $i; ?>); return false;">
+                                <?php echo $i; ?>
+                            </a>
+                        </li>
+                    <?php endfor; 
+
+                    if($endPage < $totalPages) {
+                        if($endPage < $totalPages - 1) echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                        echo '<li class="page-item"><a class="page-link" href="#" onclick="loadTable('.$totalPages.'); return false;">'.$totalPages.'</a></li>';
+                    }
+                    ?>
+
+                    <li class="page-item <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="#" onclick="loadTable(<?php echo $page + 1; ?>); return false;">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="text-secondary small mobile-hidden">
+                Showing Page <?php echo $page; ?> of <?php echo $totalPages; ?>
+            </div>
+
         </div>
         <?php
     }
     $paginationHtml = ob_get_clean();
-
+    
     // Return JSON Response
     header('Content-Type: application/json');
     echo json_encode([
