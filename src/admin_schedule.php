@@ -167,17 +167,14 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
     if ($totalPages > 1) {
         ?>
         <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-end mb-0">
-                <!-- Previous -->
+            <ul class="pagination justify-content-center mb-0">
                 <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
                     <a class="page-link" href="#" onclick="loadTable(<?php echo $page - 1; ?>); return false;">
                         <i class="fa-solid fa-chevron-left"></i>
                     </a>
                 </li>
 
-                <!-- Page Numbers -->
                 <?php 
-                // Show a limited window of pages to prevent overflow
                 $startPage = max(1, $page - 2);
                 $endPage = min($totalPages, $page + 2);
 
@@ -200,7 +197,6 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 }
                 ?>
 
-                <!-- Next -->
                 <li class="page-item <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
                     <a class="page-link" href="#" onclick="loadTable(<?php echo $page + 1; ?>); return false;">
                         <i class="fa-solid fa-chevron-right"></i>
@@ -208,9 +204,10 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 </li>
             </ul>
         </nav>
-        <span class="mobile-hidden">
+        
+        <div class="text-center text-secondary small mt-2 mobile-hidden">
             Showing Page <?php echo $page; ?> of <?php echo $totalPages; ?>
-        </span>
+        </div>
         <?php
     }
     $paginationHtml = ob_get_clean();
