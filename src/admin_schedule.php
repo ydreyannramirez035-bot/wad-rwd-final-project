@@ -362,6 +362,9 @@ if ($action === "delete") {
     <link rel="stylesheet" href="../styles/notification.css">
     <style>
         /* Custom Pagination Styles */
+        .pagination {
+            justify-content: center;
+        }
         .page-link {
             color: #333;
             border: 1px solid #dee2e6;
@@ -579,7 +582,7 @@ if ($action === "delete") {
                 </div>
 
                 <!-- Pagination Container -->
-                <div id="pagination_container" class="mt-4">
+                <div id="pagination_container" class="mt-4 mb-1 pagination">
                     <!-- Pagination injected here via JS -->
                 </div>
             </div>

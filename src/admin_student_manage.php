@@ -182,7 +182,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == '1') {
                 </li>
             </ul>
         </nav>
-        <div class="text-end text-muted small mt-1">
+        <div class="text-end text-muted small">
             Showing Page <?php echo $page; ?> of <?php echo $totalPages; ?>
         </div>
         <?php
@@ -291,6 +291,9 @@ if ($action === "delete") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         /* Custom Pagination Styles */
+        .pagination {
+            justify-content: center;
+        }
         .page-link {
             color: #333;
             border: 1px solid #dee2e6;
@@ -476,9 +479,8 @@ if ($action === "delete") {
                         </tbody>
                     </table>
                 </div>
-                
                 <!-- Pagination Container -->
-                <div id="pagination_container" class="mt-4">
+                <div id="pagination_container" class="mt-4 mb-1 pagination">
                     <!-- Pagination injected here via JS -->
                 </div>
             </div>
