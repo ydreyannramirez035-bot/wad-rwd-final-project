@@ -155,18 +155,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $action === "update") {
 if ($action === "delete") {
     $id = (int)($_GET["id"] ?? 0);
     if ($id > 0) {
-        // Step 1: Find if this student has a linked User Account
         $stmtGetUser = $db->prepare("SELECT user_id FROM students WHERE id = ?");
         $stmtGetUser->bindValue(1, $id, SQLITE3_INTEGER);
         $result = $stmtGetUser->execute()->fetchArray(SQLITE3_ASSOC);
         $linked_user_id = $result['user_id'] ?? null;
+        $db->exec("DELETE FROM notifications WHERE student_id = $id");
 
-        // Step 2: Delete the Student Profile
         $stmt = $db->prepare("DELETE FROM students WHERE id = ?");
         $stmt->bindValue(1, $id, SQLITE3_INTEGER);
         $stmt->execute();
 
-        // Step 3: If a linked User Account exists, delete it too!
         if ($linked_user_id) {
             $stmtUser = $db->prepare("DELETE FROM users WHERE id = ?");
             $stmtUser->bindValue(1, $linked_user_id, SQLITE3_INTEGER);
